@@ -260,6 +260,14 @@ dnl check for pthreads compiler flags.
 dnl
 AX_PTHREAD
 
+dnl
+dnl pkg-config
+dnl
+
+PKG_PROG_PKG_CONFIG
+if test "x${PKG_CONFIG}" = "x" ; then
+   AC_MSG_ERROR([pkg-config tool not found. Install it or set PKG_CONFIG environment variable to that path tool. Exiting...])
+fi
 
 dnl
 dnl Libtool setup

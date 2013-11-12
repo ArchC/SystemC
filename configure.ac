@@ -243,6 +243,13 @@ CC="$CXX"
 dnl libtools should be put *after* all CC options have been set
 AC_PROG_LIBTOOL
 
+dnl pkg-config
+
+PKG_PROG_PKG_CONFIG
+if test "x${PKG_CONFIG}" = "x" ; then
+   AC_MSG_ERROR([pkg-config tool not found. Install it or set PKG_CONFIG environment variable to that path tool. Exiting...])
+fi
+
 dnl
 dnl Set the default prefix and make sure the prefix is absolute.
 dnl

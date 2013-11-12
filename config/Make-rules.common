@@ -1,7 +1,7 @@
 
         DEFS = $(EXTRA_DEFINES)
 # top-level SystemC include directory is added in Make-rules.{sysc,examples}
-    INCLUDES =
+    AM_CPPFLAGS =
 MAIN_LIBRARY = libsystemc.la
 
     AM_CFLAGS=$(EXTRA_CXXFLAGS) \

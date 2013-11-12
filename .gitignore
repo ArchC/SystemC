@@ -1,0 +1,59 @@
+# NOTE! Don't add files that are generated in specific
+# subdirectories here. Add them in the ".gitignore" file
+# in that subdirectory instead.
+#
+# NOTE! Please use 'git ls-files -i --exclude-standard'
+# command after changing this file, to see if there are
+# any tracked files which get ignored after the change.
+#
+*~
+*swp
+*swo
+*.gmo
+Makefile
+Makefile.in
+tags
+.deps
+.libs
+*.exe
+*.o
+*.lo
+*.a
+*.la
+*.gcno
+*.gcda
+*.dirstamp
+/ar-lib
+/stamp-h1
+/aclocal.m4
+/autom4te.cache/
+/config.cache
+/config.guess
+/config.h
+/config.h.in
+/config.log
+/config.status
+/config.sub
+/configure
+/depcomp
+/doc/Doxyfile
+/doc/html
+/doc/latex
+/doc/man
+/install-sh
+/libtool
+/ltmain.sh
+/compile
+/test-driver
+INSTALL
+config/Make-rules.common
+config/config.guess
+config/config.sub
+config/depcomp
+config/install-sh
+config/libtool.m4
+config/ltmain.sh
+config/ltoptions.m4
+config/ltversion.m4
+config/missing
+config/test-driver

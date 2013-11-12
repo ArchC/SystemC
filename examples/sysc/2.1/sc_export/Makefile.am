@@ -42,7 +42,7 @@ TESTS = $(check_PROGRAMS)
 
 sc_export_SOURCES = $(CXX_FILES) $(H_FILES)
 
-sc_export_LDADD = -L$(prefix)/lib-$(TARGET_ARCH) -lsystemc -lm
+sc_export_LDADD = -L@libdir@ -lsystemc -lm
 
 sc_export_INSTALLS = $(sc_export_SOURCES) 
 

@@ -52,7 +52,7 @@ TESTS = $(check_PROGRAMS)
 
 pipe_SOURCES = $(CXX_FILES) $(H_FILES)
 
-pipe_LDADD = -L$(prefix)/lib-$(TARGET_ARCH) -lsystemc -lm
+pipe_LDADD = -L@libdir@ -lsystemc -lm
 
 pipe_INSTALLS = $(pipe_SOURCES) golden.log README
 

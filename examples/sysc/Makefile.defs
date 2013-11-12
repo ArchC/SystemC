@@ -3,7 +3,7 @@ SYSTEMC = ../../..
 
 
 INCDIR = -I. -I.. -I$(SYSTEMC)/include
-LIBDIR = -L. -L.. -L$(SYSTEMC)/lib-$(TARGET_ARCH)
+LIBDIR = -L. -L.. -L$(SYSTEMC)/lib
 
 LIBS   =  -lsystemc -lm $(EXTRA_LIBS)
 
@@ -12,7 +12,7 @@ EXE    = $(MODULE).x
 
 .SUFFIXES: .cc .cpp .o .x
 
-$(EXE): $(OBJS) $(SYSTEMC)/lib-$(TARGET_ARCH)/libsystemc.a 
+$(EXE): $(OBJS) $(SYSTEMC)/lib/libsystemc.a 
 	$(CC) $(CFLAGS) $(INCDIR) $(LIBDIR) -o $@ $(OBJS) $(LIBS) 2>&1 | c++filt
 
 .cpp.o:

@@ -65,7 +65,7 @@ IMAGE_FILES = \
 
 fft_SOURCES = $(CXX_FILES) $(H_FILES)
 
-fft_LDADD = -L$(prefix)/lib-$(TARGET_ARCH) -lsystemc -lm
+fft_LDADD = -L@libdir@ -lsystemc -lm
 
 check_PROGRAMS = fft
 

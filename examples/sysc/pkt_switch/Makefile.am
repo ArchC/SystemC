@@ -51,7 +51,7 @@ CXX_FILES = \
 
 pkt_switch_SOURCES = $(CXX_FILES) $(H_FILES)
 
-pkt_switch_LDADD = -L$(prefix)/lib-$(TARGET_ARCH) -lsystemc -lm
+pkt_switch_LDADD = -L@libdir@ -lsystemc -lm
 
 check_PROGRAMS = pkt_switch 
 TESTS = $(check_PROGRAMS) 

@@ -39,7 +39,7 @@ CXX_FILES = \
 
 simple_perf_SOURCES = $(CXX_FILES) $(H_FILES)
 
-simple_perf_LDADD = -L$(prefix)/lib-$(TARGET_ARCH) -lsystemc -lm
+simple_perf_LDADD = -L@libdir@ -lsystemc -lm
 
 check_PROGRAMS = simple_perf
 TESTS = $(check_PROGRAMS) 

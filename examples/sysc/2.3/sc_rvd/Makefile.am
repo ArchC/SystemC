@@ -44,7 +44,7 @@ AM_CPPFLAGS += -I../include
 
 sc_rvd_SOURCES = $(CXX_FILES) $(H_FILES)
 
-sc_rvd_LDADD = -L$(prefix)/lib-$(TARGET_ARCH) -lsystemc -lm
+sc_rvd_LDADD = -L@libdir@ -lsystemc -lm
 
 sc_rvd_INSTALLS = $(sc_rvd_SOURCES) 
 

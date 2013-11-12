@@ -43,7 +43,7 @@ TESTS = $(check_PROGRAMS)
 
 scx_barrier_SOURCES = $(CXX_FILES) $(H_FILES)
 
-scx_barrier_LDADD = -L$(prefix)/lib-$(TARGET_ARCH) -lsystemc -lm
+scx_barrier_LDADD = -L@libdir@ -lsystemc -lm
 
 scx_barrier_INSTALLS = $(scx_barrier_SOURCES) 
 

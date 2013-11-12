@@ -61,7 +61,7 @@ CXX_FILES = \
 
 simple_bus_SOURCES = $(CXX_FILES) $(H_FILES)
 
-simple_bus_LDADD = -L$(prefix)/lib-$(TARGET_ARCH) -lsystemc -lm
+simple_bus_LDADD = -L@libdir@ -lsystemc -lm
 
 check_PROGRAMS = simple_bus 
 TESTS = $(check_PROGRAMS) 

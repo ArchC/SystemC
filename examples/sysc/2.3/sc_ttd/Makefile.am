@@ -44,7 +44,7 @@ AM_CPPFLAGS += -I../include
 
 sc_ttd_SOURCES = $(CXX_FILES) $(H_FILES)
 
-sc_ttd_LDADD = -L$(prefix)/lib-$(TARGET_ARCH) -lsystemc -lm
+sc_ttd_LDADD = -L@libdir@ -lsystemc -lm
 
 sc_ttd_INSTALLS = $(sc_ttd_SOURCES) 
 

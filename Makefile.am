@@ -37,6 +37,9 @@ SUBDIRS = \
 	examples \
 	.
 
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = pc/systemc.pc
+
 INST_FILES = \
 	AUTHORS \
 	COPYING \

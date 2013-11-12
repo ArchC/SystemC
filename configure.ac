@@ -362,6 +362,8 @@ AC_SUBST(OPT_CXXFLAGS)
 AC_SUBST(TARGET_ARCH)
 AC_SUBST(QT_ARCH)
 
+AC_CONFIG_FILES([pc/systemc.pc])
+
 dnl
 dnl Create the Makefiles.
 dnl

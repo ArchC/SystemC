@@ -52,26 +52,7 @@ specialized_signals_SOURCES = $(CXX_FILES) $(H_FILES)
 
 specialized_signals_LDADD = -L@libdir@ -lsystemc -lm
 
-specialized_signals_INSTALLS = $(specialized_signals_SOURCES) 
-
-
-all:
-	@echo "To compile and run this example type"
-	@echo "   make check "
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) .
-	for file in $(specialized_signals_INSTALLS); do \
-		$(INSTALL_DATA) $(srcdir)/$$file ./$$file; \
-	done
-
-
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	for file in $(specialized_signals_INSTALLS); do \
-		rm -f ./$$file; \
-	done
+filesdir = $(datadir)/systemc/examples/sysc/2.1/specialized_signals
+files_DATA = $(specialized_signals_SOURCES)
 
 ## Taf!

@@ -54,25 +54,7 @@ pipe_SOURCES = $(CXX_FILES) $(H_FILES)
 
 pipe_LDADD = -L@libdir@ -lsystemc -lm
 
-pipe_INSTALLS = $(pipe_SOURCES) golden.log README
-
-all:
-	@echo "To compile an run this example type"
-	@echo "   make check"
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) .
-	for file in $(pipe_INSTALLS); do \
-		$(INSTALL_DATA) $(srcdir)/$$file ./$$file; \
-	done
-
-
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	for file in $(pipe_INSTALLS); do \
-		rm -f ./$$file; \
-	done
+filesdir = $(datadir)/systemc/examples/sysc/pipe
+files_DATA = $(pipe_SOURCES) golden.log README
 
 ## Taf!

@@ -71,26 +71,7 @@ check_PROGRAMS = fft
 
 TESTS= $(check_PROGRAMS)
 
-fft_INSTALLS = $(IMAGE_FILES) $(fft_SOURCES)
-
-
-all:
-	@echo "To compile and run this example type"
-	@echo "   make check "
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) .
-	for file in $(fft_INSTALLS); do \
-		$(INSTALL_DATA) $(srcdir)/$$file ./$$file; \
-	done
-
-
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	for file in $(fft_INSTALLS); do \
-		rm -f ./$$file; \
-	done
+filesdir = $(datadir)/systemc/examples/sysc/fft/fft_flpt
+files_DATA = $(IMAGE_FILES) $(fft_SOURCES)
 
 ## Taf!

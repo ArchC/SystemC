@@ -44,26 +44,7 @@ reset_signal_is_SOURCES = $(CXX_FILES) $(H_FILES)
 
 reset_signal_is_LDADD = -L@libdir@ -lsystemc -lm
 
-reset_signal_is_INSTALLS = $(reset_signal_is_SOURCES) 
-
-
-all:
-	@echo "To compile and run this example type"
-	@echo "   make check "
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) .
-	for file in $(reset_signal_is_INSTALLS); do \
-		$(INSTALL_DATA) $(srcdir)/$$file ./$$file; \
-	done
-
-
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	for file in $(reset_signal_is_INSTALLS); do \
-		rm -f ./$$file; \
-	done
+filesdir = $(datadir)/systemc/examples/sysc/2.1/reset_signal_is
+files_DATA = $(reset_signal_is_SOURCES)
 
 ## Taf!

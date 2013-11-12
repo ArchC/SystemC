@@ -42,15 +42,4 @@ SUBDIRS = \
 	scx_mutex_w_policy \
 	specialized_signals
 
-
-EXAMPLES_DIR = $(prefix)/examples/sysc/2.1
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(EXAMPLES_DIR)
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	-rmdir $(EXAMPLES_DIR)
-
 ## Taf!

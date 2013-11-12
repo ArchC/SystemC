@@ -52,7 +52,7 @@ INST_FILES = \
 # support local addition of automake macros
 ACLOCAL_AMFLAGS= -I config
 
-EXAMPLES_DIR = $(prefix)/examples/tlm
+EXAMPLES_DIR = $(datadir)/systemc/examples/tlm
 
 install-data-local:
 	@$(NORMAL_INSTALL)

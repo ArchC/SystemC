@@ -66,25 +66,8 @@ simple_bus_LDADD = -L@libdir@ -lsystemc -lm
 check_PROGRAMS = simple_bus 
 TESTS = $(check_PROGRAMS) 
 
-simple_bus_INSTALLS = $(simple_bus_SOURCES) README SLIDES.pdf LEGAL
 
-all:
-	@echo "To compile and run this example type"
-	@echo "   make check "
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) .
-	for file in $(simple_bus_INSTALLS); do \
-		$(INSTALL_DATA) $(srcdir)/$$file ./$$file; \
-	done
-
-
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	for file in $(simple_bus_INSTALLS); do \
-		rm -f ./$$file; \
-	done
+filesdir = $(datadir)/systemc/examples/sysc/simple_bus
+files_DATA = $(simple_bus_SOURCES) README SLIDES.pdf LEGAL
 
 ## Taf!

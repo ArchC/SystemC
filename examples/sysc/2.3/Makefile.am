@@ -37,14 +37,4 @@ SUBDIRS = \
 	sc_rvd \
 	sc_ttd
 
-EXAMPLES_DIR = $(prefix)/examples/sysc/2.3
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(EXAMPLES_DIR)
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	-rmdir $(EXAMPLES_DIR)
-
 ## Taf!

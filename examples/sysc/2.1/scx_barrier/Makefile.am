@@ -45,26 +45,7 @@ scx_barrier_SOURCES = $(CXX_FILES) $(H_FILES)
 
 scx_barrier_LDADD = -L@libdir@ -lsystemc -lm
 
-scx_barrier_INSTALLS = $(scx_barrier_SOURCES) 
-
-
-all:
-	@echo "To compile and run this example type"
-	@echo "   make check "
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) .
-	for file in $(scx_barrier_INSTALLS); do \
-		$(INSTALL_DATA) $(srcdir)/$$file ./$$file; \
-	done
-
-
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	for file in $(scx_barrier_INSTALLS); do \
-		rm -f ./$$file; \
-	done
+filesdir = $(datadir)/systemc/examples/sysc/2.1/scx_barrier
+files_DATA = $(scx_barrier_SOURCES)
 
 ## Taf!

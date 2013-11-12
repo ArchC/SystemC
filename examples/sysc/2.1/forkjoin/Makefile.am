@@ -44,24 +44,7 @@ forkjoin_LDADD = -L@libdir@ -lsystemc -lm
 check_PROGRAMS = forkjoin
 TESTS = $(check_PROGRAMS) 
 
-
-all:
-	@echo "To compile and run this example type"
-	@echo "   make check "
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) .
-	for file in $(forkjoin_SOURCES); do \
-		$(INSTALL_DATA) $(srcdir)/$$file ./$$file; \
-	done
-
-
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	for file in $(forkjoin_SOURCES); do \
-		rm -f ./$$file; \
-	done
+filesdir = $(datadir)/systemc/examples/sysc/2.1/forkjoin
+files_DATA = $(forkjoin_SOURCES)
 
 ## Taf!

@@ -56,25 +56,7 @@ pkt_switch_LDADD = -L@libdir@ -lsystemc -lm
 check_PROGRAMS = pkt_switch 
 TESTS = $(check_PROGRAMS) 
 
-pkt_switch_INSTALLS = $(pkt_switch_SOURCES) README
-
-all:
-	@echo "To compile and run this example type"
-	@echo "   make check "
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) .
-	for file in $(pkt_switch_INSTALLS); do \
-		$(INSTALL_DATA) $(srcdir)/$$file ./$$file; \
-	done
-
-
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	for file in $(pkt_switch_INSTALLS); do \
-		rm -f ./$$file; \
-	done
+filesdir = $(datadir)/systemc/examples/sysc/pkt_switch
+files_DATA = $(pkt_switch_SOURCES) README
 
 ## Taf!

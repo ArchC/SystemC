@@ -62,30 +62,12 @@ fir_rtl_SOURCES = $(COMMON_CXX_FILES) $(FIR_RTL_CXX_FILES) $(H_FILES)
 
 fir_rtl_LDADD = -L@libdir@ -lsystemc -lm
 
-fir_INSTALLS = \
+filesdir = $(datadir)/systemc/examples/sysc/fir
+files_DATA = \
 	$(FIR_CXX_FILES) $(COMMON_CXX_FILES) $(FIR_RTL_CXX_FILES) $(H_FILES)
 
 check_PROGRAMS = fir fir_rtl
 
 TESTS = fir fir_rtl
-
-all:
-	@echo "Use make check to compile this example"
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) .
-	for file in $(fir_INSTALLS); do \
-		$(INSTALL_DATA) $(srcdir)/$$file ./$$file; \
-	done
-
-
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	for file in $(fir_INSTALLS); do \
-		rm -f ./$$file; \
-	done
-
 
 ## Taf!

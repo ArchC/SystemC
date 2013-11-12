@@ -44,26 +44,7 @@ dpipe_SOURCES = $(CXX_FILES) $(H_FILES)
 
 dpipe_LDADD = -L@libdir@ -lsystemc -lm
 
-dpipe_INSTALLS = $(dpipe_SOURCES) 
-
-
-all:
-	@echo "To compile and run this example type"
-	@echo "   make check "
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) .
-	for file in $(dpipe_INSTALLS); do \
-		$(INSTALL_DATA) $(srcdir)/$$file ./$$file; \
-	done
-
-
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	for file in $(dpipe_INSTALLS); do \
-		rm -f ./$$file; \
-	done
+filesdir = $(datadir)/systemc/examples/sysc/2.1/dpipe
+files_DATA = $(dpipe_SOURCES)
 
 ## Taf!

@@ -44,25 +44,8 @@ simple_fifo_LDADD = -L@libdir@ -lsystemc -lm
 check_PROGRAMS = simple_fifo
 TESTS = $(check_PROGRAMS) 
 
-
-all:
-	@echo "To compile and run this example type"
-	@echo "   make check "
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) .
-	for file in $(simple_fifo_SOURCES); do \
-		$(INSTALL_DATA) $(srcdir)/$$file ./$$file; \
-	done
-
-
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	for file in $(simple_fifo_SOURCES); do \
-		rm -f ./$$file; \
-	done
+filesdir = $(datadir)/systemc/examples/sysc/simple_fifo
+files_DATA = $(simple_fifo_SOURCES)
 
 
 ## Taf!

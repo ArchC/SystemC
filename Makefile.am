@@ -57,10 +57,10 @@ install-data-local:
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
 	    test -d $(prefix)/$$file \
-	    || cp -pr $$d/$$file $(prefix) || :; \
+	    || cp -pr $$d/$$file $(datadir) || :; \
 	  else \
 	    test -f $(prefix)/$$file \
-	    || cp -p $$d/$$file $(prefix)/$$file || :; \
+	    || cp -p $$d/$$file $(datadir)/$$file || :; \
 	  fi; \
 	done
 #@(cd ./examples; $(MAKE) install;)
@@ -72,9 +72,9 @@ uninstall-local:
 	  for file in $(INST_FILES); do \
 	    d=$(srcdir); \
 	    if test -d $$d/$$file; then \
-	      rm -rf $(prefix)/$$file; \
+	      rm -rf $(datadir)/$$file; \
 	    else \
-	      rm -f $(prefix)/$$file; \
+	      rm -f $(datadir)/$$file; \
 	    fi; \
 	  done; \
 	fi

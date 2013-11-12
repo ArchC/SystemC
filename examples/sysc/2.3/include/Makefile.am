@@ -38,25 +38,7 @@ H_FILES = \
 	sc_rvd.h \
 	sc_ttd.h
 
-noinst_HEADERS = $(H_FILES) 
-
-INCLUDE_DIR = $(prefix)/examples/sysc/2.3/include
-
-all:
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) .
-	for file in $(noinst_HEADERS); do \
-		$(INSTALL_DATA) $(srcdir)/$$file ./$$file; \
-	done
-
-
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	for file in $(noinst_HEADERS); do \
-		rm -f ./$$file; \
-	done
+filesdir = $(datadir)/systemc/examples/sysc/2.3/include
+files_DATA = $(H_FILES)
 
 ## Taf!

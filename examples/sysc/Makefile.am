@@ -44,14 +44,4 @@ SUBDIRS = \
 	2.1 \
 	2.3
 
-EXAMPLES_DIR = $(prefix)/examples/sysc
-
-install-data-local:
-	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(EXAMPLES_DIR)
-
-uninstall-local:
-	@$(NORMAL_UNINSTALL)
-	-rmdir $(EXAMPLES_DIR)
-
 ## Taf!

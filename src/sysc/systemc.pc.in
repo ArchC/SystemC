@@ -24,10 +24,9 @@
 #
 # -------------------------------------------------------------------------
 #
-TARGET_ARCH=@TARGET_ARCH@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
-libarchdir=@libdir@@LIB_ARCH_SUFFIX@
+libarchdir=@libdir@
 includedir=@includedir@
 
 Name: @PACKAGE_NAME@

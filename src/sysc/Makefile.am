@@ -53,7 +53,7 @@ CXX_FILES =
 localincludedir = $(includedir)/sysc
 nobase_localinclude_HEADERS = $(H_FILES)
 
-libarchdir = $(libdir)$(LIB_ARCH_SUFFIX)
+libarchdir = $(libdir)
 libarch_LTLIBRARIES = libsystemc.la
 
 pkgconfigdir = $(libarchdir)/pkgconfig

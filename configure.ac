@@ -317,13 +317,9 @@ dnl
 dnl Setup "classic" installation layout, if not overridden
 dnl
 rootdocdir='${docdir}'
-if test $sysc_install_layout = Unix ; then
-
-  dnl Automake/GNU/Unix defaults are kept,
-  dnl but default library architecture suffix cleared
-  LIB_ARCH_SUFFIX=''
-
-else dnl classic/ignored (if not explicitly given)
+dnl Automake/GNU/Unix defaults are kept,
+dnl but default library architecture suffix cleared
+if test $sysc_install_layout != Unix ; then dnl classic/ignored (if not explicitly given)
 
   sysc_install_layout=classic
   if test x$datarootdir = x'${prefix}/share' ; then
@@ -339,14 +335,11 @@ else dnl classic/ignored (if not explicitly given)
     rootdocdir='${prefix}'
   fi
 
-  dnl default library arch suffix is target arch
-  LIB_ARCH_SUFFIX='-${TARGET_ARCH}'
-
 fi
 
 AC_SUBST([rootdocdir])
 AC_SUBST([examplesdir], ['${rootdocdir}/examples'] )
-AC_SUBST([libarchdir],  ['${libdir}${LIB_ARCH_SUFFIX}'] )
+AC_SUBST([libarchdir],  ['${libdir}'] )
 
 AM_CONDITIONAL([SEPARATE_INSTALL_TREE],
   [ test "x${prefix}" != "x${abs_srcdir}" ])
@@ -361,27 +354,6 @@ if test -z "${SEPARATE_BUILD_TREE_TRUE}" ; then
   fi
 fi
 #])
-
-dnl
-dnl handle library arch suffix
-dnl
-AC_MSG_CHECKING([for SystemC library arch suffix])
-AC_ARG_WITH([arch-suffix],
-  [AS_HELP_STRING([--with-arch-suffix],
-                  [add suffix to library installation directory
-                   @<:@default=-<target-arch>@:>@])],
-  [case "x$withval" in
-     xyes)  with_arch_suffix=yes
-            LIB_ARCH_SUFFIX='-${TARGET_ARCH}'
-            ;;
-     xno|x) with_arch_suffix=no
-            LIB_ARCH_SUFFIX=""
-            ;;
-     *)     LIB_ARCH_SUFFIX="${withval}" ;;
-   esac],
-  [with_arch_suffix=default]
-) # AC_ARG_WITH arch-suffix
-AC_MSG_RESULT($with_arch_suffix (TARGET_ARCH=${TARGET_ARCH}))
 
 dnl
 dnl add debugging symbols to library
@@ -561,7 +533,6 @@ AC_SUBST(LDFLAG_RPATH)
 AC_SUBST(DEBUG_CXXFLAGS)
 AC_SUBST(OPT_CXXFLAGS)
 AC_SUBST(TARGET_ARCH)
-AC_SUBST(LIB_ARCH_SUFFIX)
 AC_SUBST(QT_ARCH)
 
 dnl
@@ -610,7 +581,7 @@ prefix='<SYSTEMC_HOME>' dnl replace for printing
 dnl ... resolve aliases
 eval "sysc_includedir=\"${includedir}\""
 eval "sysc_includedir=\"${sysc_includedir}\""
-eval "sysc_libdir=\"${libdir}${LIB_ARCH_SUFFIX}\""
+eval "sysc_libdir=\"${libdir}\""
 eval "sysc_libdir=\"${sysc_libdir}\""
 eval "sysc_docdir=\"${docdir}\""
 eval "sysc_docdir=\"${sysc_docdir}\""

@@ -78,12 +78,12 @@ VERSION = @VERSION@
 
 noinst_LIBRARIES = libint.a
 
-H_FILES =  	sc_bigint.h 	sc_biguint.h 	sc_int.h 	sc_nbdefs.h 	sc_nbexterns.h 	sc_nbutils.h 	sc_signed.h 	sc_uint.h 	sc_unsigned.h
+H_FILES =  	sc_bigint.h 	sc_biguint.h 	sc_int.h 	sc_int_base.h 	sc_int_ids.h 	sc_length_param.h 	sc_nbdefs.h 	sc_nbexterns.h 	sc_nbutils.h 	sc_signed.h 	sc_uint.h 	sc_uint_base.h 	sc_unsigned.h
 
 
 noinst_HEADERS = $(H_FILES)
 
-CXX_FILES =  	sc_int.cpp 	sc_int32_mask.cpp         sc_int64_io.cpp 	sc_int64_mask.cpp 	sc_nbdefs.cpp 	sc_nbexterns.cpp 	sc_nbutils.cpp 	sc_signed.cpp 	sc_uint.cpp 	sc_unsigned.cpp
+CXX_FILES =  	sc_int_base.cpp 	sc_int32_mask.cpp         sc_int64_io.cpp 	sc_int64_mask.cpp 	sc_int_ids.cpp 	sc_length_param.cpp 	sc_nbdefs.cpp 	sc_nbexterns.cpp 	sc_nbutils.cpp 	sc_signed.cpp 	sc_uint_base.cpp 	sc_unsigned.cpp
 
 
 libint_a_SOURCES = $(H_FILES) $(CXX_FILES) 
@@ -99,9 +99,9 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libint_a_LIBADD = 
-libint_a_OBJECTS =  sc_int.o sc_int32_mask.o sc_int64_io.o \
-sc_int64_mask.o sc_nbdefs.o sc_nbexterns.o sc_nbutils.o sc_signed.o \
-sc_uint.o sc_unsigned.o
+libint_a_OBJECTS =  sc_int_base.o sc_int32_mask.o sc_int64_io.o \
+sc_int64_mask.o sc_int_ids.o sc_length_param.o sc_nbdefs.o \
+sc_nbexterns.o sc_nbutils.o sc_signed.o sc_uint_base.o sc_unsigned.o
 AR = ar
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)

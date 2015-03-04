@@ -124,8 +124,8 @@ if any are needed.
 
 Compiler issues:
 1. Partial template specialization to support return types of
-void works with GNU 2.95.2 C++ and HP aCC A.3.31 compilers 
-but not with Sun CC 6.1 compiler.
+void works with GNU 2.95.3 C++ and HP aCC A.03.33 compilers 
+but not with Sun SC 6.1 and SC 6.2 compilers.
 
 2. Spawned functions or methods can be overloaded with GNU C++, but
 other compilers can't handle this yet.

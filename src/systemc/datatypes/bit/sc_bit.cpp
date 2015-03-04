@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -35,305 +35,68 @@
 
 
 #include "systemc/datatypes/bit/sc_bit.h"
-#include "systemc/utils/sc_exception.h"
+#include "systemc/datatypes/bit/sc_bit_ids.h"
+#include "systemc/datatypes/bit/sc_logic.h"
+
+#include <stdio.h>
 
 
-bool
-sc_bit::from_int( int r )
+namespace sc_dt
 {
-    if( r != 0 && r != 1 ) {
-	REPORT_ERROR( 1006, "sc_bit" );
-    }
-    return ( r == 0 ? false : true );
-}
 
-bool
-sc_bit::from_char( char r )
-{
-    if( r != '0' && r != '1' ) {
-	REPORT_ERROR( 1006, "sc_bit" );
-    }
-    return ( r == '0' ? false : true );
-}
+// ----------------------------------------------------------------------------
+//  CLASS : sc_bit
+//
+//  Bit class.
+//  Note: VSIA compatibility indicated.
+// ----------------------------------------------------------------------------
 
+// support methods
 
 void
-sc_bit::print( ostream& os ) const
+sc_bit::invalid_value( char c )
 {
-    os << to_char();
+    char msg[BUFSIZ];
+    sprintf( msg, "sc_bit( '%c' )", c );
+    SC_REPORT_ERROR( SC_ID_VALUE_NOT_VALID_, msg );
+}
+
+void
+sc_bit::invalid_value( int i )
+{
+    char msg[BUFSIZ];
+    sprintf( msg, "sc_bit( %d )", i );
+    SC_REPORT_ERROR( SC_ID_VALUE_NOT_VALID_, msg );
 }
 
 
-// operators
+// constructors
 
-// relational operators
+sc_bit::sc_bit( const sc_logic& a )  // non-VSIA
+    : m_val( a.to_bool() )
+{}
 
-// MANDATORY
 
-/// #if !defined(__GNUC__)
+// assignment operators
 
-bool
-operator == ( const sc_bit& a, const sc_bit& b )
+sc_bit&
+sc_bit::operator = ( const sc_logic& b )  // non-VSIA
 {
-    return (bool) a == (bool) b;
-}
-
-bool
-operator == ( const sc_bit& a, int i )
-{
-    return (int) a == i;
-}
-
-bool
-operator == ( const sc_bit& a, bool b )
-{
-    return (bool) a == b;
-}
-
-bool
-operator == ( const sc_bit& a, char c )
-{
-    return (int) a == (int) (c-'0');
-}
-
-bool
-operator == ( int i, const sc_bit& a )
-{
-    return a == i;
-}
-
-bool
-operator == ( bool b, const sc_bit& a )
-{
-    return a == b;
-}
-
-bool
-operator == ( char c, const sc_bit& a )
-{
-    return a == c;
+    return ( *this = sc_bit( b ) );
 }
 
 
-// MANDATORY
+// other methods
 
-bool
-operator != ( const sc_bit& a, const sc_bit& b )
+void
+sc_bit::scan( istream& is )
 {
-    return (bool) a != (bool) b;
+    bool b;
+    is >> b;
+    *this = b;
 }
 
-bool
-operator != ( const sc_bit& a, int i )
-{
-    return (int) a != i;
-}
-
-bool
-operator != ( const sc_bit& a, bool b )
-{
-    return (bool) a!= b;
-}
-
-bool
-operator != ( const sc_bit& a, char c )
-{
-    return (int) a != (int) (c-'0');
-}
-
-bool
-operator != ( int i, const sc_bit& a )
-{
-    return a != i;
-}
-
-bool
-operator != ( bool b, const sc_bit& a )
-{
-    return a != b;
-}
-
-bool
-operator != ( char c, const sc_bit& a )
-{
-    return a != c;
-}
+} // namespace sc_dt
 
 
-// bitwise operators and functions
-
-// bitwise complement
-
-// MANDATORY
-
-const sc_bit
-operator ~ ( const sc_bit& a )
-{
-    sc_bit result( a );
-    result.m_val = !result.m_val;
-    return result;
-}
-
-
-// bitwise or
-
-// MANDATORY
-
-const sc_bit
-operator | ( const sc_bit& a, const sc_bit& b )
-{
-    sc_bit result( a );
-    return result |= b;
-}
-
-const sc_bit
-operator | ( const sc_bit& a, int i )
-{
-    sc_bit result( a );
-    return result |= i;
-}
-
-const sc_bit
-operator | ( const sc_bit& a, bool b )
-{
-    sc_bit result( a );
-    return result |= b;
-}
-
-const sc_bit
-operator | ( const sc_bit& a, char c )
-{
-    sc_bit result( a );
-    return result |= c;
-}
-
-const sc_bit
-operator | ( int i, const sc_bit& a )
-{
-    sc_bit result( a );
-    return result |= i;
-}
-
-const sc_bit
-operator | ( bool b, const sc_bit& a )
-{
-    sc_bit result( a );
-    return result |= b;
-}
-
-const sc_bit
-operator | ( char c, const sc_bit& a )
-{
-    sc_bit result( a );
-    return result |= c;
-}
-
-
-// bitwise and
-
-// MANDATORY
-
-const sc_bit
-operator & ( const sc_bit& a, const sc_bit& b )
-{
-    sc_bit result( a );
-    return result &= b;
-}
-
-const sc_bit
-operator & ( const sc_bit& a, int i )
-{
-    sc_bit result( a );
-    return result &= i;
-}
-
-const sc_bit
-operator & ( const sc_bit& a, bool b )
-{
-    sc_bit result( a );
-    return result &= b;
-}
-
-const sc_bit
-operator & ( const sc_bit& a, char c )
-{
-    sc_bit result( a );
-    return result &= c;
-}
-
-const sc_bit
-operator & ( int i, const sc_bit& a )
-{
-    sc_bit result( a );
-    return result &= i;
-}
-
-const sc_bit
-operator & ( bool b, const sc_bit& a )
-{
-    sc_bit result( a );
-    return result &= b;
-}
-
-const sc_bit
-operator & ( char c, const sc_bit& a )
-{
-    sc_bit result( a );
-    return result &= c;
-}
-
-
-// bitwise exor
-
-// MANDATORY
-
-const sc_bit
-operator ^ ( const sc_bit& a, const sc_bit& b )
-{
-    sc_bit result( a );
-    return result ^= b;
-}
-
-const sc_bit
-operator ^ ( const sc_bit& a, int i )
-{
-    sc_bit result( a );
-    return result &= i;
-}
-
-const sc_bit
-operator ^ ( const sc_bit& a, bool b )
-{
-    sc_bit result( a );
-    return result ^= b;
-}
-
-const sc_bit
-operator ^ ( const sc_bit& a, char c )
-{
-    sc_bit result( a );
-    return result ^= c;
-}
-
-const sc_bit
-operator ^ ( int i, const sc_bit& a )
-{
-    sc_bit result( a );
-    return result ^= i;
-}
-
-const sc_bit
-operator ^ ( bool b, const sc_bit& a )
-{
-    sc_bit result( a );
-    return result ^= b;
-}
-
-const sc_bit
-operator ^ ( char c, const sc_bit& a )
-{
-    sc_bit result( a );
-    return result ^= c;
-}
-
-/// #endif
+// Taf!

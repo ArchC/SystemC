@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -36,7 +36,8 @@
 #ifndef SC_IOSTREAM_H
 #define SC_IOSTREAM_H
 
-#if ! defined( _MSC_VER ) && ! defined( __HP_aCC )
+
+#if !defined( _MSC_VER ) && !defined( __HP_aCC ) && !defined( __BORLANDC__ )
 
 #include <iostream>
 #include <strstream>
@@ -56,7 +57,14 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::flush;
+using std::dec;
 using std::hex;
+using std::oct;
+
+#include <fstream>
+using std::fstream;
+using std::ifstream;
+using std::ofstream;
 
 #include <cstddef>
 using std::size_t;
@@ -84,8 +92,8 @@ using std::strtok;
 
 #else
 
-#if defined( SC_VC6_SCL )
-// VC6 with standard library
+#if defined( _MSC_VER )
+// VC++6 with standard library
 
 #include <iostream>
 #include <strstream>
@@ -105,25 +113,25 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::flush;
+using std::dec;
 using std::hex;
+using std::oct;
+
+#include <fstream>
+using std::fstream;
+using std::ifstream;
+using std::ofstream;
 
 #include <cstddef>
-using std::size_t;
 
 #else
 
 #if defined( __HP_aCC )
 // HP aCC
 
-#define _INCLUDE_LONGLONG
 #include <iostream.h>
 #include <strstream.h>
-
-#else
-// VC6 with old library
-
-#include <iostream.h>
-#include <strstrea.h>
+#include <fstream.h>
 
 #endif
 

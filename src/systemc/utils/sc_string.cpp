@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -42,7 +42,7 @@
 
 #include "systemc/utils/sc_iostream.h"
 #include "systemc/utils/sc_string.h"
-#include "systemc/utils/sc_exception.h"
+#include "systemc/utils/sc_utils_ids.h"
 
 
 inline int
@@ -51,7 +51,54 @@ sc_roundup( int n, int m )
     return ((n - 1) / m + 1) * m;
 }
 
-class sc_string_rep {
+
+// ----------------------------------------------------------------------------
+//  ENUM : sc_numrep
+//
+//  Enumeration of number representations for character string conversion.
+// ----------------------------------------------------------------------------
+
+const sc_string
+to_string( sc_numrep numrep )
+{
+    switch( numrep )
+    {
+        case SC_DEC:
+	    return sc_string( "SC_DEC" );
+        case SC_BIN:
+	    return sc_string( "SC_BIN" );
+        case SC_BIN_US:
+	    return sc_string( "SC_BIN_US" );
+        case SC_BIN_SM:
+	    return sc_string( "SC_BIN_SM" );
+        case SC_OCT:
+	    return sc_string( "SC_OCT" );
+        case SC_OCT_US:
+	    return sc_string( "SC_OCT_US" );
+        case SC_OCT_SM:
+	    return sc_string( "SC_OCT_SM" );
+        case SC_HEX:
+	    return sc_string( "SC_HEX" );
+        case SC_HEX_US:
+	    return sc_string( "SC_HEX_US" );
+        case SC_HEX_SM:
+	    return sc_string( "SC_HEX_SM" );
+        case SC_CSD:
+	    return sc_string( "SC_CSD" );
+	default:
+	    return sc_string( "unknown" );
+    }
+}
+
+
+// ----------------------------------------------------------------------------
+//  CLASS : sc_string_rep
+//
+//  Reference counting string implementation class.
+// ----------------------------------------------------------------------------
+
+class sc_string_rep
+{
     friend class sc_string;
     friend ostream& operator<<( ostream&, const sc_string& );
     friend istream& operator>>( istream&, sc_string& );
@@ -64,6 +111,7 @@ class sc_string_rep {
         str = new char[alloc];
         *str = '\0';
     }
+
     sc_string_rep( const char* s )
     {
         ref_count = 1;
@@ -76,7 +124,9 @@ class sc_string_rep {
             str = strcpy( new char[alloc], "" );
         }
     }
+
     sc_string_rep( const char* s, int n); // get first n chars from the string
+
     ~sc_string_rep()
     {
         assert( ref_count == 0 );
@@ -90,6 +140,9 @@ class sc_string_rep {
     int alloc;
     char* str;
 };
+
+
+// IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
 sc_string_rep::sc_string_rep( const char* s, int n)
 {
@@ -123,25 +176,34 @@ sc_string_rep::set_string( const char* s )
     strcpy( str, s );
 }
 
-sc_string::sc_string(int size)
+
+// ----------------------------------------------------------------------------
+//  CLASS : sc_string
+//
+//  String class (yet another).
+// ----------------------------------------------------------------------------
+
+// constructors
+
+sc_string::sc_string( int size )
 {
-    rep = new sc_string_rep(size);
+    rep = new sc_string_rep( size );
 }
 
 sc_string::sc_string( const char* s )
 {
-    rep = new sc_string_rep(s);
+    rep = new sc_string_rep( s );
 }
 
 sc_string::sc_string( const char* s, int n )
 {
-    rep = new sc_string_rep(s,n);
+    rep = new sc_string_rep( s, n );
 }
 
 sc_string::sc_string( const sc_string& s )
 {
     rep = s.rep;
-    rep->ref_count++;
+    rep->ref_count ++;
 }
 
 sc_string::sc_string( sc_string_rep* r )
@@ -149,11 +211,16 @@ sc_string::sc_string( sc_string_rep* r )
     rep = r;
 }
 
+
+// destructor
+
 sc_string::~sc_string()
 {
-    if (--(rep->ref_count) == 0)
+    if( -- (rep->ref_count) == 0 ) {
         delete rep;
+    }
 }
+
 
 int
 sc_string::length() const
@@ -170,6 +237,7 @@ sc_string::operator+( const char* s ) const
     strcpy( r->str + len, s );
     return sc_string(r);
 }
+
 sc_string sc_string::operator+(char c) const
 {
     int len = length();
@@ -383,7 +451,7 @@ sc_string sc_string::to_string(const char* format, ...)
      if(cnt>=buf_size)
      {
        // string is longer the the maximum buffer size (max_size)
-       REPORT_WARNING(1009,"truncated");
+       SC_REPORT_WARNING( SC_ID_STRING_TOO_LONG_, "truncated" );
        buf[buf_size-1] = 000;
      }
      result = buf;
@@ -399,7 +467,8 @@ sc_string sc_string::to_string(const char* format, ...)
    }
    catch(...)
    {
-     REPORT_WARNING(1009,"program may become unstable");
+     SC_REPORT_WARNING( SC_ID_STRING_TOO_LONG_,
+			"program may become unstable" );
    }
    buffer[1023]=000; // in case it's longer
    result = buffer;
@@ -410,60 +479,59 @@ sc_string sc_string::to_string(const char* format, ...)
 }
 
 void
-sc_string::print(ostream& os) const
+sc_string::print( ostream& os ) const
 {
     os << rep->str;
 }
 
-// ----------------------------------------------------------------------------
 void sc_string::test(int position)const
 {
 	if(position<0 || position>=length())
-		REPORT_ERROR(1000,"sc_string::test");
+		SC_REPORT_ERROR( SC_ID_OUT_OF_BOUNDS_, "sc_string::test" );
 }
-// ----------------------------------------------------------------------------
 
-	// TODO: conveniece formatting functions for common types
-	//       e.g. sc_string("a=%d, s is %s").fmt(1).fmt("string")
-	//       should produce a=1, s is string
-	//       it should be safe: if less arguments specified
-	//       it should print %specifier; extra arguments should be ignored
-	//       if the type of the argument is incompatible with format 
-	//       specifier it should be ignored
-	//
-// ----------------------------------------------------------------------------
-unsigned sc_string::fmt_length()const
+// TODO: conveniece formatting functions for common types
+//       e.g. sc_string("a=%d, s is %s").fmt(1).fmt("string")
+//       should produce a=1, s is string
+//       it should be safe: if less arguments specified
+//       it should print %specifier; extra arguments should be ignored
+//       if the type of the argument is incompatible with format 
+//       specifier it should be ignored
+//
+
+unsigned
+sc_string::fmt_length()const
 {
-	unsigned result=0;
-	if((*this)[0]!='%')
-		return 0;
-	else
-		result++;
-	if(is_delimiter("-+0 #",result)) // flags
-		result++;
-	while(is_delimiter("0123456789*",result)) // width
-		result++;
-	if(rep->str[result]=='.') // precision
-	{
-		result++;
-		unsigned old_result = result;
-		while(is_delimiter("0123456789*",result)) result++;
-		if(old_result == result) //error in format
-			return 0;
-	}
-	if(is_delimiter("hlL",result)) result++; // I64 is not supported
-	if(is_delimiter("cCdiouxXeEfgGnpsS",result)) 
-		result++;
-	else // error in format
+    unsigned result=0;
+    if((*this)[0]!='%')
+	return 0;
+    else
+	result++;
+    if(is_delimiter("-+0 #",result)) // flags
+	result++;
+    while(is_delimiter("0123456789*",result)) // width
+	result++;
+    if(rep->str[result]=='.') // precision
+    {
+	result++;
+	unsigned old_result = result;
+	while(is_delimiter("0123456789*",result)) result++;
+	if(old_result == result) //error in format
 	    return 0;
+    }
+    if(is_delimiter("hlL",result)) result++; // I64 is not supported
+    if(is_delimiter("cCdiouxXeEfgGnpsS",result)) 
+	result++;
+    else // error in format
+	return 0;
     return result;
 }
-// ----------------------------------------------------------------------------
-sc_string& sc_string::fmt(const sc_string& s)
+
+sc_string&
+sc_string::fmt(const sc_string& s)
 {
-	return fmt(s.c_str());
+    return fmt(s.c_str());
 }
-// ----------------------------------------------------------------------------
 
 int
 sc_string::pos( const sc_string& sub_string ) const
@@ -487,135 +555,97 @@ sc_string::pos( const sc_string& sub_string ) const
     }
 }
 
-// ----------------------------------------------------------------------------
-sc_string& sc_string::remove(unsigned index, unsigned length)
+sc_string&
+sc_string::remove(unsigned index, unsigned length)
 {
-	test((int)index);
-	if(length!=0)
-	 (*this) = substr(0,index-1) + substr(index+length,this->length()-1);
-	return *this;
+    test((int)index);
+    if(length!=0)
+	(*this) = substr(0,index-1) + substr(index+length,this->length()-1);
+    return *this;
 }
-// ----------------------------------------------------------------------------
-sc_string& sc_string::insert(const sc_string& sub_string, unsigned index)
+
+sc_string&
+sc_string::insert(const sc_string& sub_string, unsigned index)
 {
     if(index>(unsigned)length())   
-		REPORT_ERROR(1000,"sc_string::insert");
-	return (*this) = substr(0,index-1)+sub_string+substr(index,length()-1);
+	SC_REPORT_ERROR( SC_ID_OUT_OF_BOUNDS_, "sc_string::insert" );
+    return (*this) = substr(0,index-1)+sub_string+substr(index,length()-1);
 }
-// ----------------------------------------------------------------------------
-bool sc_string::is_delimiter(const sc_string& str, unsigned index)const
+
+bool
+sc_string::is_delimiter(const sc_string& str, unsigned index)const
 {
-	test((int)index);
-	return str.contains(rep->str[index]);
+    test((int)index);
+    return str.contains(rep->str[index]);
 }
-// ----------------------------------------------------------------------------
-bool sc_string::contains(char c)const
+
+bool
+sc_string::contains(char c)const
 {
-	int len = length();
-	int i=0;
-	bool found = false;
-	while(!found && i<len)
-		found = rep->str[i++]==c;
-	return found;
+    int len = length();
+    int i=0;
+    bool found = false;
+    while(!found && i<len)
+	found = rep->str[i++]==c;
+    return found;
 }
-// ----------------------------------------------------------------------------
-sc_string sc_string::uppercase()const
+
+sc_string
+sc_string::uppercase()const
 {
-	int len = length();
-	sc_string temp(*this);
-	for(int i=0; i<len; i++)
-	{
-	  char c = temp.rep->str[i];
-	  if(c>='a' && c<='z')
-		  temp.rep->str[i] = static_cast<char>( c-20 );
-	}
-	return temp;
+    int len = length();
+    sc_string temp(*this);
+    for(int i=0; i<len; i++)
+    {
+	char c = temp.rep->str[i];
+	if(c>='a' && c<='z')
+	    temp.rep->str[i] = static_cast<char>( c-20 );
+    }
+    return temp;
 }
-// ----------------------------------------------------------------------------
-sc_string sc_string::lowercase()const
+
+sc_string
+sc_string::lowercase()const
 {
-	int len = length();
-	sc_string temp(*this);
-	for(int i=0; i<len; i++)
-	{
-	  char c = temp.rep->str[i];
-	  if(c>='A' && c<='Z')
-		  temp.rep->str[i] = static_cast<char>( c+20 );
-	}
-	return temp;
+    int len = length();
+    sc_string temp(*this);
+    for(int i=0; i<len; i++)
+    {
+	char c = temp.rep->str[i];
+	if(c>='A' && c<='Z')
+	    temp.rep->str[i] = static_cast<char>( c+20 );
+    }
+    return temp;
 }
-// ----------------------------------------------------------------------------
 
 
-/*---------------------------------------------------------------------------*/
-
-ostream&
-operator<<( ostream& os, const sc_string& s )
-{
-    return os << s.rep->str;
-}
+// ----------------------------------------------------------------------------
 
 istream&
-operator>>( istream& is, sc_string& s )
+operator >> ( istream& is, sc_string& s )
 {
-    if (s.rep->ref_count > 1) {
-        --s.rep->ref_count;
+    if( s.rep->ref_count > 1 ) {
+        -- s.rep->ref_count;
         s.rep = new sc_string_rep;
     }
+
     int i = 0;
     char* p = s.rep->str;
-    char ch;
+    char c;
 
-        /* skip white spaces */
-    while (is.get(ch) && isspace(ch))
+    // skip white spaces
+    while( is.get( c ) && isspace( c ) )
         ;
 
-    for ( ; is.good() && !isspace(ch); is.get(ch)) {
-        if (i > s.rep->alloc - 2) {
+    for( ; is.good() && ! isspace( c ); is.get( c ) ) {
+        if( i > s.rep->alloc - 2 ) {
             s.rep->resize( (int) (s.rep->alloc * 1.5) );
             p = s.rep->str + i;
         }
-        *p++ = ch;
-        i++;
+        *p ++ = c;
+        i ++;
     }
     *p = '\0';
+
     return is;
-}
-
-// ----------------------------------------------------------------------------
-//  ENUM : sc_numrep
-//
-//  Enumeration of number representations for character string conversion.
-// ----------------------------------------------------------------------------
-
-const sc_string
-to_string( sc_numrep numrep )
-{
-    switch( numrep )
-    {
-        case SC_DEC:
-	    return sc_string( "SC_DEC" );
-        case SC_BIN:
-	    return sc_string( "SC_BIN" );
-        case SC_BIN_US:
-	    return sc_string( "SC_BIN_US" );
-        case SC_BIN_SM:
-	    return sc_string( "SC_BIN_SM" );
-        case SC_OCT:
-	    return sc_string( "SC_OCT" );
-        case SC_OCT_US:
-	    return sc_string( "SC_OCT_US" );
-        case SC_OCT_SM:
-	    return sc_string( "SC_OCT_SM" );
-        case SC_HEX:
-	    return sc_string( "SC_HEX" );
-        case SC_HEX_US:
-	    return sc_string( "SC_HEX_US" );
-        case SC_HEX_SM:
-	    return sc_string( "SC_HEX_SM" );
-        case SC_CSD:
-	    return sc_string( "SC_CSD" );
-	default:
-	    return sc_string( "unknown" );
-    }
 }

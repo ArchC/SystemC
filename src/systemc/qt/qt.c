@@ -34,11 +34,17 @@ qt_vargs (qt_t *sp, int nbytes, void *vargs,
 }
 #endif /* def QT_VARGS_DEFAULT */
 
+#ifdef __cplusplus
+extern "C"
+#endif
   void
 qt_null (void)
 {
 }
 
+#ifdef __cplusplus
+extern "C"
+#endif
   void
 qt_error (void)
 {

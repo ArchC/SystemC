@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -36,11 +36,12 @@
 #ifndef SC_FIFO_H
 #define SC_FIFO_H
 
+
+#include "systemc/communication/sc_communication_ids.h"
 #include "systemc/communication/sc_prim_channel.h"
 #include "systemc/communication/sc_fifo_ifs.h"
 #include "systemc/kernel/sc_event.h"
 #include "systemc/kernel/sc_simcontext.h"
-#include "systemc/utils/sc_exception.h"
 #include "systemc/utils/sc_string.h"
 #include "systemc/tracing/sc_trace.h"
 #include <typeinfo>
@@ -89,9 +90,17 @@ public:
     // non-blocking read
     virtual bool nb_read( T& );
 
+
     // get the number of available samples
+
     virtual int num_available() const
 	{ return ( m_num_readable - m_num_read ); }
+
+
+    // get the data written event
+
+    virtual const sc_event& data_written_event() const
+	{ return m_data_written_event; }
 
 
     // blocking write
@@ -100,9 +109,17 @@ public:
     // non-blocking write
     virtual bool nb_write( const T& );
 
+
     // get the number of free spaces
+
     virtual int num_free() const
 	{ return ( m_size - m_num_readable - m_num_written ); }
+
+
+    // get the data read event
+
+    virtual const sc_event& data_read_event() const
+	{ return m_data_read_event; }
 
 
     // other methods
@@ -181,13 +198,13 @@ sc_fifo<T>::register_port( sc_port_base& port_,
     if( nm == typeid( sc_fifo_in_if<T> ).name() ) {
 	// only one reader can be connected
 	if( m_reader != 0 ) {
-	    REPORT_ERROR( 7011, "" );
+	    SC_REPORT_ERROR( SC_ID_MORE_THAN_ONE_FIFO_READER_, 0 );
 	}
 	m_reader = &port_;
     } else {  // nm == typeid( sc_fifo_out_if<T> ).name()
 	// only one writer can be connected
 	if( m_writer != 0 ) {
-	    REPORT_ERROR( 7012, "" );
+	    SC_REPORT_ERROR( SC_ID_MORE_THAN_ONE_FIFO_WRITER_, 0 );
 	}
 	m_writer = &port_;
     }
@@ -201,7 +218,7 @@ inline
 void
 sc_fifo<T>::read( T& val_ )
 {
-    if( num_available() == 0 ) {
+    while( num_available() == 0 ) {
 	wait( m_data_written_event );
     }
     m_num_read ++;
@@ -243,7 +260,7 @@ inline
 void
 sc_fifo<T>::write( const T& val_ )
 {
-    if( num_free() == 0 ) {
+    while( num_free() == 0 ) {
 	wait( m_data_read_event );
     }
     m_num_written ++;
@@ -273,12 +290,14 @@ inline
 void
 sc_fifo<T>::trace( sc_trace_file* tf ) const
 {
+#ifdef DEBUG_SYSTEMC
     char buf[32];
     sc_string nm = name();
     for( int i = 0; i < m_size; ++ i ) {
 	sprintf( buf, "_%d", i );
 	::sc_trace( tf, m_buf[i], nm + buf );
     }
+#endif
 }
 
 
@@ -357,7 +376,7 @@ void
 sc_fifo<T>::buf_init( int size_ )
 {
     if( size_ <= 0 ) {
-	REPORT_ERROR( 7013, "" );
+	SC_REPORT_ERROR( SC_ID_INVALID_FIFO_SIZE_, 0 );
     }
     m_size = size_;
     m_buf = new T[m_size];

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -40,7 +40,7 @@
 #include "systemc/utils/sc_iostream.h"
 #include "systemc/utils/sc_list.h"
 #include "systemc/utils/sc_mempool.h"
-#include "systemc/utils/sc_exception.h"
+#include "systemc/utils/sc_utils_ids.h"
 
 
 class sc_plist_elem {
@@ -235,8 +235,9 @@ sc_plist_base::front() const
         return head->data;
     }				
     else {
-      REPORT_ERROR(1019,"");
-      return NULL;
+      SC_REPORT_ERROR( SC_ID_FRONT_ON_EMPTY_LIST_ , 0 );
+      // never reached
+      return 0;
     }
 }
 
@@ -247,8 +248,9 @@ sc_plist_base::back() const
         return tail->data;
     }
     else {
-      REPORT_ERROR(1020,"");
-      return NULL;
+      SC_REPORT_ERROR( SC_ID_BACK_ON_EMPTY_LIST_, 0 );
+      // never reached
+      return 0;
     }
 }
 

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -35,10 +35,10 @@
  *****************************************************************************/
 
 
+#include "systemc/kernel/sc_kernel_ids.h"
 #include "systemc/kernel/sc_module.h"
 #include "systemc/kernel/sc_module_registry.h"
 #include "systemc/kernel/sc_simcontext.h"
-#include "systemc/utils/sc_exception.h"
 
 
 // ----------------------------------------------------------------------------
@@ -52,14 +52,14 @@ void
 sc_module_registry::insert( sc_module& module_ )
 {
     if( m_simc->is_running() ) {
-	REPORT_ERROR( 7061, "simulation running" );
+	SC_REPORT_ERROR( SC_ID_INSERT_MODULE_, "simulation running" );
     }
 
 #ifdef DEBUG_SYSTEMC
     // check if module_ is already inserted
     for( int i = size() - 1; i >= 0; -- i ) {
 	if( &module_ == m_module_vec[i] ) {
-	    REPORT_ERROR( 7061, "already inserted" );
+	    SC_REPORT_ERROR( SC_ID_INSERT_MODULE_, "already inserted" );
 	}
     }
 #endif
@@ -78,7 +78,7 @@ sc_module_registry::remove( sc_module& module_ )
 	}
     }
     if( i == size() ) {
-	REPORT_ERROR( 7062, "" );
+	SC_REPORT_ERROR( SC_ID_REMOVE_MODULE_, 0 );
     }
 
     // remove

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -34,26 +34,24 @@
 
  *****************************************************************************/
 
+#ifndef SC_NBUTILS_H
+#define SC_NBUTILS_H
 
-#ifndef SC_UTILS_H
-#define SC_UTILS_H
 
-#if !defined(_MSC_VER) && !defined(i386) && !defined(__hpux)
+#if !defined(_MSC_VER) && !defined(i386) && !defined(__hpux) && !defined( __BORLANDC__ )
 #include <ieeefp.h>
 #else
 #include <math.h>
 #endif
 
+#include "systemc/datatypes/bit/sc_bit_ids.h"
+#include "systemc/datatypes/int/sc_int_ids.h"
 #include "systemc/datatypes/int/sc_nbdefs.h"
+#include "systemc/utils/sc_report.h"
 
-// Printint out warnings.
-#define warn(EX, MSG) \
-(void)((EX) || (warn_help(#EX, MSG, __FILE__, __LINE__), 0))
 
-extern 
-void 
-warn_help(const char *ex, const char *msg, 
-          const char *fname, int lnum);
+namespace sc_dt
+{
 
 inline
 void
@@ -65,11 +63,15 @@ is_valid_base(sc_numrep base)
   case SC_BIN_US: case SC_BIN_SM: 
   case SC_OCT_US: case SC_OCT_SM:
   case SC_HEX_US: case SC_HEX_SM:
-    printf("SystemC error: The _US and _SM of bases are not supported yet.\n");
-    abort();
+      SC_REPORT_ERROR( SC_ID_NOT_IMPLEMENTED_,
+		       "is_valid_base( sc_numrep base ) : "
+		       "base ending in _US and _SM is not supported yet" );
   default:
-    printf("SystemC error: The base arg is invalid.\n");
-    abort();
+      char msg[BUFSIZ];
+      sprintf( msg, "is_valid_base( sc_numrep base ) : "
+	       "base = %s is not valid",
+	       to_string( base ).c_str() );
+      SC_REPORT_ERROR( SC_ID_VALUE_NOT_VALID_, msg );
   }
 }
 
@@ -89,19 +91,20 @@ small_type
 vec_from_str(int unb, int und, unsigned long *u, 
              const char *v, sc_numrep base = SC_NOBASE) ;
 
-///////////////////////////////////////////////////////////////////////////
-// Naming convention for the vec_ functions below:
-//   vec_OP(u, v, w)  : computes w = u OP v.
-//   vec_OP_on(u, v)  : computes u = u OP v if u has more digits than v.
-//   vec_OP_on2(u, v) : computes u = u OP v if u has fewer digits than v.
-//   _large           : parameters are vectors.
-//   _small           : one of the parameters is a single digit.
-//   Xlen             : the number of digits in X.
-///////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////
-// Functions for vector addition: w = u + v or u += v.
-///////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------------
+//  Naming convention for the vec_ functions below:
+//    vec_OP(u, v, w)  : computes w = u OP v.
+//    vec_OP_on(u, v)  : computes u = u OP v if u has more digits than v.
+//    vec_OP_on2(u, v) : computes u = u OP v if u has fewer digits than v.
+//    _large           : parameters are vectors.
+//    _small           : one of the parameters is a single digit.
+//    Xlen             : the number of digits in X.
+// ----------------------------------------------------------------------------
+
+// ----------------------------------------------------------------------------
+//  Functions for vector addition: w = u + v or u += v.
+// ----------------------------------------------------------------------------
 
 extern 
 void 
@@ -127,9 +130,10 @@ extern
 void 
 vec_add_small_on(int ulen, unsigned long *u, unsigned long v);
 
-///////////////////////////////////////////////////////////////////////////
-// Functions for vector subtraction: w = u - v, u -= v, or u = v - u.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Functions for vector subtraction: w = u - v, u -= v, or u = v - u.
+// ----------------------------------------------------------------------------
 
 extern 
 void 
@@ -155,9 +159,10 @@ extern
 void 
 vec_sub_small_on(int ulen, unsigned long *u, unsigned long v);
 
-///////////////////////////////////////////////////////////////////////////
-// Functions for vector multiplication: w = u * v or u *= v.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Functions for vector multiplication: w = u * v or u *= v.
+// ----------------------------------------------------------------------------
 
 extern 
 void 
@@ -173,9 +178,10 @@ extern
 void 
 vec_mul_small_on(int ulen, unsigned long *u, unsigned long v);
 
-///////////////////////////////////////////////////////////////////////////
-// Functions for vector division: w = u / v.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Functions for vector division: w = u / v.
+// ----------------------------------------------------------------------------
 
 extern 
 void 
@@ -187,9 +193,10 @@ void
 vec_div_small(int ulen, const unsigned long *u, 
               unsigned long v, unsigned long *w);
 
-///////////////////////////////////////////////////////////////////////////
-// Functions for vector remainder: w = u % v or u %= v.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Functions for vector remainder: w = u % v or u %= v.
+// ----------------------------------------------------------------------------
 
 extern 
 void 
@@ -204,9 +211,10 @@ extern
 unsigned long 
 vec_rem_on_small(int ulen, unsigned long *u, unsigned long v);
 
-///////////////////////////////////////////////////////////////////////////
-// Functions to convert between vectors of char and unsigned long.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Functions to convert between vectors of char and unsigned long.
+// ----------------------------------------------------------------------------
 
 extern 
 int 
@@ -218,9 +226,10 @@ void
 vec_from_char(int ulen, const uchar *u,
               int vlen, unsigned long *v);
 
-///////////////////////////////////////////////////////////////////////////
-// Functions to shift left or right, or to create a mirror image of vectors.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Functions to shift left or right, or to create a mirror image of vectors.
+// ----------------------------------------------------------------------------
 
 extern 
 void 
@@ -235,9 +244,10 @@ void
 vec_reverse(int unb, int und, unsigned long *ud, 
             int l, int r = 0);
 
-///////////////////////////////////////////////////////////////////////////
-// Various utility functions. 
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Various utility functions. 
+// ----------------------------------------------------------------------------
 
 // Return the low half part of d.
 inline 
@@ -291,7 +301,8 @@ one_and_zeros(int n)
   return ((unsigned long) 1 << n);
 }
 
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
 
 // Find the digit that bit i is in.
 inline
@@ -309,20 +320,10 @@ bit_ord(int i)
   return (i % BITS_PER_DIGIT);
 }
 
-///////////////////////////////////////////////////////////////////////////
-// MAX, MIN, and ABS.
-///////////////////////////////////////////////////////////////////////////
-template< class Type >
-inline 
-Type
-ABST(Type x)
-{
-  return (x > 0 ? x : -x);
-}
 
-///////////////////////////////////////////////////////////////////////////
-// Functions to compare, zero, complement vector(s).
-///////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------------
+//  Functions to compare, zero, complement vector(s).
+// ----------------------------------------------------------------------------
 
 // Compare u and v and return r
 //  r = 0 if u == v
@@ -506,9 +507,10 @@ vec_complement(int ulen, unsigned long *u)
   
 }
 
-///////////////////////////////////////////////////////////////////////////
-// Functions to handle built-in types or signs.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Functions to handle built-in types or signs.
+// ----------------------------------------------------------------------------
 
 // u = v
 // - v is an unsigned long or uint64, and positive integer.
@@ -577,9 +579,10 @@ mul_signs(small_type us, small_type vs)
   return SC_NEG;
 }
 
-///////////////////////////////////////////////////////////////////////////
-// Functions to test for errors and print out error messages.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Functions to test for errors and print out error messages.
+// ----------------------------------------------------------------------------
 
 #ifdef SC_MAX_NBITS
 
@@ -588,8 +591,11 @@ void
 test_bound(int nb)
 {
   if (nb > SC_MAX_NBITS) {
-    printf("SystemC error: Cannot store all the bits in SC_MAX_NBITS bits.\n");
-    abort();
+      char msg[BUFSIZ];
+      sprintf( msg, "test_bound( int nb ) : "
+	       "nb = %d > SC_MAX_NBITS = %d is not valid",
+	       nb, SC_MAX_NBITS );
+      SC_REPORT_ERROR( SC_ID_OUT_OF_BOUNDS_, msg );
   }
 }
 
@@ -601,14 +607,15 @@ void
 div_by_zero(Type s)
 {
   if (s == 0) {
-    printf("SystemC error: 0 / 0 or num / 0.\n");
-    abort();
+      SC_REPORT_ERROR( SC_ID_OPERATION_FAILED_,
+		       "div_by_zero<Type>( Type ) : division by zero" );
   }
 }
 
-///////////////////////////////////////////////////////////////////////////
-// Functions to check if a given vector is zero or make one.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Functions to check if a given vector is zero or make one.
+// ----------------------------------------------------------------------------
 
 // If u[i] is zero for every i = 0,..., ulen - 1, return SC_ZERO,
 // else return s.
@@ -656,13 +663,14 @@ make_zero(int nd, unsigned long *d)
   return SC_ZERO;
 }
 
-///////////////////////////////////////////////////////////////////////////
-// Functions for both signed and unsigned numbers to convert sign-magnitude
-// (SM) and 2's complement (2C) representations.
-// added = 1 => for signed.
-// added = 0 => for unsigned.
-// IF_SC_SIGNED can be used as 'added'.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Functions for both signed and unsigned numbers to convert sign-magnitude
+//  (SM) and 2's complement (2C) representations.
+//  added = 1 => for signed.
+//  added = 0 => for unsigned.
+//  IF_SC_SIGNED can be used as 'added'.
+// ----------------------------------------------------------------------------
 
 // Trim the extra leading bits of a signed or unsigned number.
 inline
@@ -699,10 +707,11 @@ convert_SM_to_2C(small_type s, int nd, unsigned long *d)
     vec_complement(nd, d);
 }
 
-///////////////////////////////////////////////////////////////////////////
-// Functions to convert between sign-magnitude (SM) and 2's complement
-// (2C) representations of signed numbers.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Functions to convert between sign-magnitude (SM) and 2's complement
+//  (2C) representations of signed numbers.
+// ----------------------------------------------------------------------------
 
 // Trim the extra leading bits off a signed number.
 inline
@@ -781,10 +790,11 @@ convert_signed_SM_to_2C(small_type s, int nd, unsigned long *d)
   convert_SM_to_2C(s, nd, d);
 }
 
-///////////////////////////////////////////////////////////////////////////
-// Functions to convert between sign-magnitude (SM) and 2's complement
-// (2C) representations of unsigned numbers.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Functions to convert between sign-magnitude (SM) and 2's complement
+//  (2C) representations of unsigned numbers.
+// ----------------------------------------------------------------------------
 
 // Trim the extra leading bits off an unsigned number.
 inline
@@ -839,9 +849,10 @@ convert_unsigned_SM_to_2C(small_type s, int nd, unsigned long *d)
   convert_SM_to_2C(s, nd, d);
 }
 
-///////////////////////////////////////////////////////////////////////////
-// Functions to copy one (un)signed number to another.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Functions to copy one (un)signed number to another.
+// ----------------------------------------------------------------------------
 
 // Copy v to u.
 inline
@@ -882,14 +893,15 @@ copy_digits_unsigned(small_type &us,
 
 }
 
-///////////////////////////////////////////////////////////////////////////
-// Faster set(i, v), without bound checking.
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Faster set(i, v), without bound checking.
+// ----------------------------------------------------------------------------
 
 // A version of set(i, v) without bound checking.
 inline
 void
-safe_set(int i, bit v, unsigned long *d)
+safe_set(int i, bool v, unsigned long *d)
 {
 
 #ifdef DEBUG_SYSTEMC
@@ -906,28 +918,31 @@ safe_set(int i, bit v, unsigned long *d)
   
 }
 
-///////////////////////////////////////////////////////////////////////////
-// Function to check if a double number is bad (NaN or infinite).
-///////////////////////////////////////////////////////////////////////////
+
+// ----------------------------------------------------------------------------
+//  Function to check if a double number is bad (NaN or infinite).
+// ----------------------------------------------------------------------------
 
 inline
 void
 is_bad_double(double v)
 {
 // Windows throws exception.
-#if !defined(WIN32) && !defined(i386)
+#if !defined(WIN32) && !defined(i386) && !defined( __EDG__ )
 #if defined( __hpux ) && defined( isfinite )
   // HP-UX 11.00 does not have finite anymore
   if( ! isfinite( v ) ) {
 #else
   if (! finite(v)) {
 #endif
-    printf("SystemC error: Double argument is not finite - NaN or Inf.\n");
-    abort();
+      SC_REPORT_ERROR( SC_ID_VALUE_NOT_VALID_,
+		       "is_bad_double( double v ) : "
+		       "v is not finite - NaN or Inf" );
   }
 #endif
 }
 
-///////////////////////////////////////////////////////////////////////////
+} // namespace sc_dt
+
 
 #endif

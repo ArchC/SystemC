@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -37,9 +37,9 @@
 #include <math.h>
 #include <stdio.h>
 
+#include "systemc/kernel/sc_kernel_ids.h"
 #include "systemc/kernel/sc_simcontext.h"
 #include "systemc/kernel/sc_time.h"
-#include "systemc/utils/sc_exception.h"
 
 
 static
@@ -103,7 +103,8 @@ sc_time::sc_time( double v, bool scale )
     if( v != 0 ) {
 	sc_time_params* time_params = sc_get_curr_simcontext()->m_time_params;
 	if( scale ) {
-	    double scale_fac = uint64_to_double( time_params->default_time_unit );
+	    double scale_fac = sc_dt::uint64_to_double(
+		time_params->default_time_unit );
 	    // linux bug workaround; don't change next two lines
 	    volatile double tmp = v * scale_fac + 0.5;
 	    m_value = SCAST<int64>( tmp );
@@ -122,9 +123,11 @@ sc_time::sc_time( uint64 v, bool scale )
     if( v != 0 ) {
 	sc_time_params* time_params = sc_get_curr_simcontext()->m_time_params;
 	if( scale ) {
-	    double scale_fac = uint64_to_double( time_params->default_time_unit );
+	    double scale_fac = sc_dt::uint64_to_double(
+		time_params->default_time_unit );
 	    // linux bug workaround; don't change next two lines
-	    volatile double tmp = uint64_to_double( v ) * scale_fac + 0.5;
+	    volatile double tmp = sc_dt::uint64_to_double( v ) *
+		                  scale_fac + 0.5;
 	    m_value = SCAST<int64>( tmp );
 	} else {
 	    m_value = v;
@@ -140,15 +143,15 @@ double
 sc_time::to_default_time_units() const
 {
     sc_time_params* time_params = sc_get_curr_simcontext()->m_time_params;
-    return ( uint64_to_double( m_value ) /
-	     uint64_to_double( time_params->default_time_unit ) );
+    return ( sc_dt::uint64_to_double( m_value ) /
+	     sc_dt::uint64_to_double( time_params->default_time_unit ) );
 }
 
 double
 sc_time::to_seconds() const
 {
     sc_time_params* time_params = sc_get_curr_simcontext()->m_time_params;
-    return ( uint64_to_double( m_value ) *
+    return ( sc_dt::uint64_to_double( m_value ) *
 	     time_params->time_resolution * 1e-15 );
 }
 
@@ -232,7 +235,7 @@ sc_set_time_resolution( double v, sc_time_unit tu )
 
     // must be positive
     if( v < 0.0 ) {
-	REPORT_ERROR( 6001, "value not positive" );
+	SC_REPORT_ERROR( SC_ID_SET_TIME_RESOLUTION_, "value not positive" );
     }
 
     // must be a power of ten
@@ -243,40 +246,43 @@ sc_set_time_resolution( double v, sc_time_unit tu )
 #else
     if( modf( log10( v ), &dummy ) != 0.0 ) {
 #endif
-	REPORT_ERROR( 6001, "value not a power of ten" );
+	SC_REPORT_ERROR( SC_ID_SET_TIME_RESOLUTION_,
+			 "value not a power of ten" );
     }
 
     sc_simcontext* simc = sc_get_curr_simcontext();
 
     // can only be specified during elaboration
     if( simc->is_running() ) {
-	REPORT_ERROR( 6001, "simulation running" );
+	SC_REPORT_ERROR( SC_ID_SET_TIME_RESOLUTION_, "simulation running" );
     }
 
     sc_time_params* time_params = simc->m_time_params;
 
     // can be specified only once
     if( time_params->time_resolution_specified ) {
-	REPORT_ERROR( 6001, "already specified" );
+	SC_REPORT_ERROR( SC_ID_SET_TIME_RESOLUTION_, "already specified" );
     }
 
     // can only be specified before any sc_time is constructed
     if( time_params->time_resolution_fixed ) {
-	REPORT_ERROR( 6001, "sc_time object(s) constructed" );
+	SC_REPORT_ERROR( SC_ID_SET_TIME_RESOLUTION_,
+			 "sc_time object(s) constructed" );
     }
 
     // must be larger than or equal to 1 fs
     volatile double resolution = v * time_values[tu];
     if( resolution < 1.0 ) {
-	REPORT_ERROR( 6001, "value smaller than 1 fs" );
+	SC_REPORT_ERROR( SC_ID_SET_TIME_RESOLUTION_,
+			 "value smaller than 1 fs" );
     }
 
     // recalculate the default time unit
-    volatile double time_unit = uint64_to_double(
+    volatile double time_unit = sc_dt::uint64_to_double(
 	time_params->default_time_unit ) *
 	( time_params->time_resolution / resolution );
     if( time_unit < 1.0 ) {
-	REPORT_WARNING( 6003, "" );
+	SC_REPORT_WARNING( SC_ID_DEFAULT_TIME_UNIT_CHANGED_, 0 );
 	time_params->default_time_unit = 1;
     } else {
 	time_params->default_time_unit = SCAST<int64>( time_unit );
@@ -289,7 +295,7 @@ sc_set_time_resolution( double v, sc_time_unit tu )
 sc_time 
 sc_get_time_resolution()
 {
-    return sc_time( const_one_ull, false );
+    return sc_time( sc_dt::UINT64_ONE, false );
 }
 
 
@@ -300,34 +306,36 @@ sc_set_default_time_unit( double v, sc_time_unit tu )
 
     // must be positive
     if( v < 0.0 ) {
-	REPORT_ERROR( 6002, "value not positive" );
+	SC_REPORT_ERROR( SC_ID_SET_DEFAULT_TIME_UNIT_, "value not positive" );
     }
 
     // must be a power of ten
     double dummy;
     if( modf( log10( v ), &dummy ) != 0.0 ) {
-	REPORT_ERROR( 6002, "value not a power of ten" );
+	SC_REPORT_ERROR( SC_ID_SET_DEFAULT_TIME_UNIT_,
+			 "value not a power of ten" );
     }
 
     sc_simcontext* simc = sc_get_curr_simcontext();
 
     // can only be specified during elaboration
     if( simc->is_running() ) {
-	REPORT_ERROR( 6002, "simulation running" );
+	SC_REPORT_ERROR( SC_ID_SET_DEFAULT_TIME_UNIT_, "simulation running" );
     }
 
     sc_time_params* time_params = simc->m_time_params;
 
     // can be specified only once
     if( time_params->default_time_unit_specified ) {
-	REPORT_ERROR( 6002, "already specified" );
+	SC_REPORT_ERROR( SC_ID_SET_DEFAULT_TIME_UNIT_, "already specified" );
     }
 
     // must be larger than or equal to the time resolution
     volatile double time_unit = ( v * time_values[tu] ) /
 	                        time_params->time_resolution;
     if( time_unit < 1.0 ) {
-	REPORT_ERROR( 6002, "value smaller than time resolution" );
+	SC_REPORT_ERROR( SC_ID_SET_DEFAULT_TIME_UNIT_,
+			 "value smaller than time resolution" );
     }
 
     time_params->default_time_unit = SCAST<int64>( time_unit );

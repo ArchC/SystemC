@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -158,10 +158,10 @@ protected:
     }
 
     // Trace sc_bv_base (sc_bv)
-    virtual void trace(const sc_bv_ns::sc_bv_base& object, const sc_string& name);
+    virtual void trace( const sc_bv_base& object, const sc_string& name );
 
     // Trace sc_lv_base (sc_lv)
-    virtual void trace(const sc_bv_ns::sc_lv_base& object, const sc_string& name);
+    virtual void trace( const sc_lv_base& object, const sc_string& name );
 
     // Trace an enumerated object - where possible output the enumeration literals
     // in the trace file. Enum literals is a null terminated array of null

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -33,26 +33,51 @@
 
  *****************************************************************************/
 
-
 #ifndef SC_MEMPOOL_H
 #define SC_MEMPOOL_H
 
+
 #include "systemc/utils/sc_iostream.h"
 
-class sc_mempool {
+
+// ----------------------------------------------------------------------------
+//  CLASS : sc_mempool
+//
+//  ...
+// ----------------------------------------------------------------------------
+
+class sc_mempool
+{
 public:
-    static void* allocate(size_t sz);
-    static void release(void* p, size_t sz);
+
+    static void* allocate( size_t sz );
+    static void release( void* p, size_t sz );
     static void display_statistics();
 };
 
-class sc_mpobject {
+
+// ----------------------------------------------------------------------------
+//  CLASS : sc_mpobject
+//
+//  ...
+// ----------------------------------------------------------------------------
+
+class sc_mpobject
+{
 public:
-    static void* operator new(size_t sz)              { return sc_mempool::allocate(sz); }
-    static void operator delete(void* p, size_t sz)   { sc_mempool::release(p, sz); }
-    static void* operator new[](size_t sz)            { return sc_mempool::allocate(sz); }
-    static void operator delete[](void* p, size_t sz) { sc_mempool::release(p, sz); }
+
+    static void* operator new( size_t sz )
+	{ return sc_mempool::allocate( sz ); }
+
+    static void operator delete( void* p, size_t sz )
+	{ sc_mempool::release( p, sz ); }
+
+    static void* operator new[]( size_t sz )
+	{ return sc_mempool::allocate( sz ); }
+
+    static void operator delete[]( void* p, size_t sz )
+	{ sc_mempool::release( p, sz ); }
 };
 
-#endif   // SC_MEMPOOL_H
 
+#endif

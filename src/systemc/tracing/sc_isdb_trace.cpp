@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -48,8 +48,8 @@
 #include "systemc/datatypes/bit/sc_logic.h"
 #include "systemc/datatypes/int/sc_signed.h"
 #include "systemc/datatypes/int/sc_unsigned.h"
-#include "systemc/datatypes/int/sc_int.h"
-#include "systemc/datatypes/int/sc_uint.h"
+#include "systemc/datatypes/int/sc_int_base.h"
+#include "systemc/datatypes/int/sc_uint_base.h"
 #include "systemc/datatypes/fx/fx.h"
 #include "systemc/tracing/sc_isdb_trace.h"
 #include "systemc/utils/sc_iostream.h"
@@ -379,7 +379,7 @@ protected:
 
 
 isdb_sc_uint_base_trace::isdb_sc_uint_base_trace(const sc_uint_base& object_, const sc_string& name_, const sc_string& isdb_name_) 
-  : isdb_trace( name_, isdb_name_), object( object_), old_value( object_.bitwidth()) // The last may look strange, but is correct
+  : isdb_trace( name_, isdb_name_), object( object_), old_value( object_.length()) // The last may look strange, but is correct
 {
     isdb_var_typ_name = "wire";
     old_value = object;
@@ -405,7 +405,7 @@ void isdb_sc_uint_base_trace::write(ISDB_Conn database)
 
 void isdb_sc_uint_base_trace::set_width()
 {
-    bit_width = object.bitwidth();
+    bit_width = object.length();
 }
 
 
@@ -426,7 +426,7 @@ protected:
 
 
 isdb_sc_int_base_trace::isdb_sc_int_base_trace(const sc_int_base& object_, const sc_string& name_, const sc_string& isdb_name_) 
-  : isdb_trace( name_, isdb_name_), object( object_), old_value( object_.bitwidth())
+  : isdb_trace( name_, isdb_name_), object( object_), old_value( object_.length())
 {
     isdb_var_typ_name = "wire";
     old_value = object;
@@ -452,7 +452,7 @@ void isdb_sc_int_base_trace::write(ISDB_Conn database)
 
 void isdb_sc_int_base_trace::set_width()
 {
-    bit_width = object.bitwidth();
+    bit_width = object.length();
 }
 
 
@@ -1357,7 +1357,7 @@ void isdb_trace_file::initialize()
   running_regression = ( getenv( "SYSTEMC_REGRESSION" ) != NULL );
   // Don't print message if running regression
   if( ! timescale_set_by_user && ! running_regression ) {
-      cout << "WARNING: Default time step is used for ISDB tracing.\n";
+      cout << "WARNING: Default time step is used for ISDB tracing." << endl;
   }
 
   // Define variables
@@ -1410,7 +1410,7 @@ void isdb_trace_file::sc_set_isdb_time_unit(int exponent10_seconds)
   
   char buf[200];
   sprintf(buf, "Note: ISDB trace timescale unit is set by user to 1e%d sec.\n", exponent10_seconds);
-  cout << buf;
+  cout << buf << flush;
   timescale_set_by_user = true;
 }
 
@@ -1716,7 +1716,7 @@ isdb_trace_file::cycle(bool this_is_a_delta_cycle)
         static bool warned = false;
         if(!warned){
 	    cout << "Note: VCD delta cycling with pseudo timesteps (1 unit) "
-		    "is performed.\n\n";
+		    "is performed.\n" << endl;
             warned = true;
         }
     }
@@ -1849,10 +1849,10 @@ void
 isdb_put_error_message(const char* msg, bool just_warning)
 {
     if(just_warning){
-	cout << "ISDB Trace Warning:\n" << msg << "\n\n";
+	cout << "ISDB Trace Warning:\n" << msg << "\n" << endl;
     }
     else{
-	cout << "ISDB Trace ERROR:\n" << msg << "\n\n";
+	cout << "ISDB Trace ERROR:\n" << msg << "\n" << endl;
     }
 }
 

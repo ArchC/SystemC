@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -37,6 +37,10 @@
 
 #include "systemc/datatypes/int/sc_nbdefs.h"
 
+
+namespace sc_dt
+{
+
 #ifdef SC_MAX_NBITS
 const int MAX_NDIGITS      = DIV_CEIL(SC_MAX_NBITS) + 2;
 // Consider a number with x bits another with y bits. The maximum
@@ -50,22 +54,23 @@ const int MAX_NDIGITS      = DIV_CEIL(SC_MAX_NBITS) + 2;
 // Support for the long long type. This type is not in the standard
 // but is usually supported by compilers.
 #ifndef WIN32
-const uint64 const_zero_ull = 0ULL;
-const uint64 const_one_ull = 1ULL;
-const uint64 const_32ones_ull = 0x00000000ffffffffULL;
+const uint64 UINT64_ZERO   = 0ULL;
+const uint64 UINT64_ONE    = 1ULL;
+const uint64 UINT64_32ONES = 0x00000000ffffffffULL;
 #else
-const uint64 const_zero_ull = 0i64;
-const uint64 const_one_ull = 1i64;
-const uint64 const_32ones_ull = 0x00000000ffffffffi64;
+const uint64 UINT64_ZERO   = 0i64;
+const uint64 UINT64_ONE    = 1i64;
+const uint64 UINT64_32ONES = 0x00000000ffffffffi64;
 #endif
 
 const small_type NB_DEFAULT_BASE = SC_DEC;
 
 #ifndef _32BIT_
-const uint64 const_one_uint = const_one_ull;
-const uint64 const_zero_uint = const_zero_ull;
+const uint64 UINT_ZERO = UINT64_ZERO;
+const uint64 UINT_ONE  = UINT64_ONE;
 #else
-const unsigned int const_one_uint = 1U;
-const unsigned int const_zero_uint = 0U;
+const unsigned int UINT_ZERO = 0U;
+const unsigned int UINT_ONE  = 1U;
 #endif
 
+} // namespace sc_dt

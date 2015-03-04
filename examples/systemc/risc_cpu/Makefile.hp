@@ -3,7 +3,7 @@ TARGET_ARCH = hpux11
 CC     = aCC
 OPT    = +O1
 DEBUG  = -g
-OTHER  = -Aa +DA2.0 +DS2.0
+OTHER  = -Aa -ext +DA2.0 +DS2.0
 # CFLAGS = $(OPT) $(OTHER)
 CFLAGS = $(DEBUG) $(OTHER)
 

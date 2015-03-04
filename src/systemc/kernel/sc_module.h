@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -49,6 +49,7 @@
 #define SC_MODULE_H
 
 
+#include "systemc/kernel/sc_kernel_ids.h"
 #include "systemc/kernel/sc_lambda.h"
 #include "systemc/kernel/sc_module_name.h"
 #include "systemc/kernel/sc_object.h"
@@ -431,7 +432,8 @@ struct sc_vc6_process_helper_class
 	{
 	  counter++;
 	  if(counter>=SC_VC6_MAX_NUMBER_OF_PROCESSES)
-		 REPORT_ERROR(3002,sc_string::to_string("%d( max %d)\n"
+		 SC_REPORT_ERROR( SC_ID_VC6_MAX_PROCESSES_EXCEEDED_,
+		       sc_string::to_string("%d( max %d)\n"
 		       "you can increase this number. For example, to set it to 20 do this\n"
 		       "before including ""systemc.h"" in your code include these two lines:\n"
                        "#define SC_USER_DEFINED_MAX_NUMBER_OF_PROCESSES\n"
@@ -443,7 +445,8 @@ struct sc_vc6_process_helper_class
 	operator sf_type () 
 	{
 		if(counter<0)
-                  REPORT_ERROR(3001,"Reading before initialization.");
+                  SC_REPORT_ERROR( SC_ID_VC6_PROCESS_HELPER_,
+				   "Reading before initialization.");
 		return sfa[counter];
 	}
 };

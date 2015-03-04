@@ -1,0 +1,16 @@
+TARGET_ARCH = gccsparcOS5
+
+CC     = g++
+OPT    = -O3
+DEBUG  = -g
+OTHER  = -Wall
+CFLAGS = $(OPT) $(OTHER)
+# CFLAGS = $(DEBUG) $(OTHER)
+
+MODULE = simple_bus
+
+include Makefile.srcs
+
+OBJS = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs

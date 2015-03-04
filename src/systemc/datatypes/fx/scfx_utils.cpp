@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -37,17 +37,22 @@
 #include "systemc/datatypes/fx/scfx_utils.h"
 
 
-void
-scfx_tc2csd( scfx_string& s )
+namespace sc_dt
 {
-    SC_ASSERT_( s[0] == '0' && s[1] == 'c' &&
-		s[2] == 's' && s[3] == 'd', "invalid prefix" );
+
+void
+scfx_tc2csd( scfx_string& s, int w_prefix )
+{
+    if( w_prefix != 0 ) {
+	SC_ASSERT_( s[0] == '0' && s[1] == 'c' &&
+		    s[2] == 's' && s[3] == 'd', "invalid prefix" );
+    }
 
     scfx_string csd;
 
     // copy bits from 's' into 'csd'; skip prefix, point, and exponent
     int i = 0;
-    int j = 4;
+    int j = (w_prefix != 0 ? 4 : 0);
     while( s[j] )
     {
 	if( s[j] == '0' || s[j] == '1' )
@@ -85,7 +90,7 @@ scfx_tc2csd( scfx_string& s )
 
     // copy bits from 'csd' back into 's'
     i = 0;
-    j = 4;
+    j = (w_prefix != 0 ? 4 : 0);
     while( csd[i] )
     {
 	if( s[j] == '.' )
@@ -153,6 +158,8 @@ scfx_csd2tc( scfx_string& csd )
 	csd[j ++] = s[i ++];
     }
 }
+
+} // namespace sc_dt
 
 
 // Taf!

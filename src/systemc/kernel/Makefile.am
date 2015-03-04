@@ -1,11 +1,11 @@
 ## ****************************************************************************
 ##
 ##  The following code is derived, directly or indirectly, from the SystemC
-##  source code Copyright (c) 1996-2001 by all Contributors.
+##  source code Copyright (c) 1996-2002 by all Contributors.
 ##  All Rights reserved.
 ##
 ##  The contents of this file are subject to the restrictions and limitations
-##  set forth in the SystemC Open Source License Version 2.2 (the "License");
+##  set forth in the SystemC Open Source License Version 2.3 (the "License");
 ##  You may not use this file except in compliance with such restrictions and
 ##  limitations. You may obtain instructions on how to receive a copy of the
 ##  License at http://www.systemc.org/. Software distributed by Contributors
@@ -38,8 +38,10 @@ H_FILES = \
 	sc_attribute.h \
 	sc_cmnhdr.h \
 	sc_constants.h \
+	sc_cor.h \
 	sc_event.h \
 	sc_externs.h \
+	sc_kernel_ids.h \
 	sc_lambda.h \
 	sc_lambda_defs.h \
 	sc_lambda_exps.h \
@@ -59,10 +61,10 @@ H_FILES = \
 	sc_wait_cthread.h
 
 NO_H_FILES = \
-	sc_context_switch.h \
+	sc_cor_fiber.h \
+	sc_cor_qt.h \
 	sc_except.h \
 	sc_macros_int.h \
-	sc_measure.h \
 	sc_module_registry.h \
 	sc_name_gen.h \
 	sc_object_manager.h \
@@ -73,11 +75,12 @@ noinst_HEADERS = $(H_FILES)
 
 CXX_FILES = \
 	sc_attribute.cpp \
-	sc_context_switch.cpp \
+	sc_cor_fiber.cpp \
+	sc_cor_qt.cpp \
 	sc_event.cpp \
+	sc_kernel_ids.cpp \
 	sc_lambda.cpp \
 	sc_main.cpp \
-	sc_measure.cpp \
 	sc_module.cpp \
 	sc_module_name.cpp \
 	sc_module_registry.cpp \

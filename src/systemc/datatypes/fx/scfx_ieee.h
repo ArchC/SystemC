@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -33,12 +33,21 @@
 
  *****************************************************************************/
 
-
 #ifndef SCFX_IEEE_H
 #define SCFX_IEEE_H
 
 
 #include "systemc/datatypes/fx/sc_fxdefs.h"
+
+
+namespace sc_dt
+{
+
+// classes defined in this module
+union ieee_double;
+class scfx_ieee_double;
+union ieee_float;
+class scfx_ieee_float;
 
 
 // ----------------------------------------------------------------------------
@@ -645,6 +654,29 @@ double scfx_pow2( int exp )
     }
     return r;
 }
+
+
+// ----------------------------------------------------------------------------
+//  FUNCTION : uint64_to_double
+//
+//  Platform independent conversion from double uint64 to double.
+//  Needed because VC++6 doesn't support this conversion.
+// ----------------------------------------------------------------------------
+
+inline
+double
+uint64_to_double( uint64 a )
+{
+#if defined( _MSC_VER )
+    // conversion from uint64 to double not implemented; use int64
+    double tmp = static_cast<double>( static_cast<int64>( a ) );
+    return ( tmp >= 0 ) ? tmp : tmp + sc_dt::scfx_pow2( 64 );
+#else
+    return static_cast<double>( a );
+#endif
+}
+
+} // namespace sc_dt
 
 
 #endif

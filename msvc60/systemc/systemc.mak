@@ -9,7 +9,7 @@ CFG=systemc - Win32 Release
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "systemc.mak" CFG="systemc - Win32 Debug"
+!MESSAGE NMAKE /f "systemc.mak" CFG="systemc - Win32 Release"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
@@ -42,12 +42,16 @@ ALL : "$(OUTDIR)\systemc.lib"
 CLEAN :
 	-@erase "$(INTDIR)\sc_attribute.obj"
 	-@erase "$(INTDIR)\sc_bit.obj"
-	-@erase "$(INTDIR)\sc_bv.obj"
+	-@erase "$(INTDIR)\sc_bit_ids.obj"
+	-@erase "$(INTDIR)\sc_bv_base.obj"
 	-@erase "$(INTDIR)\sc_clock.obj"
-	-@erase "$(INTDIR)\sc_context_switch.obj"
+	-@erase "$(INTDIR)\sc_communication_ids.obj"
+	-@erase "$(INTDIR)\sc_cor_fiber.obj"
+	-@erase "$(INTDIR)\sc_cor_qt.obj"
 	-@erase "$(INTDIR)\sc_event.obj"
 	-@erase "$(INTDIR)\sc_event_finder.obj"
 	-@erase "$(INTDIR)\sc_exception.obj"
+	-@erase "$(INTDIR)\sc_fx_ids.obj"
 	-@erase "$(INTDIR)\sc_fxcast_switch.obj"
 	-@erase "$(INTDIR)\sc_fxdefs.obj"
 	-@erase "$(INTDIR)\sc_fxnum.obj"
@@ -56,18 +60,20 @@ CLEAN :
 	-@erase "$(INTDIR)\sc_fxval.obj"
 	-@erase "$(INTDIR)\sc_fxval_observer.obj"
 	-@erase "$(INTDIR)\sc_hash.obj"
-	-@erase "$(INTDIR)\sc_int.obj"
 	-@erase "$(INTDIR)\sc_int32_mask.obj"
 	-@erase "$(INTDIR)\sc_int64_io.obj"
 	-@erase "$(INTDIR)\sc_int64_mask.obj"
+	-@erase "$(INTDIR)\sc_int_base.obj"
+	-@erase "$(INTDIR)\sc_int_ids.obj"
 	-@erase "$(INTDIR)\sc_interface.obj"
 	-@erase "$(INTDIR)\sc_isdb_trace.obj"
+	-@erase "$(INTDIR)\sc_kernel_ids.obj"
 	-@erase "$(INTDIR)\sc_lambda.obj"
+	-@erase "$(INTDIR)\sc_length_param.obj"
 	-@erase "$(INTDIR)\sc_list.obj"
 	-@erase "$(INTDIR)\sc_logic.obj"
-	-@erase "$(INTDIR)\sc_lv.obj"
+	-@erase "$(INTDIR)\sc_lv_base.obj"
 	-@erase "$(INTDIR)\sc_main.obj"
-	-@erase "$(INTDIR)\sc_measure.obj"
 	-@erase "$(INTDIR)\sc_mempool.obj"
 	-@erase "$(INTDIR)\sc_module.obj"
 	-@erase "$(INTDIR)\sc_module_name.obj"
@@ -94,11 +100,13 @@ CLEAN :
 	-@erase "$(INTDIR)\sc_signal_resolved_ports.obj"
 	-@erase "$(INTDIR)\sc_signed.obj"
 	-@erase "$(INTDIR)\sc_simcontext.obj"
+	-@erase "$(INTDIR)\sc_stop_here.obj"
 	-@erase "$(INTDIR)\sc_string.obj"
 	-@erase "$(INTDIR)\sc_time.obj"
 	-@erase "$(INTDIR)\sc_trace.obj"
-	-@erase "$(INTDIR)\sc_uint.obj"
+	-@erase "$(INTDIR)\sc_uint_base.obj"
 	-@erase "$(INTDIR)\sc_unsigned.obj"
+	-@erase "$(INTDIR)\sc_utils_ids.obj"
 	-@erase "$(INTDIR)\sc_vcd_trace.obj"
 	-@erase "$(INTDIR)\sc_vector.obj"
 	-@erase "$(INTDIR)\sc_ver.obj"
@@ -124,6 +132,7 @@ LIB32=link.exe -lib
 LIB32_FLAGS=/nologo /out:"$(OUTDIR)\systemc.lib" 
 LIB32_OBJS= \
 	"$(INTDIR)\sc_clock.obj" \
+	"$(INTDIR)\sc_communication_ids.obj" \
 	"$(INTDIR)\sc_event_finder.obj" \
 	"$(INTDIR)\sc_interface.obj" \
 	"$(INTDIR)\sc_mutex.obj" \
@@ -134,10 +143,7 @@ LIB32_OBJS= \
 	"$(INTDIR)\sc_signal_ports.obj" \
 	"$(INTDIR)\sc_signal_resolved.obj" \
 	"$(INTDIR)\sc_signal_resolved_ports.obj" \
-	"$(INTDIR)\sc_bit.obj" \
-	"$(INTDIR)\sc_bv.obj" \
-	"$(INTDIR)\sc_logic.obj" \
-	"$(INTDIR)\sc_lv.obj" \
+	"$(INTDIR)\sc_fx_ids.obj" \
 	"$(INTDIR)\sc_fxcast_switch.obj" \
 	"$(INTDIR)\sc_fxdefs.obj" \
 	"$(INTDIR)\sc_fxnum.obj" \
@@ -145,28 +151,17 @@ LIB32_OBJS= \
 	"$(INTDIR)\sc_fxtype_params.obj" \
 	"$(INTDIR)\sc_fxval.obj" \
 	"$(INTDIR)\sc_fxval_observer.obj" \
-	"$(INTDIR)\sc_report.obj" \
-	"$(INTDIR)\sc_report_handler.obj" \
 	"$(INTDIR)\scfx_mant.obj" \
 	"$(INTDIR)\scfx_pow10.obj" \
 	"$(INTDIR)\scfx_rep.obj" \
 	"$(INTDIR)\scfx_utils.obj" \
-	"$(INTDIR)\sc_int.obj" \
-	"$(INTDIR)\sc_int32_mask.obj" \
-	"$(INTDIR)\sc_int64_io.obj" \
-	"$(INTDIR)\sc_int64_mask.obj" \
-	"$(INTDIR)\sc_nbdefs.obj" \
-	"$(INTDIR)\sc_nbexterns.obj" \
-	"$(INTDIR)\sc_nbutils.obj" \
-	"$(INTDIR)\sc_signed.obj" \
-	"$(INTDIR)\sc_uint.obj" \
-	"$(INTDIR)\sc_unsigned.obj" \
 	"$(INTDIR)\sc_attribute.obj" \
-	"$(INTDIR)\sc_context_switch.obj" \
+	"$(INTDIR)\sc_cor_fiber.obj" \
+	"$(INTDIR)\sc_cor_qt.obj" \
 	"$(INTDIR)\sc_event.obj" \
+	"$(INTDIR)\sc_kernel_ids.obj" \
 	"$(INTDIR)\sc_lambda.obj" \
 	"$(INTDIR)\sc_main.obj" \
-	"$(INTDIR)\sc_measure.obj" \
 	"$(INTDIR)\sc_module.obj" \
 	"$(INTDIR)\sc_module_name.obj" \
 	"$(INTDIR)\sc_module_registry.obj" \
@@ -190,8 +185,29 @@ LIB32_OBJS= \
 	"$(INTDIR)\sc_list.obj" \
 	"$(INTDIR)\sc_mempool.obj" \
 	"$(INTDIR)\sc_pq.obj" \
+	"$(INTDIR)\sc_report.obj" \
+	"$(INTDIR)\sc_report_handler.obj" \
+	"$(INTDIR)\sc_stop_here.obj" \
 	"$(INTDIR)\sc_string.obj" \
-	"$(INTDIR)\sc_vector.obj"
+	"$(INTDIR)\sc_utils_ids.obj" \
+	"$(INTDIR)\sc_vector.obj" \
+	"$(INTDIR)\sc_bit.obj" \
+	"$(INTDIR)\sc_bit_ids.obj" \
+	"$(INTDIR)\sc_bv_base.obj" \
+	"$(INTDIR)\sc_logic.obj" \
+	"$(INTDIR)\sc_lv_base.obj" \
+	"$(INTDIR)\sc_int_base.obj" \
+	"$(INTDIR)\sc_int_ids.obj" \
+	"$(INTDIR)\sc_int32_mask.obj" \
+	"$(INTDIR)\sc_int64_io.obj" \
+	"$(INTDIR)\sc_int64_mask.obj" \
+	"$(INTDIR)\sc_length_param.obj" \
+	"$(INTDIR)\sc_nbdefs.obj" \
+	"$(INTDIR)\sc_nbexterns.obj" \
+	"$(INTDIR)\sc_nbutils.obj" \
+	"$(INTDIR)\sc_signed.obj" \
+	"$(INTDIR)\sc_uint_base.obj" \
+	"$(INTDIR)\sc_unsigned.obj"
 
 "$(OUTDIR)\systemc.lib" : "$(OUTDIR)" $(DEF_FILE) $(LIB32_OBJS)
     $(LIB32) @<<
@@ -212,12 +228,16 @@ ALL : "$(OUTDIR)\systemc.lib"
 CLEAN :
 	-@erase "$(INTDIR)\sc_attribute.obj"
 	-@erase "$(INTDIR)\sc_bit.obj"
-	-@erase "$(INTDIR)\sc_bv.obj"
+	-@erase "$(INTDIR)\sc_bit_ids.obj"
+	-@erase "$(INTDIR)\sc_bv_base.obj"
 	-@erase "$(INTDIR)\sc_clock.obj"
-	-@erase "$(INTDIR)\sc_context_switch.obj"
+	-@erase "$(INTDIR)\sc_communication_ids.obj"
+	-@erase "$(INTDIR)\sc_cor_fiber.obj"
+	-@erase "$(INTDIR)\sc_cor_qt.obj"
 	-@erase "$(INTDIR)\sc_event.obj"
 	-@erase "$(INTDIR)\sc_event_finder.obj"
 	-@erase "$(INTDIR)\sc_exception.obj"
+	-@erase "$(INTDIR)\sc_fx_ids.obj"
 	-@erase "$(INTDIR)\sc_fxcast_switch.obj"
 	-@erase "$(INTDIR)\sc_fxdefs.obj"
 	-@erase "$(INTDIR)\sc_fxnum.obj"
@@ -226,18 +246,20 @@ CLEAN :
 	-@erase "$(INTDIR)\sc_fxval.obj"
 	-@erase "$(INTDIR)\sc_fxval_observer.obj"
 	-@erase "$(INTDIR)\sc_hash.obj"
-	-@erase "$(INTDIR)\sc_int.obj"
 	-@erase "$(INTDIR)\sc_int32_mask.obj"
 	-@erase "$(INTDIR)\sc_int64_io.obj"
 	-@erase "$(INTDIR)\sc_int64_mask.obj"
+	-@erase "$(INTDIR)\sc_int_base.obj"
+	-@erase "$(INTDIR)\sc_int_ids.obj"
 	-@erase "$(INTDIR)\sc_interface.obj"
 	-@erase "$(INTDIR)\sc_isdb_trace.obj"
+	-@erase "$(INTDIR)\sc_kernel_ids.obj"
 	-@erase "$(INTDIR)\sc_lambda.obj"
+	-@erase "$(INTDIR)\sc_length_param.obj"
 	-@erase "$(INTDIR)\sc_list.obj"
 	-@erase "$(INTDIR)\sc_logic.obj"
-	-@erase "$(INTDIR)\sc_lv.obj"
+	-@erase "$(INTDIR)\sc_lv_base.obj"
 	-@erase "$(INTDIR)\sc_main.obj"
-	-@erase "$(INTDIR)\sc_measure.obj"
 	-@erase "$(INTDIR)\sc_mempool.obj"
 	-@erase "$(INTDIR)\sc_module.obj"
 	-@erase "$(INTDIR)\sc_module_name.obj"
@@ -264,11 +286,13 @@ CLEAN :
 	-@erase "$(INTDIR)\sc_signal_resolved_ports.obj"
 	-@erase "$(INTDIR)\sc_signed.obj"
 	-@erase "$(INTDIR)\sc_simcontext.obj"
+	-@erase "$(INTDIR)\sc_stop_here.obj"
 	-@erase "$(INTDIR)\sc_string.obj"
 	-@erase "$(INTDIR)\sc_time.obj"
 	-@erase "$(INTDIR)\sc_trace.obj"
-	-@erase "$(INTDIR)\sc_uint.obj"
+	-@erase "$(INTDIR)\sc_uint_base.obj"
 	-@erase "$(INTDIR)\sc_unsigned.obj"
+	-@erase "$(INTDIR)\sc_utils_ids.obj"
 	-@erase "$(INTDIR)\sc_vcd_trace.obj"
 	-@erase "$(INTDIR)\sc_vector.obj"
 	-@erase "$(INTDIR)\sc_ver.obj"
@@ -286,7 +310,7 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP_PROJ=/nologo /MLd /W3 /Gm /GR /GX /ZI /Od /I "../../src" /D "SC_INCLUDE_FX" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\systemc.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ  /c 
+CPP_PROJ=/nologo /MLd /W3 /Gm /GR /GX /ZI /Od /I "../../src" /D "SC_INCLUDE_FX" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /Fp"$(INTDIR)\systemc.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\systemc.bsc" 
 BSC32_SBRS= \
@@ -295,6 +319,7 @@ LIB32=link.exe -lib
 LIB32_FLAGS=/nologo /out:"$(OUTDIR)\systemc.lib" 
 LIB32_OBJS= \
 	"$(INTDIR)\sc_clock.obj" \
+	"$(INTDIR)\sc_communication_ids.obj" \
 	"$(INTDIR)\sc_event_finder.obj" \
 	"$(INTDIR)\sc_interface.obj" \
 	"$(INTDIR)\sc_mutex.obj" \
@@ -305,10 +330,7 @@ LIB32_OBJS= \
 	"$(INTDIR)\sc_signal_ports.obj" \
 	"$(INTDIR)\sc_signal_resolved.obj" \
 	"$(INTDIR)\sc_signal_resolved_ports.obj" \
-	"$(INTDIR)\sc_bit.obj" \
-	"$(INTDIR)\sc_bv.obj" \
-	"$(INTDIR)\sc_logic.obj" \
-	"$(INTDIR)\sc_lv.obj" \
+	"$(INTDIR)\sc_fx_ids.obj" \
 	"$(INTDIR)\sc_fxcast_switch.obj" \
 	"$(INTDIR)\sc_fxdefs.obj" \
 	"$(INTDIR)\sc_fxnum.obj" \
@@ -316,28 +338,17 @@ LIB32_OBJS= \
 	"$(INTDIR)\sc_fxtype_params.obj" \
 	"$(INTDIR)\sc_fxval.obj" \
 	"$(INTDIR)\sc_fxval_observer.obj" \
-	"$(INTDIR)\sc_report.obj" \
-	"$(INTDIR)\sc_report_handler.obj" \
 	"$(INTDIR)\scfx_mant.obj" \
 	"$(INTDIR)\scfx_pow10.obj" \
 	"$(INTDIR)\scfx_rep.obj" \
 	"$(INTDIR)\scfx_utils.obj" \
-	"$(INTDIR)\sc_int.obj" \
-	"$(INTDIR)\sc_int32_mask.obj" \
-	"$(INTDIR)\sc_int64_io.obj" \
-	"$(INTDIR)\sc_int64_mask.obj" \
-	"$(INTDIR)\sc_nbdefs.obj" \
-	"$(INTDIR)\sc_nbexterns.obj" \
-	"$(INTDIR)\sc_nbutils.obj" \
-	"$(INTDIR)\sc_signed.obj" \
-	"$(INTDIR)\sc_uint.obj" \
-	"$(INTDIR)\sc_unsigned.obj" \
 	"$(INTDIR)\sc_attribute.obj" \
-	"$(INTDIR)\sc_context_switch.obj" \
+	"$(INTDIR)\sc_cor_fiber.obj" \
+	"$(INTDIR)\sc_cor_qt.obj" \
 	"$(INTDIR)\sc_event.obj" \
+	"$(INTDIR)\sc_kernel_ids.obj" \
 	"$(INTDIR)\sc_lambda.obj" \
 	"$(INTDIR)\sc_main.obj" \
-	"$(INTDIR)\sc_measure.obj" \
 	"$(INTDIR)\sc_module.obj" \
 	"$(INTDIR)\sc_module_name.obj" \
 	"$(INTDIR)\sc_module_registry.obj" \
@@ -361,8 +372,29 @@ LIB32_OBJS= \
 	"$(INTDIR)\sc_list.obj" \
 	"$(INTDIR)\sc_mempool.obj" \
 	"$(INTDIR)\sc_pq.obj" \
+	"$(INTDIR)\sc_report.obj" \
+	"$(INTDIR)\sc_report_handler.obj" \
+	"$(INTDIR)\sc_stop_here.obj" \
 	"$(INTDIR)\sc_string.obj" \
-	"$(INTDIR)\sc_vector.obj"
+	"$(INTDIR)\sc_utils_ids.obj" \
+	"$(INTDIR)\sc_vector.obj" \
+	"$(INTDIR)\sc_bit.obj" \
+	"$(INTDIR)\sc_bit_ids.obj" \
+	"$(INTDIR)\sc_bv_base.obj" \
+	"$(INTDIR)\sc_logic.obj" \
+	"$(INTDIR)\sc_lv_base.obj" \
+	"$(INTDIR)\sc_int_base.obj" \
+	"$(INTDIR)\sc_int_ids.obj" \
+	"$(INTDIR)\sc_int32_mask.obj" \
+	"$(INTDIR)\sc_int64_io.obj" \
+	"$(INTDIR)\sc_int64_mask.obj" \
+	"$(INTDIR)\sc_length_param.obj" \
+	"$(INTDIR)\sc_nbdefs.obj" \
+	"$(INTDIR)\sc_nbexterns.obj" \
+	"$(INTDIR)\sc_nbutils.obj" \
+	"$(INTDIR)\sc_signed.obj" \
+	"$(INTDIR)\sc_uint_base.obj" \
+	"$(INTDIR)\sc_unsigned.obj"
 
 "$(OUTDIR)\systemc.lib" : "$(OUTDIR)" $(DEF_FILE) $(LIB32_OBJS)
     $(LIB32) @<<
@@ -415,6 +447,12 @@ LIB32_OBJS= \
 SOURCE=..\..\src\systemc\communication\sc_clock.cpp
 
 "$(INTDIR)\sc_clock.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\..\src\systemc\communication\sc_communication_ids.cpp
+
+"$(INTDIR)\sc_communication_ids.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
@@ -484,9 +522,15 @@ SOURCE=..\..\src\systemc\datatypes\bit\sc_bit.cpp
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-SOURCE=..\..\src\systemc\datatypes\bit\sc_bv.cpp
+SOURCE=..\..\src\systemc\datatypes\bit\sc_bit_ids.cpp
 
-"$(INTDIR)\sc_bv.obj" : $(SOURCE) "$(INTDIR)"
+"$(INTDIR)\sc_bit_ids.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\..\src\systemc\datatypes\bit\sc_bv_base.cpp
+
+"$(INTDIR)\sc_bv_base.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
@@ -496,9 +540,15 @@ SOURCE=..\..\src\systemc\datatypes\bit\sc_logic.cpp
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-SOURCE=..\..\src\systemc\datatypes\bit\sc_lv.cpp
+SOURCE=..\..\src\systemc\datatypes\bit\sc_lv_base.cpp
 
-"$(INTDIR)\sc_lv.obj" : $(SOURCE) "$(INTDIR)"
+"$(INTDIR)\sc_lv_base.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\..\src\systemc\datatypes\fx\sc_fx_ids.cpp
+
+"$(INTDIR)\sc_fx_ids.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
@@ -544,18 +594,6 @@ SOURCE=..\..\src\systemc\datatypes\fx\sc_fxval_observer.cpp
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-SOURCE=..\..\src\systemc\datatypes\fx\sc_report.cpp
-
-"$(INTDIR)\sc_report.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-SOURCE=..\..\src\systemc\datatypes\fx\sc_report_handler.cpp
-
-"$(INTDIR)\sc_report_handler.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
 SOURCE=..\..\src\systemc\datatypes\fx\scfx_mant.cpp
 
 "$(INTDIR)\scfx_mant.obj" : $(SOURCE) "$(INTDIR)"
@@ -580,12 +618,6 @@ SOURCE=..\..\src\systemc\datatypes\fx\scfx_utils.cpp
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-SOURCE=..\..\src\systemc\datatypes\int\sc_int.cpp
-
-"$(INTDIR)\sc_int.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
 SOURCE=..\..\src\systemc\datatypes\int\sc_int32_mask.cpp
 
 "$(INTDIR)\sc_int32_mask.obj" : $(SOURCE) "$(INTDIR)"
@@ -601,6 +633,24 @@ SOURCE=..\..\src\systemc\datatypes\int\sc_int64_io.cpp
 SOURCE=..\..\src\systemc\datatypes\int\sc_int64_mask.cpp
 
 "$(INTDIR)\sc_int64_mask.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\..\src\systemc\datatypes\int\sc_int_base.cpp
+
+"$(INTDIR)\sc_int_base.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\..\src\systemc\datatypes\int\sc_int_ids.cpp
+
+"$(INTDIR)\sc_int_ids.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\..\src\systemc\datatypes\int\sc_length_param.cpp
+
+"$(INTDIR)\sc_length_param.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
@@ -628,9 +678,9 @@ SOURCE=..\..\src\systemc\datatypes\int\sc_signed.cpp
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-SOURCE=..\..\src\systemc\datatypes\int\sc_uint.cpp
+SOURCE=..\..\src\systemc\datatypes\int\sc_uint_base.cpp
 
-"$(INTDIR)\sc_uint.obj" : $(SOURCE) "$(INTDIR)"
+"$(INTDIR)\sc_uint_base.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
@@ -646,15 +696,27 @@ SOURCE=..\..\src\systemc\kernel\sc_attribute.cpp
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
-SOURCE=..\..\src\systemc\kernel\sc_context_switch.cpp
+SOURCE=..\..\src\systemc\kernel\sc_cor_fiber.cpp
 
-"$(INTDIR)\sc_context_switch.obj" : $(SOURCE) "$(INTDIR)"
+"$(INTDIR)\sc_cor_fiber.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\..\src\systemc\kernel\sc_cor_qt.cpp
+
+"$(INTDIR)\sc_cor_qt.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 SOURCE=..\..\src\systemc\kernel\sc_event.cpp
 
 "$(INTDIR)\sc_event.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\..\src\systemc\kernel\sc_kernel_ids.cpp
+
+"$(INTDIR)\sc_kernel_ids.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
@@ -667,12 +729,6 @@ SOURCE=..\..\src\systemc\kernel\sc_lambda.cpp
 SOURCE=..\..\src\systemc\kernel\sc_main.cpp
 
 "$(INTDIR)\sc_main.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-SOURCE=..\..\src\systemc\kernel\sc_measure.cpp
-
-"$(INTDIR)\sc_measure.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
@@ -814,9 +870,33 @@ SOURCE=..\..\src\systemc\utils\sc_pq.cpp
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
+SOURCE=..\..\src\systemc\utils\sc_report.cpp
+
+"$(INTDIR)\sc_report.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\..\src\systemc\utils\sc_report_handler.cpp
+
+"$(INTDIR)\sc_report_handler.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\..\src\systemc\utils\sc_stop_here.cpp
+
+"$(INTDIR)\sc_stop_here.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
 SOURCE=..\..\src\systemc\utils\sc_string.cpp
 
 "$(INTDIR)\sc_string.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+SOURCE=..\..\src\systemc\utils\sc_utils_ids.cpp
+
+"$(INTDIR)\sc_utils_ids.obj" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

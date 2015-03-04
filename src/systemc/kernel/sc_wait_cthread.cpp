@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -35,6 +35,7 @@
  *****************************************************************************/
 
 
+#include "systemc/kernel/sc_kernel_ids.h"
 #include "systemc/kernel/sc_process_int.h"
 #include "systemc/kernel/sc_simcontext_int.h"
 #include "systemc/kernel/sc_wait_cthread.h"
@@ -53,7 +54,7 @@ halt( sc_simcontext* simc )
 	break;
     }
     default:
-	REPORT_ERROR( 6016, "" );
+	SC_REPORT_ERROR( SC_ID_HALT_NOT_ALLOWED_, 0 );
 	break;
     }
 }
@@ -67,14 +68,14 @@ wait( int n, sc_simcontext* simc )
     case SC_CTHREAD_PROC_: {
         if( n <= 0 ) {
             char msg[BUFSIZ];
-            sprintf( msg, "n = %d (%s)", n, cpi->process_handle->name() );
-            REPORT_ERROR( 6019, msg );
+            sprintf( msg, "n = %d", n );
+            SC_REPORT_ERROR( SC_ID_WAIT_N_INVALID_, msg );
         }
 	RCAST<sc_cthread_handle>( cpi->process_handle )->wait_clock( n );
         break;
     }
     default:
-	REPORT_ERROR( 6011, "" );
+	SC_REPORT_ERROR( SC_ID_WAIT_N_NOT_ALLOWED_, 0 );
         break;
     }
 }
@@ -90,7 +91,7 @@ wait_until( const sc_lambda_ptr& lambda, sc_simcontext* simc )
         break;
     }
     default:
-	REPORT_ERROR( 6012, "" );
+	SC_REPORT_ERROR( SC_ID_WAIT_UNTIL_NOT_ALLOWED_, 0 );
         break;
     }
 }
@@ -152,7 +153,7 @@ watching_before_simulation( const sc_lambda_ptr& lambda, sc_simcontext* simc )
         break;
     }
     default:
-	REPORT_ERROR( 6017, "" );
+	SC_REPORT_ERROR( SC_ID_WATCHING_NOT_ALLOWED_, 0 );
         break;
     }
 }
@@ -167,7 +168,7 @@ watching_during_simulation( const sc_lambda_ptr& lambda, sc_simcontext* simc )
         break;
     }
     default:
-	REPORT_ERROR( 6017, "" );
+	SC_REPORT_ERROR( SC_ID_WATCHING_NOT_ALLOWED_, 0 );
         break;
     }
 }

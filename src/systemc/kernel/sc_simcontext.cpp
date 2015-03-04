@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -41,8 +41,10 @@
  *****************************************************************************/
 
 
-#include "systemc/kernel/sc_context_switch.h"
+#include "systemc/kernel/sc_cor_fiber.h"
+#include "systemc/kernel/sc_cor_qt.h"
 #include "systemc/kernel/sc_event.h"
+#include "systemc/kernel/sc_kernel_ids.h"
 #include "systemc/kernel/sc_lambda.h"
 #include "systemc/kernel/sc_macros_int.h"
 #include "systemc/kernel/sc_module.h"
@@ -56,10 +58,8 @@
 #include "systemc/communication/sc_port.h"
 #include "systemc/communication/sc_prim_channel.h"
 #include "systemc/tracing/sc_trace.h"
+#include "systemc/utils/sc_exception.h"
 #include "systemc/utils/sc_mempool.h"
-#ifndef WIN32
-#include "systemc/qt/qt.h"
-#endif
 
 
 // ----------------------------------------------------------------------------
@@ -306,11 +306,9 @@ sc_simcontext::init()
     m_ready_to_simulate = false;
     m_update_phase = false;
     m_error = false;
-// #ifndef WIN32
-//     m_sp = ?
-// #else
-//     m_fiber = ?
-// #endif
+    m_until_event = 0;
+    m_cor_pkg = 0;
+    m_cor = 0;
     m_watching_fn = watching_before_simulation;
 }
 
@@ -332,6 +330,12 @@ sc_simcontext::clean()
     m_trace_files.erase_all();
     delete m_runnable;
     delete m_time_params;
+    if( m_until_event != 0 ) {
+        delete m_until_event;
+    }
+    if( m_cor_pkg != 0 ) {
+	delete m_cor_pkg;
+    }
 }
 
 
@@ -359,7 +363,7 @@ sc_simcontext::initialize( bool no_crunch )
 
     // check for call(s) to sc_stop
     if( m_forced_stop ) {
-        cout << "SystemC: simulation stopped by user.\n";
+        cout << "SystemC: simulation stopped by user." << endl;
         return;
     }
 
@@ -369,6 +373,14 @@ sc_simcontext::initialize( bool no_crunch )
     m_runnable->alloc( m_process_table->num_methods(),
 		       m_process_table->num_threads() +
 		       m_process_table->num_cthreads() );
+
+    // instantiate the coroutine package
+#ifndef WIN32
+    m_cor_pkg = new sc_cor_pkg_qt( this );
+#else
+    m_cor_pkg = new sc_cor_pkg_fiber( this );
+#endif
+    m_cor = m_cor_pkg->get_main();
 
     // prepare all thread processes for simulation
     const sc_thread_vec& thread_vec = m_process_table->thread_vec();
@@ -426,6 +438,9 @@ sc_simcontext::initialize( bool no_crunch )
 	m_delta_events.erase_all();
     }
 
+    // used in 'simulate()'
+    m_until_event = new sc_event;
+
     if( no_crunch || m_runnable->push_empty() ) {
         return;
     }
@@ -442,7 +457,7 @@ sc_simcontext::initialize( bool no_crunch )
     }
     // check for call(s) to sc_stop
     if( m_forced_stop ) {
-        cout << "SystemC: simulation stopped by user.\n";
+        cout << "SystemC: simulation stopped by user." << endl;
     }
 }
 
@@ -456,11 +471,11 @@ sc_simcontext::simulate( const sc_time& duration )
     }
 
     sc_time until_t = ( duration == SC_ZERO_TIME ) 
-	              ? sc_time( ~const_zero_ull, false ) // max time
+	              ? sc_time( ~sc_dt::UINT64_ZERO, false ) // max time
 		      : m_curr_time + duration;
 
-    sc_event until_e;
-    until_e.notify( until_t - m_curr_time );
+    m_until_event->cancel();  // to be on the safe side
+    m_until_event->notify_delayed( until_t - m_curr_time );
 
     sc_time t;
     
@@ -476,7 +491,7 @@ sc_simcontext::simulate( const sc_time& duration )
 	}
 	// check for call(s) to sc_stop
 	if( m_forced_stop ) {
-	    cout << "SystemC: simulation stopped by user.\n";
+	    cout << "SystemC: simulation stopped by user." << endl;
 	    return;
 	}
 	
@@ -610,41 +625,11 @@ sc_simcontext::add_trace_file( sc_trace_file* tf )
 }
 
 
-#ifndef WIN32
-
-qt_t*
-sc_simcontext::next_thread_qt()
+sc_cor*
+sc_simcontext::next_cor()
 {
     if( m_error ) {
-	return m_sp;
-    }
-
-    sc_thread_handle thread_h = pop_runnable_thread();
-    while( thread_h != 0 && ! thread_h->ready_to_run() ) {
-	thread_h = pop_runnable_thread();
-    }
-    
-    if( thread_h != 0 ) {
-	return thread_h->m_sp;
-    } else {
-	return m_sp;
-    }
-}
-
-void*
-sc_simcontext_yieldhelp( qt_t* sp, void* simc, void* )
-{
-    SCAST<sc_simcontext*>( simc )->m_sp = sp;
-    return sp;
-}
-
-#else
-
-PVOID
-sc_simcontext::next_thread_fiber()
-{
-    if( m_error ) {
-	return m_fiber;
+	return m_cor;
     }
     
     sc_thread_handle thread_h = pop_runnable_thread();
@@ -653,13 +638,11 @@ sc_simcontext::next_thread_fiber()
     }
     
     if( thread_h != 0 ) {
-	return thread_h->m_fiber;
+	return thread_h->m_cor;
     } else {
-	return m_fiber;
+	return m_cor;
     }
 }
-
-#endif
 
 
 const sc_pvector<sc_object*>&
@@ -697,6 +680,8 @@ sc_simcontext::crunch()
     int num_deltas = 0;  // number of delta cycles
 #endif
 
+    m_delta_count ++;
+
     while( true ) {
 
 	// EVALUATE PHASE
@@ -711,7 +696,7 @@ sc_simcontext::crunch()
 		    method_h->execute();
 		}
 		catch( const sc_exception& ex ) {
-		    cout << "\n" << ex.str() << "\n";
+		    cout << "\n" << ex.what() << endl;
 		    m_error = true;
 		    return;
 		}
@@ -725,15 +710,7 @@ sc_simcontext::crunch()
 		thread_h = pop_runnable_thread();
 	    }
 	    if( thread_h != 0 ) {
-#ifndef WIN32
-		context_switch( sc_simcontext_yieldhelp,
-				this,
-				0,
-				thread_h->m_sp );
-#else
-		m_fiber = GetCurrentFiber();
-		context_switch( thread_h->m_fiber );
-#endif
+		m_cor_pkg->yield( thread_h->m_cor );
 	    }
 	    if( m_error ) {
 		return;
@@ -890,7 +867,8 @@ sc_gen_unique_name( const char* basename_ )
 void
 sc_set_random_seed( unsigned int )
 {
-    REPORT_WARNING( 2, "void sc_set_random_seed( unsigned int )" );
+    SC_REPORT_WARNING( SC_ID_NOT_IMPLEMENTED_,
+		       "void sc_set_random_seed( unsigned int )" );
 }
 
 
@@ -940,28 +918,6 @@ sc_defunct_process_function( sc_module* )
     // sc_cthread_process'es. In a correctly constructed world, this
     // function should never be called; hence the assert.
     assert( false );
-}
-
-
-// ----------------------------------------------------------------------------
-
-void
-sc_assert_fail( const char* assertion_,
-                const char* file_,
-                int line_ )
-{
-    cerr << "SystemC: ";
-    cerr << file_ << ":" << line_ << ": ";
-    sc_simcontext* simc = sc_get_curr_simcontext();
-    if( simc->is_running() ) {
-        sc_process_b* p = simc->get_curr_proc_info()->process_handle;
-        if( p != 0 ) {
-            cerr << p->name() << ":";
-        }
-        cerr << sc_simulation_time() << ": ";
-    }
-    cerr << "Assertion `" << assertion_ << "' failed.\n";
-    abort();
 }
 
 

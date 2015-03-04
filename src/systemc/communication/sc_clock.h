@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -152,7 +152,11 @@ public:
 
 
     void trace( sc_trace_file* tf ) const
+#ifdef DEBUG_SYSTEMC
 	{ ::sc_trace( tf, get_data_ref(), name() ); }
+#else
+	{}
+#endif
 
 
     virtual void print( ostream& ) const;
@@ -190,6 +194,10 @@ protected:
     // processes
     void posedge_action();
     void negedge_action();
+
+
+    // error reporting
+    void report_error( int id, const char* add_msg = 0 ) const;
 
 
     void init( const sc_time&, double, const sc_time&, bool );

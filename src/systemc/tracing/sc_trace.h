@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -52,23 +52,34 @@
 #include "systemc/utils/sc_string.h"
 
 // Some forward declarations
-class sc_logic;
-class sc_signed;
-class sc_unsigned;
-class sc_int_base;
-class sc_uint_base;
-class sc_bit;
-namespace sc_bv_ns
+namespace sc_dt
 {
-  class sc_bv_base;
-  class sc_lv_base;
+    class sc_bit;
+    class sc_logic;
+    class sc_bv_base;
+    class sc_lv_base;
+    class sc_signed;
+    class sc_unsigned;
+    class sc_int_base;
+    class sc_uint_base;
+    class sc_fxval;
+    class sc_fxval_fast;
+    class sc_fxnum;
+    class sc_fxnum_fast;
 }
-using sc_bv_ns::sc_bv_base;
-using sc_bv_ns::sc_lv_base;
-class sc_fxval;
-class sc_fxval_fast;
-class sc_fxnum;
-class sc_fxnum_fast;
+using sc_dt::sc_bit;
+using sc_dt::sc_logic;
+using sc_dt::sc_bv_base;
+using sc_dt::sc_lv_base;
+using sc_dt::sc_signed;
+using sc_dt::sc_unsigned;
+using sc_dt::sc_int_base;
+using sc_dt::sc_uint_base;
+using sc_dt::sc_fxval;
+using sc_dt::sc_fxval_fast;
+using sc_dt::sc_fxnum;
+using sc_dt::sc_fxnum_fast;
+
 class sc_logic_resolve;
 class sc_time;
 

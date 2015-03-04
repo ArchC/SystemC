@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -37,6 +37,9 @@
 #include "systemc/datatypes/fx/sc_fxtype_params.h"
 
 
+namespace sc_dt
+{
+
 // ----------------------------------------------------------------------------
 //  CLASS : sc_fxtype_params
 //
@@ -57,9 +60,9 @@ sc_fxtype_params::to_string() const
     sprintf( buf, "%d", m_iwl );
     s += buf;
     s += ",";
-    s += ::to_string( m_q_mode );
+    s += sc_dt::to_string( m_q_mode );
     s += ",";
-    s += ::to_string( m_o_mode );
+    s += sc_dt::to_string( m_o_mode );
     s += ",";
     sprintf( buf, "%d", m_n_bits );
     s += buf;
@@ -88,14 +91,7 @@ sc_fxtype_params::dump( ostream& os ) const
     os << ")" << endl;
 }
 
-
-// ----------------------------------------------------------------------------
-//  TYPEDEF : sc_fxtype_context
-//
-//  Context type for the fixed-point type parameters.
-// ----------------------------------------------------------------------------
-
-//template class sc_context<sc_fxtype_params>;
+} // namespace sc_dt
 
 
 // Taf!

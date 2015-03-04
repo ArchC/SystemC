@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -33,12 +33,23 @@
 
  *****************************************************************************/
 
-
 #ifndef SC_FXVAL_OBSERVER_H
 #define SC_FXVAL_OBSERVER_H
 
 
 #include "systemc/datatypes/fx/sc_fxdefs.h"
+
+
+namespace sc_dt
+{
+
+// classes defined in this module
+class sc_fxval_observer;
+class sc_fxval_fast_observer;
+
+// forward class declarations
+class sc_fxval;
+class sc_fxval_fast;
 
 
 #ifdef SC_ENABLE_OBSERVERS
@@ -80,10 +91,6 @@
 #define SC_FXVAL_FAST_OBSERVER_DEFAULT_
 
 #endif
-
-
-class sc_fxval;
-class sc_fxval_fast;
 
 
 // ----------------------------------------------------------------------------
@@ -196,6 +203,8 @@ inline
 void
 sc_fxval_fast_observer::write( const sc_fxval_fast& )
 {}
+
+} // namespace sc_dt
 
 
 #endif

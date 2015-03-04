@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -37,160 +37,233 @@
 
  *****************************************************************************/
 
-
 #ifndef SC_BIGINT_H
 #define SC_BIGINT_H
 
+
 #include "systemc/datatypes/int/sc_signed.h"
 #include "systemc/datatypes/int/sc_unsigned.h"
-#include "systemc/utils/sc_exception.h"
 
-namespace sc_bv_ns
+
+namespace sc_dt
 {
-    class sc_bv_base;
-    class sc_lv_base;
-}
-using sc_bv_ns::sc_bv_base;
-using sc_bv_ns::sc_lv_base;
 
+// classes defined in this module
+template <int W> class sc_bigint;
+
+// forward class declarations
+class sc_bv_base;
+class sc_lv_base;
 class sc_fxval;
 class sc_fxval_fast;
 class sc_fxnum;
 class sc_fxnum_fast;
+
+
+// ----------------------------------------------------------------------------
+//  CLASS TEMPLATE : sc_bigint<W>
+//
+//  Arbitrary size signed integer type.
+// ----------------------------------------------------------------------------
 
 #ifdef SC_MAX_NBITS
 template< int W = SC_MAX_NBITS >
 #else
 template< int W >
 #endif
-class sc_bigint : public sc_signed {
-
+class sc_bigint
+    : public sc_signed
+{
 public:
 
-  sc_bigint() : sc_signed(W)                            { }
+    // constructors
 
-  sc_bigint(const sc_bigint<W>&       v) : sc_signed(W) { *this = v; }
+    sc_bigint()
+	: sc_signed( W )
+	{}
 
-  sc_bigint(const sc_signed&          v) : sc_signed(W) { *this = v; }
+    sc_bigint( const sc_bigint<W>& v )
+	: sc_signed( W )
+	{ *this = v; }
 
-  sc_bigint(const sc_signed_subref&   v) : sc_signed(W) { *this = v; }
+    sc_bigint( const sc_signed& v )
+	: sc_signed( W )
+	{ *this = v; }
 
-  sc_bigint(const sc_unsigned&        v) : sc_signed(W) { *this = v; }
+    sc_bigint( const sc_signed_subref& v )
+	: sc_signed( W )
+	{ *this = v; }
 
-  sc_bigint(const sc_unsigned_subref& v) : sc_signed(W) { *this = v; }
+    template <class T1, class T2>
+    sc_bigint( const sc_signed_concref<T1,T2>& a )
+	: sc_signed( W )
+	{ sc_signed::operator = ( a ); }
 
-  sc_bigint(const char*               v) : sc_signed(W) { *this = v; }
+    sc_bigint( const sc_unsigned& v )
+	: sc_signed( W )
+	{ *this = v; }
 
-  sc_bigint(int64                     v) : sc_signed(W) { *this = v; }
+    sc_bigint( const sc_unsigned_subref& v )
+	: sc_signed( W )
+	{ *this = v; }
 
-  sc_bigint(uint64                    v) : sc_signed(W) { *this = v; }
+    template <class T1, class T2>
+    sc_bigint( const sc_unsigned_concref<T1,T2>& a )
+	: sc_signed( W )
+	{ sc_signed::operator = ( a ); }
 
-  sc_bigint(long                      v) : sc_signed(W) { *this = v; }
+    sc_bigint( const char* v )
+	: sc_signed( W )
+	{ *this = v; }
 
-  sc_bigint(unsigned long             v) : sc_signed(W) { *this = v; }
+    sc_bigint( int64 v )
+	: sc_signed( W )
+	{ *this = v; }
 
-  sc_bigint(int                       v) : sc_signed(W) { *this = v; } 
+    sc_bigint( uint64 v )
+	: sc_signed( W )
+	{ *this = v; }
 
-  sc_bigint(unsigned int              v) : sc_signed(W) { *this = v; } 
+    sc_bigint( long v )
+	: sc_signed( W )
+	{ *this = v; }
 
-  sc_bigint(double                    v) : sc_signed(W) { *this = v; }
+    sc_bigint( unsigned long v )
+	: sc_signed( W )
+	{ *this = v; }
+
+    sc_bigint( int v )
+	: sc_signed( W )
+	{ *this = v; }
+
+    sc_bigint( unsigned int v )
+	: sc_signed( W )
+	{ *this = v; }
+
+    sc_bigint( double v )
+	: sc_signed( W )
+	{ *this = v; }
   
-  sc_bigint( const sc_bv_base& v ) : sc_signed( W ) { *this = v; }
-  sc_bigint( const sc_lv_base& v ) : sc_signed( W ) { *this = v; }
+    sc_bigint( const sc_bv_base& v )
+	: sc_signed( W )
+	{ *this = v; }
+
+    sc_bigint( const sc_lv_base& v )
+	: sc_signed( W )
+	{ *this = v; }
 
 #ifdef SC_INCLUDE_FX
 
-  explicit sc_bigint( const sc_fxval& v )
-    : sc_signed( W )
-    { *this = v; }
+    explicit sc_bigint( const sc_fxval& v )
+	: sc_signed( W )
+	{ *this = v; }
 
-  explicit sc_bigint( const sc_fxval_fast& v )
-    : sc_signed( W )
-    { *this = v; }
+    explicit sc_bigint( const sc_fxval_fast& v )
+	: sc_signed( W )
+	{ *this = v; }
 
-  explicit sc_bigint( const sc_fxnum& v )
-    : sc_signed( W )
-    { *this = v; }
+    explicit sc_bigint( const sc_fxnum& v )
+	: sc_signed( W )
+	{ *this = v; }
 
-  explicit sc_bigint( const sc_fxnum_fast& v )
-    : sc_signed( W )
-    { *this = v; }
+    explicit sc_bigint( const sc_fxnum_fast& v )
+	: sc_signed( W )
+	{ *this = v; }
 
 #endif
+
 
 #ifndef SC_MAX_NBITS
-  ~sc_bigint() { }
+
+    // destructor
+
+    ~sc_bigint()
+	{}
+
 #endif
  
-  sc_bigint<W>& operator=(const sc_bigint<W>&       v)
-  { sc_signed::operator=(v); return *this; }
 
-  sc_bigint<W>& operator=(const sc_signed&          v)
-  { sc_signed::operator=(v); return *this; }
+    // assignment operators
 
-  sc_bigint<W>& operator=(const sc_signed_subref&   v)
-  { sc_signed::operator=(v); return *this; }
+    sc_bigint<W>& operator = ( const sc_bigint<W>& v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator=(const sc_unsigned&        v)
-  { sc_signed::operator=(v); return *this; }
+    sc_bigint<W>& operator = ( const sc_signed& v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator=(const sc_unsigned_subref& v)
-  { sc_signed::operator=(v); return *this; }
+    sc_bigint<W>& operator = (const sc_signed_subref& v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator=(const char*               v) 
-  { sc_signed::operator=(v); return *this; }
+    template <class T1, class T2>
+    sc_bigint<W>& operator = ( const sc_signed_concref<T1,T2>& a )
+	{ sc_signed::operator = ( a ); return *this; }
 
-  sc_bigint<W>& operator=(int64                     v)
-  { sc_signed::operator=(v); return *this; }
+    sc_bigint<W>& operator = ( const sc_unsigned& v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator=(uint64                    v)
-  { sc_signed::operator=(v); return *this; }
+    sc_bigint<W>& operator = ( const sc_unsigned_subref& v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator=(long                      v)
-  { sc_signed::operator=(v); return *this; }
+    template <class T1, class T2>
+    sc_bigint<W>& operator = ( const sc_unsigned_concref<T1,T2>& a )
+	{ sc_signed::operator = ( a ); return *this; }
 
-  sc_bigint<W>& operator=(unsigned long             v)
-  { sc_signed::operator=(v); return *this; }
+    sc_bigint<W>& operator = ( const char* v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator=(int                       v) 
-  { sc_signed::operator=(v); return *this; }
+    sc_bigint<W>& operator = ( int64 v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator=(unsigned int              v) 
-  { sc_signed::operator=(v); return *this; }
+    sc_bigint<W>& operator = ( uint64 v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator=(double                    v)
-  { sc_signed::operator=(v); return *this; }
+    sc_bigint<W>& operator = ( long v )
+	{ sc_signed::operator = ( v ); return *this; }
+
+    sc_bigint<W>& operator = ( unsigned long v )
+	{ sc_signed::operator = ( v ); return *this; }
+
+    sc_bigint<W>& operator = ( int v )
+	{ sc_signed::operator = ( v ); return *this; }
+
+    sc_bigint<W>& operator = ( unsigned int v )
+	{ sc_signed::operator = ( v ); return *this; }
+
+    sc_bigint<W>& operator = ( double v )
+	{ sc_signed::operator = ( v ); return *this; }
 
 
-  sc_bigint<W>& operator = ( const sc_bv_base& v )
-      { sc_signed::operator = ( v ); return *this; }
+    sc_bigint<W>& operator = ( const sc_bv_base& v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator = ( const sc_lv_base& v )
-      { sc_signed::operator = ( v ); return *this; }
+    sc_bigint<W>& operator = ( const sc_lv_base& v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator = ( const sc_int_base& v )
-      { sc_signed::operator = ( v ); return *this; }
+    sc_bigint<W>& operator = ( const sc_int_base& v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator = ( const sc_uint_base& v )
-      { sc_signed::operator = ( v ); return *this; }
+    sc_bigint<W>& operator = ( const sc_uint_base& v )
+	{ sc_signed::operator = ( v ); return *this; }
 
 
 #ifdef SC_INCLUDE_FX
 
-  sc_bigint<W>& operator = ( const sc_fxval& v )
-    { sc_signed::operator = ( v ); return *this; }
+    sc_bigint<W>& operator = ( const sc_fxval& v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator = ( const sc_fxval_fast& v )
-    { sc_signed::operator = ( v ); return *this; }
+    sc_bigint<W>& operator = ( const sc_fxval_fast& v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator = ( const sc_fxnum& v )
-    { sc_signed::operator = ( v ); return *this; }
+    sc_bigint<W>& operator = ( const sc_fxnum& v )
+	{ sc_signed::operator = ( v ); return *this; }
 
-  sc_bigint<W>& operator = ( const sc_fxnum_fast& v )
-    { sc_signed::operator = ( v ); return *this; }
+    sc_bigint<W>& operator = ( const sc_fxnum_fast& v )
+	{ sc_signed::operator = ( v ); return *this; }
 
 #endif
 };
+
+} // namespace sc_dt
 
 
 #endif

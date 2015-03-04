@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -34,6 +34,7 @@
  *****************************************************************************/
 
 
+#include "systemc/communication/sc_communication_ids.h"
 #include "systemc/communication/sc_semaphore.h"
 #include "systemc/kernel/sc_simcontext.h"
 
@@ -47,19 +48,38 @@
 const char* const sc_semaphore::kind_string = "sc_semaphore";
 
 
+// error reporting
+
+void
+sc_semaphore::report_error( int id, const char* add_msg ) const
+{
+    char msg[BUFSIZ];
+    if( add_msg != 0 ) {
+	sprintf( msg, "%s: semaphore '%s'", add_msg, name() );
+    } else {
+	sprintf( msg, "semaphore '%s'", name() );
+    }
+    SC_REPORT_ERROR( id, msg );
+}
+
+
 // constructors
 
 sc_semaphore::sc_semaphore( int init_value_ )
 : sc_prim_channel( sc_gen_unique_name( "semaphore" ) ),
   m_value( init_value_ )
 {
-    assert( m_value >= 0 );
+    if( m_value < 0 ) {
+	report_error( SC_ID_INVALID_SEMAPHORE_VALUE_ );
+    }
 }
 
 sc_semaphore::sc_semaphore( const char* name_, int init_value_ )
 : sc_prim_channel( name_ ), m_value( init_value_ )
 {
-    assert( m_value >= 0 );
+    if( m_value < 0 ) {
+	report_error( SC_ID_INVALID_SEMAPHORE_VALUE_ );
+    }
 }
 
 

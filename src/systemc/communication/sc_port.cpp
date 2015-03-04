@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -37,6 +37,7 @@
 #include "systemc/kernel/sc_lambda.h"
 #include "systemc/kernel/sc_process_int.h"
 #include "systemc/kernel/sc_simcontext.h"
+#include "systemc/communication/sc_communication_ids.h"
 #include "systemc/communication/sc_event_finder.h"
 #include "systemc/communication/sc_port.h"
 #include "systemc/communication/sc_signal_ifs.h"
@@ -181,6 +182,21 @@ sc_bind_info::size() const
 const char* const sc_port_base::kind_string = "sc_port_base";
 
 
+// error reporting
+
+void
+sc_port_base::report_error( int id, const char* add_msg ) const
+{
+    char msg[BUFSIZ];
+    if( add_msg != 0 ) {
+	sprintf( msg, "%s: port '%s' (%s)", add_msg, name(), kind() );
+    } else {
+	sprintf( msg, "port '%s' (%s)", name(), kind() );
+    }
+    SC_REPORT_ERROR( id, msg );
+}
+
+
 // constructors
 
 sc_port_base::sc_port_base( int max_size_ )
@@ -216,18 +232,18 @@ sc_port_base::bind( sc_interface& interface_ )
 {
     if( m_bind_info == 0 ) {
 	// cannot bind an interface after elaboration
-	REPORT_ERROR( 7021, "simulation running" );
+	report_error( SC_ID_BIND_IF_TO_PORT_, "simulation running" );
     }
 
     if( m_bind_info->size() == m_bind_info->max_size &&
 	m_bind_info->max_size > 0 ) {
-	REPORT_ERROR( 7021, "maximum reached" );
+	report_error( SC_ID_BIND_IF_TO_PORT_, "maximum reached" );
     }
 
     // check if interface is already bound to this port
     for( int i = m_bind_info->size() - 1; i >= 0; -- i ) {
 	if( &interface_ == m_bind_info->vec[i]->iface ) {
-	    REPORT_ERROR( 7021, "already bound" );
+	    report_error( SC_ID_BIND_IF_TO_PORT_, "already bound" );
 	}
     }
 
@@ -248,22 +264,22 @@ sc_port_base::bind( this_type& parent_ )
 {
     if( m_bind_info == 0 ) {
 	// cannot bind a parent port after elaboration
-	REPORT_ERROR( 7022, "simulation running" );
+	report_error( SC_ID_BIND_PORT_TO_PORT_, "simulation running" );
     }
 
     if( m_bind_info->size() == m_bind_info->max_size &&
 	m_bind_info->max_size > 0 ) {
-	REPORT_ERROR( 7022, "maximum reached" );
+	report_error( SC_ID_BIND_PORT_TO_PORT_, "maximum reached" );
     }
 
     if( &parent_ == this ) {
-	REPORT_ERROR( 7022, "same port" );
+	report_error( SC_ID_BIND_PORT_TO_PORT_, "same port" );
     }
 
     // check if parent port is already bound to this port
     for( int i = m_bind_info->size() - 1; i >= 0; -- i ) {
 	if( &parent_ == m_bind_info->vec[i]->parent ) {
-	    REPORT_ERROR( 7022, "already bound" );
+	    report_error( SC_ID_BIND_PORT_TO_PORT_, "already bound" );
 	}
     }
 
@@ -287,7 +303,7 @@ sc_port_base::pbind( sc_interface& interface_ )
 {
     if( m_bind_info == 0 ) {
 	// cannot bind an interface after elaboration
-	REPORT_ERROR( 7021, "simulation running" );
+	report_error( SC_ID_BIND_IF_TO_PORT_, "simulation running" );
     }
     
     if( m_bind_info->size() != 0 ) {
@@ -303,7 +319,7 @@ sc_port_base::pbind( sc_port_base& parent_ )
 {
     if( m_bind_info == 0 ) {
 	// cannot bind a parent port after elaboration
-	REPORT_ERROR( 7022, "simulation running" );
+	report_error( SC_ID_BIND_PORT_TO_PORT_, "simulation running" );
     }
     
     if( m_bind_info->size() != 0 ) {
@@ -363,7 +379,7 @@ sc_port_base::insert_parent( int i )
     if( n > 0 ) {
 	if( m_bind_info->size() + n > m_bind_info->max_size &&
 	    m_bind_info->max_size > 0 ) {
-	    REPORT_ERROR( 7023, "maximum reached" );
+	    report_error( SC_ID_COMPLETE_BINDING_, "maximum reached" );
 	}
 	// resize the bind vector (by adding new elements)
 	for( int k = 0; k < n; ++ k ) {
@@ -395,9 +411,7 @@ sc_port_base::complete_binding()
     }
     
     if( m_bind_info->size() == 0 ) {
-	char msg[BUFSIZ];
-	sprintf( msg, "port `%s' not bound", name() );
-	REPORT_ERROR( 7023, msg );
+	report_error( SC_ID_COMPLETE_BINDING_, "port not bound" );
     }
 
     int i = first_parent();
@@ -414,7 +428,7 @@ sc_port_base::complete_binding()
 
 	// check the state
 	if( iface == 0 || m_bind_info->vec[j]->parent != 0 ) {
-	    REPORT_ERROR( 7023, "inconsistent state" );
+	    report_error( SC_ID_COMPLETE_BINDING_, "inconsistent state" );
 	}
 
 	if( j > m_bind_info->last_add ) {
@@ -487,14 +501,14 @@ void
 sc_port_registry::insert( sc_port_base* port_ )
 {
     if( m_simc->is_running() ) {
-	REPORT_ERROR( 7024, "simulation running" );
+	port_->report_error( SC_ID_INSERT_PORT_, "simulation running" );
     }
 
 #ifdef DEBUG_SYSTEMC
     // check if port_ is already inserted
     for( int i = size() - 1; i >= 0; -- i ) {
 	if( port_ == m_port_vec[i] ) {
-	    REPORT_ERROR( 7024, "already inserted" );
+	    port_->report_error( SC_ID_INSERT_PORT_, "port already inserted" );
 	}
     }
 #endif
@@ -502,9 +516,7 @@ sc_port_registry::insert( sc_port_base* port_ )
     // append the port to the current module's vector of ports
     sc_module* curr_module = m_simc->hierarchy_curr();
     if( curr_module == 0 ) {
-	char msg[BUFSIZ];
-	sprintf( msg, "%s (%s)", port_->name(), port_->kind() );
-	REPORT_ERROR( 4002, msg );
+	port_->report_error( SC_ID_PORT_OUTSIDE_MODULE_ );
     }
     curr_module->append_port( port_ );
 
@@ -522,7 +534,7 @@ sc_port_registry::remove( sc_port_base* port_ )
 	}
     }
     if( i == -1 ) {
-	REPORT_ERROR( 7025, "" );
+	port_->report_error( SC_ID_REMOVE_PORT_, "port not registered" );
     }
 
     // remove

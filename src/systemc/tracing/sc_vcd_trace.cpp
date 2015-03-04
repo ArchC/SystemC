@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -57,11 +57,11 @@
 #include "systemc/kernel/sc_ver.h"
 #include "systemc/datatypes/bit/sc_bit.h"
 #include "systemc/datatypes/bit/sc_logic.h"
-#include "systemc/datatypes/bit/sc_lv.h"
+#include "systemc/datatypes/bit/sc_lv_base.h"
 #include "systemc/datatypes/int/sc_signed.h"
 #include "systemc/datatypes/int/sc_unsigned.h"
-#include "systemc/datatypes/int/sc_int.h"
-#include "systemc/datatypes/int/sc_uint.h"
+#include "systemc/datatypes/int/sc_int_base.h"
+#include "systemc/datatypes/int/sc_uint_base.h"
 #include "systemc/datatypes/fx/fx.h"
 #include "systemc/tracing/sc_vcd_trace.h"
 #include "systemc/utils/sc_string.h"
@@ -543,7 +543,7 @@ protected:
 vcd_sc_uint_base_trace::vcd_sc_uint_base_trace(const sc_uint_base& object_,
 					       const sc_string& name_,
 					       const sc_string& vcd_name_) 
-: vcd_trace(name_, vcd_name_), object(object_), old_value(object_.bitwidth())
+: vcd_trace(name_, vcd_name_), object(object_), old_value(object_.length())
 // The last may look strange, but is correct
 {
     vcd_var_typ_name = "wire";
@@ -563,7 +563,7 @@ vcd_sc_uint_base_trace::write(FILE* f)
     char compdata[1000];
 
     int bitindex;
-    for (bitindex = object.bitwidth()-1; bitindex >= 0; --bitindex) {
+    for (bitindex = object.length()-1; bitindex >= 0; --bitindex) {
         *rawdata_ptr++ = "01"[int((object)[bitindex])];
     }
     *rawdata_ptr = '\0';
@@ -576,7 +576,7 @@ vcd_sc_uint_base_trace::write(FILE* f)
 void
 vcd_sc_uint_base_trace::set_width()
 {
-    bit_width = object.bitwidth();
+    bit_width = object.length();
 }
 
 
@@ -600,7 +600,7 @@ protected:
 vcd_sc_int_base_trace::vcd_sc_int_base_trace(const sc_int_base& object_,
 					     const sc_string& name_,
 					     const sc_string& vcd_name_) 
-: vcd_trace(name_, vcd_name_), object(object_), old_value(object_.bitwidth())
+: vcd_trace(name_, vcd_name_), object(object_), old_value(object_.length())
 {
     vcd_var_typ_name = "wire";
     old_value = object;
@@ -619,7 +619,7 @@ vcd_sc_int_base_trace::write(FILE* f)
     char compdata[1000];
 
     int bitindex;
-    for (bitindex = object.bitwidth()-1; bitindex >= 0; --bitindex) {
+    for (bitindex = object.length()-1; bitindex >= 0; --bitindex) {
         *rawdata_ptr++ = "01"[int((object)[bitindex])];
     }
     *rawdata_ptr = '\0';
@@ -632,7 +632,7 @@ vcd_sc_int_base_trace::write(FILE* f)
 void
 vcd_sc_int_base_trace::set_width()
 {
-    bit_width = object.bitwidth();
+    bit_width = object.length();
 }
 
 
@@ -1608,7 +1608,7 @@ void vcd_trace_file::initialize()
     running_regression = ( getenv( "SYSTEMC_REGRESSION" ) != NULL );
     // Don't print message if running regression
     if( ! timescale_set_by_user && ! running_regression ) {
-	cout << "WARNING: Default time step is used for VCD tracing.\n";
+	cout << "WARNING: Default time step is used for VCD tracing." << endl;
     }
 
     // Create a dummy scope
@@ -1689,7 +1689,7 @@ void vcd_trace_file::sc_set_vcd_time_unit(int exponent10_seconds)
     sprintf(buf,
 	    "Note: VCD trace timescale unit is set by user to 1e%d sec.\n",
 	    exponent10_seconds);
-    cout << buf;
+    cout << buf << flush;
     timescale_set_by_user = true;
 }
 
@@ -1874,7 +1874,7 @@ vcd_trace_file::cycle(bool this_is_a_delta_cycle)
         static bool warned = false;
         if(!warned){
 	    cout << "Note: VCD delta cycling with pseudo timesteps (1 unit) "
-                    "is performed.\n\n";
+                    "is performed.\n" << endl;
             warned = true;
         }
     }
@@ -2055,10 +2055,10 @@ void
 vcd_put_error_message(const char* msg, bool just_warning)
 {
     if(just_warning){
-	cout << "VCD Trace Warning:\n" << msg << "\n\n";
+	cout << "VCD Trace Warning:\n" << msg << "\n" << endl;
     }
     else{
-	cout << "VCD Trace ERROR:\n" << msg << "\n\n";
+	cout << "VCD Trace ERROR:\n" << msg << "\n" << endl;
     }
 }
 

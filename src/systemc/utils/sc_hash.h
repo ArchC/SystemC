@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -37,9 +37,6 @@
 #ifndef SC_HASH_H
 #define SC_HASH_H
 
-#if defined( _MSC_VER )
-#include <string.h>
-#endif
 
 #include "systemc/utils/sc_iostream.h"
 
@@ -351,13 +348,12 @@ public:
     }
 };
 
+extern int sc_strhash_cmp( const void*, const void* );
 extern void sc_strhash_kfree(void*);
 extern void* sc_strhash_kdup(const void*);
 
 template< class C >      // template class decl.
 class sc_strhash_iter;   // --Amit
-
-typedef int (*STRCMP)(const void*, const void*);
 
 template< class C >
 class sc_strhash : public sc_phash_base {
@@ -372,7 +368,7 @@ public:
                 double grow = PHASH_DEFAULT_GROW_FACTOR,
                 bool reorder = PHASH_DEFAULT_REORDER_FLAG,
                 unsigned (*hash_fn)(const void*) = default_str_hash_fn,
-                int (*cmpr_fn)(const void*, const void*) = (STRCMP) strcmp )
+                int (*cmpr_fn)(const void*, const void*) = sc_strhash_cmp )
         : sc_phash_base((void*) def, size, density, grow, reorder, hash_fn, cmpr_fn)
     {
 

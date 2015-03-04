@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -36,13 +36,17 @@
 
  *****************************************************************************/
 
+
 #include "systemc/datatypes/int/sc_nbexterns.h"
 #include "systemc/kernel/sc_macros.h"
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: External functions for PLUS operators.
-/////////////////////////////////////////////////////////////////////////////
 
+namespace sc_dt
+{
+
+// ----------------------------------------------------------------------------
+//  SECTION: External functions for PLUS operators.
+// ----------------------------------------------------------------------------
 
 // Handles the cases 3 and 4 and returns the result in u.
 void
@@ -86,9 +90,7 @@ add_on_help(small_type &us, int /* unb */, int und,
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-
+// ----------------------------------------------------------------------------
 
 /* 
 
@@ -105,80 +107,10 @@ vice versa.
 
 */
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: External functions of MULTIPLICATION operators.
-/////////////////////////////////////////////////////////////////////////////
 
-/*
-
-// Handles the case 4 and returns the result in u.
-void
-mul_on_help(small_type &us, 
-            int unb, int und, 
-            unsigned long *ud, 
-            int vnb, int vnd,
-            const unsigned long *vd)
-{
-
-  int old_und = und;
-
-  und = vec_skip_leading_zeros(und, ud);
-  vnd = vec_skip_leading_zeros(vnd, vd);
-
-  unsigned long ud0 = (*ud);
-  unsigned long vd0 = (*vd);
-
-  if ((vnd == 1) && (vd0 == 1)) {
-    us = CONVERT_SM_to_2C_to_SM(us, unb, old_und, ud);
-    return;
-  }
-    
-  if ((und == 1) && (ud0 == 1)) {
-    COPY_DIGITS(us, unb, old_und, ud, vnb, vnd, vd);
-    return;
-  }
-
-  if ((und == 1) && (vnd == 1) && 
-      (ud0 < HALF_DIGIT_RADIX) && (vd0 < HALF_DIGIT_RADIX)) {
-
-    unsigned long d = ud0 * vd0;
-    COPY_DIGITS(us, unb, old_und, ud, unb + vnb, 1, &d);
-    return;
-
-  }
-
-  int nd = und + vnd;
-  
-#ifdef SC_MAX_NBITS
-  unsigned long d[MAX_NDIGITS];
-#else
-  unsigned long *d = new unsigned long[nd];
-#endif
-  
-  vec_zero(nd, d);
-
-  if ((und == 1) && (ud0 < HALF_DIGIT_RADIX))
-    vec_mul_small(vnd, vd, ud0, d);
-  
-  else if ((vnd == 1) && (vd0 < HALF_DIGIT_RADIX))
-    vec_mul_small(und, ud, vd0, d);
-  
-  else if (vnd < und)
-    vec_mul(und, ud, vnd, vd, d);
-  
-  else
-    vec_mul(vnd, vd, und, ud, d);
-  
-  COPY_DIGITS(us, unb, old_und, ud, unb + vnb, nd, d);
-  
-#ifndef SC_MAX_NBITS
-  delete [] d;
-#endif
-
-}
-
-*/
-
+// ----------------------------------------------------------------------------
+//  SECTION: External functions of MULTIPLICATION operators.
+// ----------------------------------------------------------------------------
 
 void
 mul_on_help_signed(small_type &us, 
@@ -330,76 +262,9 @@ mul_on_help_unsigned(small_type &us,
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: External functions for DIVISION operators.
-/////////////////////////////////////////////////////////////////////////////
-
-
-/*
-
-// Handles the cases 3-4 and returns the result in u.
-void
-div_on_help(small_type &us, 
-            int unb, int und, 
-            unsigned long *ud, 
-            int vnb, int vnd,
-            const unsigned long *vd)
-{
-
-  int old_und = und;
-
-  und = vec_skip_leading_zeros(und, ud);
-  vnd = vec_skip_leading_zeros(vnd, vd);
-
-  int cmp_res = vec_cmp(und, ud, vnd, vd);
-
-  if (cmp_res < 0) { // u < v => u / v = 0 - case 4
-    us = SC_ZERO;
-    vec_zero(old_und, ud);
-    return;
-  }
-
-  unsigned long vd0 = (*vd);
-
-  if ((cmp_res > 0) && (vnd == 1) && (vd0 == 1))  {
-    us = CONVERT_SM_to_2C_to_SM(us, unb, old_und, ud);
-    return;
-  }
-
-  // One extra digit for d is allocated to simplify vec_div_*().
-  int nd = sc_max(und, vnd) + 1;
-
-#ifdef SC_MAX_NBITS
-  unsigned long d[MAX_NDIGITS + 1];
-#else
-  unsigned long *d = new unsigned long[nd];
-#endif
-
-  vec_zero(nd, d);
-
-  // u = v => u / v = 1 - case 3
-  if (cmp_res == 0)
-    d[0] = 1;
-
-  else if ((vnd == 1) && (und == 1))
-    d[0] = (*ud) / vd0;
- 
-  else if ((vnd == 1) && (vd0 < HALF_DIGIT_RADIX))
-    vec_div_small(und, ud, vd0, d);
-
-  else
-    vec_div_large(und, ud, vnd, vd, d);
-
-  COPY_DIGITS(us, unb, old_und, ud, sc_max(unb, vnb), nd - 1, d);
-
-#ifndef SC_MAX_NBITS
-  delete [] d;
-#endif
-
-}
-
-*/
-
+// ----------------------------------------------------------------------------
+//  SECTION: External functions for DIVISION operators.
+// ----------------------------------------------------------------------------
 
 void
 div_on_help_signed(small_type &us, 
@@ -541,85 +406,9 @@ div_on_help_unsigned(small_type &us,
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: External functions for MOD operators.
-/////////////////////////////////////////////////////////////////////////////
-
-
-/*
-
-// Handles the cases 3-4 and returns the result.
-void
-mod_on_help(small_type &us, 
-            int unb, int und, 
-            unsigned long *ud, 
-            int vnb, int vnd,
-            const unsigned long *vd)
-{
-
-  int old_und = und;
-
-  und = vec_skip_leading_zeros(und, ud);
-  vnd = vec_skip_leading_zeros(vnd, vd);
-
-  int cmp_res = vec_cmp(und, ud, vnd, vd);
-
-  // u < v => u % v = u - case 4
-  if (cmp_res < 0) 
-    return;
-
-  // u = v => u % v = 0 - case 3
-  if (cmp_res == 0) { 
-    us = SC_ZERO;
-    vec_zero(old_und, ud);
-    return;
-  }
-
-  // else if u > v - case 5
-
-  unsigned long vd0 = (*vd);
-
-  if ((vnd == 1) && (vd0 == 1)) {
-    us = SC_ZERO;
-    vec_zero(old_und, ud);
-    return;
-  }
-
-  // One extra digit for d is allocated to simplify vec_div_*().
-  int nd = sc_max(und, vnd) + 1;
-
-#ifdef SC_MAX_NBITS
-  unsigned long d[MAX_NDIGITS + 1];
-#else
-  unsigned long *d = new unsigned long[nd];
-#endif
-
-  vec_zero(nd, d);
-
-  if ((vnd == 1) && (und == 1))
-    d[0] = (*ud) % vd0;
-
-  if ((vnd == 1) && (vd0 < HALF_DIGIT_RADIX))
-    d[0] = vec_rem_small(und, ud, vd0);
-
-  else
-    vec_rem_large(und, ud, vnd, vd, d);
-
-  us = check_for_zero(us, nd - 1, d);
-
-  if (us == SC_ZERO)
-    vec_zero(old_und, ud);
-  else
-    COPY_DIGITS(us, unb, old_und, ud, sc_min(unb, vnd), nd - 1, d);
-
-#ifndef SC_MAX_NBITS
-  delete [] d;
-#endif
-  
-}
-
-*/
-
+// ----------------------------------------------------------------------------
+//  SECTION: External functions for MOD operators.
+// ----------------------------------------------------------------------------
 
 void
 mod_on_help_signed(small_type &us, 
@@ -777,10 +566,9 @@ mod_on_help_unsigned(small_type &us,
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: External functions for AND operators.
-/////////////////////////////////////////////////////////////////////////////
-
+// ----------------------------------------------------------------------------
+//  SECTION: External functions for AND operators.
+// ----------------------------------------------------------------------------
 
 // Handles the cases 2-5 and returns the result in u.
 void
@@ -879,10 +667,9 @@ and_on_help(small_type us,
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: External functions for OR operators.
-/////////////////////////////////////////////////////////////////////////////
-
+// ----------------------------------------------------------------------------
+//  SECTION: External functions for OR operators.
+// ----------------------------------------------------------------------------
 
 // Handles the cases 3-5 and returns the result in u.
 void
@@ -983,10 +770,9 @@ or_on_help(small_type us,
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: External functions for XOR operators.
-/////////////////////////////////////////////////////////////////////////////
-
+// ----------------------------------------------------------------------------
+//  SECTION: External functions for XOR operators.
+// ----------------------------------------------------------------------------
 
 // Handles the cases 3-5 and returns the result in u.
 void
@@ -1087,5 +873,8 @@ xor_on_help(small_type us,
     }
   }
 }
+
+} // namespace sc_dt
+
 
 // End of file

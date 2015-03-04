@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -34,22 +34,26 @@
 
  *****************************************************************************/
 
+#ifndef SC_NBDEFS_H
+#define SC_NBDEFS_H
 
-#ifndef SC_DEFS_H
-#define SC_DEFS_H
-
-#include <assert.h>
 
 #include "systemc/kernel/sc_cmnhdr.h"
 
-#include <stdio.h>
-#include <stdlib.h>  // For abort().
-#include <limits.h>  // For CHAR_BIT.
+#include <limits.h>
 
 #include "systemc/utils/sc_iostream.h"
 #include "systemc/kernel/sc_constants.h"   // For SC_MAX_NBITS
 #include "systemc/utils/sc_string.h"      // For sc_numrep
 
+
+#if defined( __SUNPRO_CC ) || defined( _MSC_VER ) || 1
+#define SC_DT_MIXED_COMMA_OPERATORS
+#endif
+
+
+namespace sc_dt
+{
 
 // Sign of a number:
 #define SC_NEG       -1     // Negative number
@@ -57,15 +61,11 @@
 #define SC_POS       1      // Positive number
 #define SC_NOSIGN    2      // Uninitialized sc_signed number
 
-typedef bool          bit;
 typedef unsigned char uchar;
 
 // A small_type number is at least a char. Defining an int is probably
 // better for alignment.
 typedef int small_type;
-
-// Type of the number for the number of digits.
-//typedef int int;
 
 // Attributes of a byte.
 #define BITS_PER_BYTE   8
@@ -118,15 +118,15 @@ extern const int MAX_NDIGITS;
 #ifndef WIN32
 typedef long long          int64;
 typedef unsigned long long uint64;
-extern const uint64        const_zero_ull;
-extern const uint64        const_one_ull;
-extern const uint64        const_32ones_ull;
+extern const uint64        UINT64_ZERO;
+extern const uint64        UINT64_ONE;
+extern const uint64        UINT64_32ONES;
 #else
 typedef __int64            int64;
 typedef unsigned __int64   uint64;
-extern const uint64        const_zero_ull;
-extern const uint64        const_one_ull;
-extern const uint64        const_32ones_ull;
+extern const uint64        UINT64_ZERO;
+extern const uint64        UINT64_ONE;
+extern const uint64        UINT64_32ONES;
 #endif
 
 // Bits per ...
@@ -157,28 +157,57 @@ typedef unsigned long fmtflags;
 typedef ios::fmtflags fmtflags;
 #endif
 
-//extern const char       NEW_LINE ;
 extern const small_type NB_DEFAULT_BASE ;
-
-#define NEW_SEMANTICS
 
 // For sc_int code:
 #define LLWIDTH  BITS_PER_INT64
 #define INTWIDTH BITS_PER_INT
 
 #ifndef _32BIT_
+
 typedef int64 int_type;
 typedef uint64 uint_type;
 #define SC_INTWIDTH 64
-extern const uint64 const_one_uint;
-extern const uint64 const_zero_uint;
+extern const uint64 UINT_ZERO;
+extern const uint64 UINT_ONE;
 
 #else
+
 typedef int int_type;
 typedef unsigned int uint_type;
 #define SC_INTWIDTH 32
-extern const unsigned int const_one_uint;
-extern const unsigned int const_zero_uint;
+extern const unsigned int UINT_ZERO;
+extern const unsigned int UINT_ONE;
+
+#endif
+
+
+#if defined( _MSC_VER )
+// VC++6 bug
+ostream& operator << ( ostream&, int64 );
+ostream& operator << ( ostream&, uint64 );
+#endif
+
+} // namespace sc_dt
+
+
+#if defined( _MSC_VER )
+
+inline
+ostream&
+operator << ( ostream& os, sc_dt::int64 a )
+{
+    sc_dt::operator << ( os, a );
+    return os;
+}
+
+inline
+ostream&
+operator << ( ostream& os, sc_dt::uint64 a )
+{
+    sc_dt::operator << ( os, a );
+    return os;
+}
 
 #endif
 

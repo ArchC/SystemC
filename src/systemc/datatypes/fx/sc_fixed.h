@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -33,12 +33,19 @@
 
  *****************************************************************************/
 
-
 #ifndef SC_FIXED_H
 #define SC_FIXED_H
 
 
 #include "systemc/datatypes/fx/sc_fix.h"
+
+
+namespace sc_dt
+{
+
+// classes defined in this module
+template <int W, int I, sc_q_mode Q, sc_o_mode O, int N> class sc_fixed;
+template <int W, int I, sc_q_mode Q, sc_o_mode O, int N> class sc_fixed_fast;
 
 
 // ----------------------------------------------------------------------------
@@ -622,6 +629,8 @@ sc_fixed_fast<W,I,Q,O,N>::operator -- ()
     sc_fix_fast::operator -- ();
     return *this;
 }
+
+} // namespace sc_dt
 
 
 #endif

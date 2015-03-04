@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -119,7 +119,7 @@ void
 sc_buffer<T>::write( const T& value_ )
 {
 #ifdef DEBUG_SYSTEMC
-    check_writer();
+    this->check_writer();
 #endif
     this->m_new_val = value_;
     this->request_update();
@@ -131,7 +131,6 @@ inline
 void
 sc_buffer<T>::update()
 {
-    this->m_old_val = this->m_cur_val;
     this->m_cur_val = this->m_new_val;
     this->m_value_changed_event.notify_delayed();
     this->m_delta = this->simcontext()->delta_count();

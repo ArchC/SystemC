@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -33,18 +33,25 @@
 
  *****************************************************************************/
 
-
 #ifndef SC_CONTEXT_H
 #define SC_CONTEXT_H
 
 
-#include "systemc/datatypes/fx/sc_fxdefs.h"
+#include "systemc/datatypes/fx/sc_fx_ids.h"
 #include "systemc/kernel/sc_simcontext.h"
-#include "systemc/utils/sc_exception.h"
 #include "systemc/utils/sc_hash.h"
 
 
 class sc_process_b;
+
+
+namespace sc_dt
+{
+
+// classes defined in this module
+class sc_without_context;
+template <class T> class sc_global;
+template <class T> class sc_context;
 
 
 // ----------------------------------------------------------------------------
@@ -109,7 +116,6 @@ enum sc_context_begin
 template <class T>
 class sc_context
 {
-
     sc_context( const sc_context<T>& );
     void* operator new( size_t );
 
@@ -129,7 +135,6 @@ private:
     const T   m_value;
     const T*& m_def_value_ptr;
     const T*  m_old_value_ptr;
-
 };
 
 
@@ -209,7 +214,7 @@ sc_context<T>::sc_context( const sc_context<T>& )
   m_old_value_ptr( 0 )
 {
     // this constructor should never be called
-    SC_NO_DEFN_;
+    SC_REPORT_FATAL( SC_ID_INTERNAL_ERROR_, "should never be called" );
 }
 
 template <class T>
@@ -218,8 +223,7 @@ void*
 sc_context<T>::operator new( size_t )
 {
     // this method should never be called
-    SC_NO_DEFN_;
-    REPORT_ERROR(1,"this method should never be called");
+    SC_REPORT_FATAL( SC_ID_INTERNAL_ERROR_, "should never be called" );
 }
 
 
@@ -261,7 +265,7 @@ sc_context<T>::begin()
     }
     else
     {
-        sc_report::error( SC_ID_CONTEXT_BEGIN_FAILED_ );
+        SC_REPORT_ERROR( SC_ID_CONTEXT_BEGIN_FAILED_, 0 );
     }
 }
 
@@ -277,7 +281,7 @@ sc_context<T>::end()
     }
     else
     {
-        sc_report::error( SC_ID_CONTEXT_END_FAILED_ );
+        SC_REPORT_ERROR( SC_ID_CONTEXT_END_FAILED_, 0 );
     }
 }
 
@@ -298,7 +302,8 @@ sc_context<T>::value() const
     return m_value;
 }
 
-class sc_process_b;
+} // namespace sc_dt
+
 
 #endif
 

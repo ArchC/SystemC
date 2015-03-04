@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -36,6 +36,7 @@
 #include <stdio.h>
 
 #include "systemc/utils/sc_iostream.h"
+#include "systemc/kernel/sc_kernel_ids.h"
 #include "systemc/kernel/sc_lambda.h"
 #include "systemc/communication/sc_port.h"
 
@@ -122,9 +123,9 @@ sc_lambda::eval() const
         return true;
 
     default:
-        REPORT_WARNING( 1014,
-			sc_string::to_string( "sc_lambda::eval(): %lx",
-					      int(rator_ty) ).c_str() );
+        SC_REPORT_WARNING( SC_ID_NO_BOOL_RETURNED_,
+			   sc_string::to_string( "sc_lambda::eval(): %lx",
+						 int(rator_ty) ).c_str() );
         return false;
     }
 }
@@ -180,9 +181,9 @@ sc_lambda::int_eval() const
         return ( op1->int_read() ^ op2->int_read() );
        
     default:
-        REPORT_WARNING( 1015,
-			sc_string::to_string( "sc_lambda::int_eval(): %lx",
-					      int( rator_ty ) ).c_str() );
+        SC_REPORT_WARNING( SC_ID_NO_INT_RETURNED_,
+			   sc_string::to_string( "sc_lambda::int_eval(): %lx",
+						 int( rator_ty ) ).c_str() );
         return 0;
     }
 }
@@ -205,9 +206,9 @@ sc_lambda::sc_logic_eval() const
         return ( op1->sc_logic_read() ^ op2->sc_logic_read() );
 
     default:
-        REPORT_WARNING( 1016,
-			sc_string::to_string( "sc_lambda::sc_logic_eval(): %lx",
-					      int( rator_ty ) ).c_str() );
+        SC_REPORT_WARNING( SC_ID_NO_SC_LOGIC_RETURNED_,
+			   sc_string::to_string( "sc_lambda::sc_logic_eval(): %lx",
+						 int( rator_ty ) ).c_str() );
         return sc_logic();
     }
 }
@@ -318,7 +319,7 @@ sc_lambda_rand::sc_logic_read() const
         return (*((sc_lambda_ptr*) lamb_space))->sc_logic_eval();
 
     default:
-        REPORT_WARNING(1017,
+        SC_REPORT_WARNING( SC_ID_OPERAND_NOT_SC_LOGIC_,
           sc_string::to_string("sc_lambda::sc_logic_read(): %s",
           sc_lambda_rand_names[rand_ty]).c_str());
         return sc_logic();
@@ -341,7 +342,7 @@ sc_lambda_rand::bool_read() const
         return (*((sc_lambda_ptr*) lamb_space))->eval();
 
     default:
-        REPORT_WARNING(1018,
+        SC_REPORT_WARNING( SC_ID_OPERAND_NOT_BOOL_,
           sc_string::to_string("sc_lambda::bool_read(): %s",
           sc_lambda_rand_names[rand_ty]).c_str());
         return false;

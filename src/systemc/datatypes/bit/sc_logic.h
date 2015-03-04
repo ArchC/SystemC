@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -38,10 +38,34 @@
 #define SC_LOGIC_H
 
 
+#include <stdio.h>
+
 #include "systemc/utils/sc_iostream.h"
 #include "systemc/kernel/sc_macros.h"
 #include "systemc/utils/sc_mempool.h"
-#include "systemc/utils/sc_exception.h"
+#include "systemc/datatypes/bit/sc_bit.h"
+
+
+namespace sc_dt
+{
+
+// classes defined in this module
+class sc_logic;
+
+
+// ----------------------------------------------------------------------------
+//  ENUM : sc_logic_value_t
+//
+//  Enumeration of values for sc_logic.
+// ----------------------------------------------------------------------------
+
+enum sc_logic_value_t
+{
+    Log_0 = 0,
+    Log_1,
+    Log_Z,
+    Log_X
+};
 
 
 // ----------------------------------------------------------------------------
@@ -52,185 +76,380 @@
 
 class sc_logic
 {
-public:
-
-    enum Log_enum { Log_0 = 0, Log_1 = 1, Log_Z = 2, Log_X = 3, Log_Error };
+    friend class sc_logic_resolve;
 
 private:
 
-    Log_enum val;
+    // support methods
 
-    friend class sc_logic_resolve;
+    static void invalid_value( sc_logic_value_t );
+    static void invalid_value( char );
+    static void invalid_value( int );
 
-    static Log_enum test_value( long value )
-    {
-	// it's not obvious what to do in case of wrong value
-	// at present we issue warning and assign Log_X
-	if( value < Log_0 || value >= Log_Error ) {
-	    char str[32];
-	    sprintf( str, " sc_logic(%ld)", value );
-	    REPORT_WARNING( 1006, str );
-	    return Log_X;
+    static sc_logic_value_t to_value( sc_logic_value_t v )
+	{
+	    if( v < Log_0 || v > Log_X ) {
+		invalid_value( v );
+	    }
+	    return v;
 	}
-	return Log_enum( value );
-    }
+
+    static sc_logic_value_t to_value( bool b )
+	{ return ( b ? Log_1 : Log_0 ); }
+
+    static sc_logic_value_t to_value( char c )
+	{
+	    sc_logic_value_t v = char_to_logic[c];
+	    if( v < Log_0 || v > Log_X ) {
+		invalid_value( c );
+	    }
+	    return v;
+	}
+
+    static sc_logic_value_t to_value( int i )
+	{
+	    if( i < 0 || i > 3 ) {
+		invalid_value( i );
+	    }
+	    return sc_logic_value_t( i );
+	}
+
+
+    void invalid_01() const;
 
 public:
 
     // conversion tables
-    static const Log_enum char_to_logic[128];
+
+    static const sc_logic_value_t char_to_logic[128];
     static const char logic_to_char[4];
-    static const Log_enum and_table[4][4];
-    static const Log_enum or_table[4][4];
-    static const Log_enum xor_table[4][4];
-    static const Log_enum not_table[4];
+    static const sc_logic_value_t and_table[4][4];
+    static const sc_logic_value_t or_table[4][4];
+    static const sc_logic_value_t xor_table[4][4];
+    static const sc_logic_value_t not_table[4];
 
-    static void* operator new( size_t, void* p )
-	{ return p; } // placement-new
-    static void* operator new( size_t sz )
-	{ return sc_mempool::allocate( sz ); }
-    static void  operator delete( void* p, size_t sz )
-	{ sc_mempool::release( p, sz ); }
-    static void* operator new[]( size_t sz )
-	{ return sc_mempool::allocate( sz ); }
-    static void  operator delete[]( void* p, size_t sz )
-	{ sc_mempool::release( p, sz ); }
 
-    // Default onstructor - assign the unknown value.
+    // constructors
+
     sc_logic()
-	{ val = Log_X; }
-    // this constructor is not explicit because there is no
-    // built-in conversion of standard types to enum
-    sc_logic( Log_enum r )
-	{ val = test_value( r ); }
+	: m_val( Log_X )
+	{}
 
-    // Copy constructor - copy the val member.
-    sc_logic( const sc_logic& r )
-	{ val = r.val; }
+    sc_logic( const sc_logic& a )
+	: m_val( a.m_val )
+	{}
 
-    // the following constructors are explicit to avoid ambiguities
-    // caused by implicit conversion of widely used types
-    explicit sc_logic( char r )
-	{ val = test_value( char_to_logic[r] ); }
-    explicit sc_logic( long r )
-	{ val = char_to_logic[test_value( r )]; }
-    explicit sc_logic( int r )
-	{ val = char_to_logic[test_value( r )]; }
-    explicit sc_logic( bool r )
-	{ val = r ? Log_1 : Log_0; }
+    sc_logic( sc_logic_value_t v )
+	: m_val( to_value( v ) )
+	{}
 
-    // Destructor
+    explicit sc_logic( bool a )
+	: m_val( to_value( a ) )
+	{}
+
+    explicit sc_logic( char a )
+	: m_val( to_value( a ) )
+	{}
+
+    explicit sc_logic( int a )
+	: m_val( to_value( a ) )
+	{}
+
+    explicit sc_logic( const sc_bit& a )
+	: m_val( to_value( a.to_bool() ) )
+	{}
+
+
+    // destructor
+
     ~sc_logic()
 	{}
 
-    // Bitwise operators on sc_logic
-    sc_logic operator & ( const sc_logic& r ) const
-        { return sc_logic( and_table[val][test_value( r.val )] ); }
-    sc_logic operator | ( const sc_logic& r ) const
-        { return sc_logic( or_table[val][test_value( r.val )] );  }
-    sc_logic operator ^ ( const sc_logic& r ) const
-        { return sc_logic( xor_table[val][test_value( r.val )] ); }
-    sc_logic operator ~ () const
-	{ return sc_logic( not_table[val] ); }
 
-    // Assignment operators from sc_logic and from char
-    sc_logic& operator = ( Log_enum r )
-	{ val = test_value( r ); return *this; }
-    sc_logic& operator = ( const sc_logic& r )
-	{ val = test_value( r.val ); return *this; }
-    // this is questionable whether we need assignment from char
-    sc_logic& operator = ( char r )
-	{ val = test_value( char_to_logic[r] ); return *this; }
-    sc_logic& operator = ( long r )
-	{ val = char_to_logic[test_value( r )]; return *this; }
-    sc_logic& operator = ( int r )
-	{ val = char_to_logic[test_value( r )]; return *this; }
-    sc_logic& operator = ( bool r )
-	{ val = r ? Log_1 : Log_0; return *this; }
+    // assignment operators
 
-    // op= operators
-    sc_logic& operator &= ( const sc_logic& r )
-        { val = and_table[val][test_value( r.val )]; return *this; }
-    sc_logic& operator |= ( const sc_logic& r )
-        { val = or_table[val][test_value( r.val )]; return *this; }
-    sc_logic& operator ^= ( const sc_logic& r )
-        { val = xor_table[val][test_value( r.val )]; return *this; }
+    sc_logic& operator = ( const sc_logic& a )
+	{ m_val = a.m_val; return *this; }
 
-    // Negates the value of this sc_logic
-    sc_logic& negate()
-	{ val = not_table[val]; return *this; }
+    sc_logic& operator = ( sc_logic_value_t v )
+	{ *this = sc_logic( v ); return *this; }
 
-    // Comparison operators with sc_logic and with char
-    bool operator == ( const sc_logic& r ) const
-	{ return (val == r.val); }
-    bool operator == ( char r ) const
-	{ return (val == char_to_logic[r]); }
-    bool operator != ( const sc_logic& r ) const
-	{ return (val != r.val); }
-    bool operator != ( char r ) const
-	{ return (val != char_to_logic[r]); }
+    sc_logic& operator = ( bool a )
+	{ *this = sc_logic( a ); return *this; }
 
-    sc_logic operator ! ()
-	{ return sc_logic( not_table[val] ); }
+    sc_logic& operator = ( char a )
+	{ *this = sc_logic( a ); return *this; }
 
-    // Type cast into char
-    char to_char() const
-	{ return logic_to_char[val]; }
+    sc_logic& operator = ( int a )
+	{ *this = sc_logic( a ); return *this; }
 
-    long to_long() const
-	{ return val; }
+    sc_logic& operator = ( const sc_bit& a )
+	{ *this = sc_logic( a ); return *this; }
+
+
+    // bitwise assignment operators
+
+    sc_logic& operator &= ( const sc_logic& b )
+	{ m_val = and_table[m_val][b.m_val]; return *this; }
+
+    sc_logic& operator &= ( sc_logic_value_t v )
+	{ *this &= sc_logic( v ); return *this; }
+
+    sc_logic& operator &= ( bool b )
+	{ *this &= sc_logic( b ); return *this; }
+
+    sc_logic& operator &= ( char b )
+	{ *this &= sc_logic( b ); return *this; }
+
+    sc_logic& operator &= ( int b )
+	{ *this &= sc_logic( b ); return *this; }
+
+
+    sc_logic& operator |= ( const sc_logic& b )
+        { m_val = or_table[m_val][b.m_val]; return *this; }
+
+    sc_logic& operator |= ( sc_logic_value_t v )
+	{ *this |= sc_logic( v ); return *this; }
+
+    sc_logic& operator |= ( bool b )
+	{ *this |= sc_logic( b ); return *this; }
+
+    sc_logic& operator |= ( char b )
+	{ *this |= sc_logic( b ); return *this; }
+
+    sc_logic& operator |= ( int b )
+	{ *this |= sc_logic( b ); return *this; }
+
+
+    sc_logic& operator ^= ( const sc_logic& b )
+        { m_val = xor_table[m_val][b.m_val]; return *this; }
+
+    sc_logic& operator ^= ( sc_logic_value_t v )
+	{ *this ^= sc_logic( v ); return *this; }
+
+    sc_logic& operator ^= ( bool b )
+	{ *this ^= sc_logic( b ); return *this; }
+
+    sc_logic& operator ^= ( char b )
+	{ *this ^= sc_logic( b ); return *this; }
+
+    sc_logic& operator ^= ( int b )
+	{ *this ^= sc_logic( b ); return *this; }
+
+
+    // bitwise operators and functions
+
+    // bitwise complement
+
+    const sc_logic operator ~ () const
+	{ return sc_logic( not_table[m_val] ); }
+
+    sc_logic& b_not()
+	{ m_val = not_table[m_val]; return *this; }
+
+
+    // bitwise and
+
+    friend const sc_logic operator & ( const sc_logic& a, const sc_logic& b )
+	{ return sc_logic( and_table[a.m_val][b.m_val] ); }
+
+    friend const sc_logic operator & ( const sc_logic& a, sc_logic_value_t b )
+	{ return ( a & sc_logic( b ) ); }
+
+    friend const sc_logic operator & ( const sc_logic& a, bool b )
+	{ return ( a & sc_logic( b ) ); }
+
+    friend const sc_logic operator & ( const sc_logic& a, char b )
+	{ return ( a & sc_logic( b ) ); }
+
+    friend const sc_logic operator & ( const sc_logic& a, int b )
+	{ return ( a & sc_logic( b ) ); }
+
+    friend const sc_logic operator & ( sc_logic_value_t a, const sc_logic& b )
+	{ return ( sc_logic( a ) & b ); }
+
+    friend const sc_logic operator & ( bool a, const sc_logic& b )
+	{ return ( sc_logic( a ) & b ); }
+
+    friend const sc_logic operator & ( char a, const sc_logic& b )
+	{ return ( sc_logic( a ) & b ); }
+
+    friend const sc_logic operator & ( int a, const sc_logic& b )
+	{ return ( sc_logic( a ) & b ); }
+
+
+    // bitwise or
+
+    friend const sc_logic operator | ( const sc_logic& a, const sc_logic& b )
+	{ return sc_logic( or_table[a.m_val][b.m_val] ); }
+
+    friend const sc_logic operator | ( const sc_logic& a, sc_logic_value_t b )
+	{ return ( a | sc_logic( b ) ); }
+
+    friend const sc_logic operator | ( const sc_logic& a, bool b )
+	{ return ( a | sc_logic( b ) ); }
+
+    friend const sc_logic operator | ( const sc_logic& a, char b )
+	{ return ( a | sc_logic( b ) ); }
+
+    friend const sc_logic operator | ( const sc_logic& a, int b )
+	{ return ( a | sc_logic( b ) ); }
+
+    friend const sc_logic operator | ( sc_logic_value_t a, const sc_logic& b )
+	{ return ( sc_logic( a ) | b ); }
+
+    friend const sc_logic operator | ( bool a, const sc_logic& b )
+	{ return ( sc_logic( a ) | b ); }
+
+    friend const sc_logic operator | ( char a, const sc_logic& b )
+	{ return ( sc_logic( a ) | b ); }
+
+    friend const sc_logic operator | ( int a, const sc_logic& b )
+	{ return ( sc_logic( a ) | b ); }
+
+
+    // bitwise xor
+
+    friend const sc_logic operator ^ ( const sc_logic& a, const sc_logic& b )
+	{ return sc_logic( xor_table[a.m_val][b.m_val] ); }
+
+    friend const sc_logic operator ^ ( const sc_logic& a, sc_logic_value_t b )
+	{ return ( a ^ sc_logic( b ) ); }
+
+    friend const sc_logic operator ^ ( const sc_logic& a, bool b )
+	{ return ( a ^ sc_logic( b ) ); }
+
+    friend const sc_logic operator ^ ( const sc_logic& a, char b )
+	{ return ( a ^ sc_logic( b ) ); }
+
+    friend const sc_logic operator ^ ( const sc_logic& a, int b )
+	{ return ( a ^ sc_logic( b ) ); }
+
+    friend const sc_logic operator ^ ( sc_logic_value_t a, const sc_logic& b )
+	{ return ( sc_logic( a ) ^ b ); }
+
+    friend const sc_logic operator ^ ( bool a, const sc_logic& b )
+	{ return ( sc_logic( a ) ^ b ); }
+
+    friend const sc_logic operator ^ ( char a, const sc_logic& b )
+	{ return ( sc_logic( a ) ^ b ); }
+
+    friend const sc_logic operator ^ ( int a, const sc_logic& b )
+	{ return ( sc_logic( a ) ^ b ); }
+
+
+    // relational operators and functions
+
+    friend bool operator == ( const sc_logic& a, const sc_logic& b )
+	{ return ( (int) a.m_val == b.m_val ); }
+
+    friend bool operator == ( const sc_logic& a, sc_logic_value_t b )
+	{ return ( a == sc_logic( b ) ); }
+
+    friend bool operator == ( const sc_logic& a, bool b )
+	{ return ( a == sc_logic( b ) ); }
+
+    friend bool operator == ( const sc_logic& a, char b )
+	{ return ( a == sc_logic( b ) ); }
+
+    friend bool operator == ( const sc_logic& a, int b )
+	{ return ( a == sc_logic( b ) ); }
+
+    friend bool operator == ( sc_logic_value_t a, const sc_logic& b )
+	{ return ( sc_logic( a ) == b ); }
+
+    friend bool operator == ( bool a, const sc_logic& b )
+	{ return ( sc_logic( a ) == b ); }
+
+    friend bool operator == ( char a, const sc_logic& b )
+	{ return ( sc_logic( a ) == b ); }
+
+    friend bool operator == ( int a, const sc_logic& b )
+	{ return ( sc_logic( a ) == b ); }
+
+
+    friend bool operator != ( const sc_logic& a, const sc_logic& b )
+	{ return ( (int) a.m_val != b.m_val ); }
+
+    friend bool operator != ( const sc_logic& a, sc_logic_value_t b )
+	{ return ( a != sc_logic( b ) ); }
+
+    friend bool operator != ( const sc_logic& a, bool b )
+	{ return ( a != sc_logic( b ) ); }
+
+    friend bool operator != ( const sc_logic& a, char b )
+	{ return ( a != sc_logic( b ) ); }
+
+    friend bool operator != ( const sc_logic& a, int b )
+	{ return ( a != sc_logic( b ) ); }
+
+    friend bool operator != ( sc_logic_value_t a, const sc_logic& b )
+	{ return ( sc_logic( a ) != b ); }
+
+    friend bool operator != ( bool a, const sc_logic& b )
+	{ return ( sc_logic( a ) != b ); }
+
+    friend bool operator != ( char a, const sc_logic& b )
+	{ return ( sc_logic( a ) != b ); }
+
+    friend bool operator != ( int a, const sc_logic& b )
+	{ return ( sc_logic( a ) != b ); }
+
+
+    // explicit conversions
+
+    sc_logic_value_t value() const
+	{ return m_val; }
+
 
     bool is_01() const
-	{ return val == Log_0 || val == Log_1; }
-    void check_01() const;
+	{ return ( (int) m_val == Log_0 || (int) m_val == Log_1 ); }
 
     bool to_bool() const
-	{ check_01(); return val != Log_0; }
-    void print( ostream& os ) const
+	{ if( ! is_01() ) { invalid_01(); } return ( (int) m_val != Log_0 ); }
+
+    char to_char() const
+	{ return logic_to_char[m_val]; }
+
+
+    // other methods
+
+    void print( ostream& os = cout ) const
 	{ os << to_char(); }
+
+    void scan( istream& is = cin );
+
+
+    // memory (de)allocation
+
+    static void* operator new( size_t, void* p ) // placement new
+	{ return p; }
+
+    static void* operator new( size_t sz )
+	{ return sc_mempool::allocate( sz ); }
+
+    static void operator delete( void* p, size_t sz )
+	{ sc_mempool::release( p, sz ); }
+
+    static void* operator new [] ( size_t sz )
+	{ return sc_mempool::allocate( sz ); }
+
+    static void operator delete [] ( void* p, size_t sz )
+	{ sc_mempool::release( p, sz ); }
+
+private:
+
+    sc_logic_value_t m_val;
+
+private:
+
+    // disabled
+    explicit sc_logic( const char* );
+    sc_logic& operator = ( const char* );
 };
 
 
 // ----------------------------------------------------------------------------
-
-#if 0
-
-// THESE CAUSE PROBLEMS WITH IMPLICIT CONVERSION FROM sc_signal<unsigned>
-// to unsigned, e.g. in the expression (foo == 5).  Spurious sc_logic
-// object is created ...
-
-inline
-bool
-operator == ( char a, const sc_logic& b )
-{
-    return ( b.operator == ( a ) );
-}
-
-inline
-bool
-operator != ( char a, const sc_logic& b )
-{
-    return ( b.operator != ( a ) );
-}
-
-#endif
-
-
-// dangerous comparisons, because almost anything can be converted to bool
-inline
-bool
-operator == ( bool a, const sc_logic& b )
-{
-    return b == a;
-}
-
-inline
-bool
-operator != ( bool a, const sc_logic& b )
-{
-    return b != a;
-}
-
 
 inline
 ostream&
@@ -240,11 +459,28 @@ operator << ( ostream& os, const sc_logic& a )
     return os;
 }
 
+inline
+istream&
+operator >> ( istream& is, sc_logic& a )
+{
+    a.scan( is );
+    return is;
+}
 
-extern const sc_logic sc_logic_X;
+
+extern const sc_logic SC_LOGIC_0;
+extern const sc_logic SC_LOGIC_1;
+extern const sc_logic SC_LOGIC_Z;
+extern const sc_logic SC_LOGIC_X;
+
+// #ifdef SC_DT_DEPRECATED
 extern const sc_logic sc_logic_0;
 extern const sc_logic sc_logic_1;
 extern const sc_logic sc_logic_Z;
+extern const sc_logic sc_logic_X;
+// #endif
+
+} // namespace sc_dt
 
 
 #endif

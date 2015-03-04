@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -39,21 +39,7 @@
 #define SC_PROCESS_INT_H
 
 
-#ifndef WIN32
-
-#include "systemc/qt/qt.h"
-extern "C" {
-    void  sc_thread_only( void*, void*, qt_userf_t* );
-    void* sc_thread_yieldhelp( qt_t*, void*, void* );
-    void* sc_thread_aborthelp( qt_t*, void*, void* );
-
-    void  sc_cthread_only( void*, void*, qt_userf_t* );
-    void* sc_cthread_aborthelp( qt_t*, void*, void* );
-};
-
-#endif
-
-#include "systemc/kernel/sc_context_switch.h"
+#include "systemc/kernel/sc_cor.h"
 #include "systemc/kernel/sc_except.h"
 #include "systemc/kernel/sc_lambda.h"
 #include "systemc/kernel/sc_module.h"
@@ -310,17 +296,9 @@ protected:
 
     void set_stack_size( size_t size );
 
-    void stack_protect( bool enable );
-
     virtual void prepare_for_simulation();
 
-#ifndef WIN32
-    friend void  sc_thread_only( void*, void*, qt_userf_t* );
-    friend void* sc_thread_yieldhelp( qt_t*, void*, void* );
-    friend void* sc_thread_aborthelp( qt_t*, void*, void* );
-#else
-    friend void WINAPI sc_thread_fiber_func( PVOID );
-#endif
+    friend void sc_thread_cor_fn( void* );
 
     virtual bool ready_to_run();
 
@@ -338,15 +316,10 @@ protected:
 
 protected:
 
-    bool   m_is_cthread;
+    bool    m_is_cthread;
 
-    size_t m_stack_size;
-#ifndef WIN32
-    void*  m_stack;
-    qt_t*  m_sp;
-#else
-    PVOID  m_fiber;
-#endif
+    size_t  m_stack_size;
+    sc_cor* m_cor;         // the thread's coroutine
 };
 
 
@@ -354,14 +327,11 @@ protected:
 
 inline
 void
-sc_switch_thread( sc_thread_handle thread_h, sc_simcontext* simc )
+sc_switch_thread( sc_simcontext* simc )
 {
-#ifndef WIN32
-    context_switch( sc_thread_yieldhelp, thread_h, 0, simc->next_thread_qt() );
-#else
-    SwitchToFiber( simc->next_thread_fiber() );
-#endif
+    simc->cor_pkg()->yield( simc->next_cor() );
 }
+
 
 // ----------------------------------------------------------------------------
 
@@ -388,7 +358,7 @@ sc_thread_process::wait( const sc_event& e )
 {
     e.add_dynamic( this );
     m_trigger_type = EVENT;
-    sc_switch_thread( this, simcontext() );
+    sc_switch_thread( simcontext() );
 }
 
 inline
@@ -398,7 +368,7 @@ sc_thread_process::wait( sc_event_or_list& el )
     el.add_dynamic( this );
     m_event_list = &el;
     m_trigger_type = OR_LIST;
-    sc_switch_thread( this, simcontext() );
+    sc_switch_thread( simcontext() );
 }
 
 inline
@@ -409,7 +379,7 @@ sc_thread_process::wait( sc_event_and_list& el )
     m_event_list = &el;
     m_event_count = el.size();
     m_trigger_type = AND_LIST;
-    sc_switch_thread( this, simcontext() );
+    sc_switch_thread( simcontext() );
 }
 
 inline
@@ -419,7 +389,7 @@ sc_thread_process::wait( const sc_time& t )
     m_timeout_event.notify_delayed( t );
     m_timeout_event.add_dynamic( this );
     m_trigger_type = TIMEOUT;
-    sc_switch_thread( this, simcontext() );
+    sc_switch_thread( simcontext() );
 }
 
 inline
@@ -431,7 +401,7 @@ sc_thread_process::wait( const sc_time& t, const sc_event& e )
     e.add_dynamic( this );
     m_event = &e;
     m_trigger_type = EVENT_TIMEOUT;
-    sc_switch_thread( this, simcontext() );
+    sc_switch_thread( simcontext() );
 }
 
 inline
@@ -443,7 +413,7 @@ sc_thread_process::wait( const sc_time& t, sc_event_or_list& el )
     el.add_dynamic( this );
     m_event_list = &el;
     m_trigger_type = OR_LIST_TIMEOUT;
-    sc_switch_thread( this, simcontext() );
+    sc_switch_thread( simcontext() );
 }
 
 inline
@@ -456,7 +426,7 @@ sc_thread_process::wait( const sc_time& t, sc_event_and_list& el )
     m_event_list = &el;
     m_event_count = el.size();
     m_trigger_type = AND_LIST_TIMEOUT;
-    sc_switch_thread( this, simcontext() );
+    sc_switch_thread( simcontext() );
 }
 
 
@@ -525,12 +495,7 @@ private:
 
     virtual bool ready_to_run();
 
-#ifndef WIN32
-    friend void* sc_cthread_aborthelp( qt_t*, void*, void* );
-    friend void  sc_cthread_only( void*, void*, qt_userf_t* );
-#else
-    friend void WINAPI sc_cthread_fiber_func( LPVOID );
-#endif
+    friend void sc_cthread_cor_fn( void* );
 
     bool eval_watchlist();
     bool eval_watchlist_curr_level();
@@ -568,7 +533,7 @@ sc_cthread_process::wait_halt()
 {
     m_wait_cycles = 1;
     m_wait_state = CLOCK;
-    sc_switch_thread( this, simcontext() );
+    sc_switch_thread( simcontext() );
     throw sc_halt();
 }
 
@@ -578,7 +543,7 @@ sc_cthread_process::wait_clock( int n  )
 {
     m_wait_cycles = n;
     m_wait_state = CLOCK;
-    sc_switch_thread( this, simcontext() );
+    sc_switch_thread( simcontext() );
     m_wait_state = UNKNOWN;
     if( m_exception_level == 0 ) {
 	throw sc_user();
@@ -593,7 +558,7 @@ sc_cthread_process::wait_lambda( const sc_lambda_ptr& lambda )
 {
     m_wait_lambda = lambda;
     m_wait_state = LAMBDA;
-    sc_switch_thread( this, simcontext() );
+    sc_switch_thread( simcontext() );
     m_wait_state = UNKNOWN;
     if( m_exception_level == 0 ) {
 	throw sc_user();

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -37,29 +37,11 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <cstddef>
-#ifndef WIN32
-#include <unistd.h>
-#include <sys/mman.h>
-#endif
 
 #include "systemc/kernel/sc_process_int.h"
 #include "systemc/kernel/sc_simcontext.h"
 #include "systemc/kernel/sc_simcontext_int.h"
-
-
-// ----------------------------------------------------------------------------
-
-#ifndef WIN32
-
-inline
-void*
-stack_align( void* sp, int alignment, size_t* stack_size )
-{
-    *stack_size = ( *stack_size + alignment - 1 ) & ~( alignment - 1 );
-    return ((void*)(( ((qt_word_t)sp) + alignment - 1 ) & ~( alignment - 1 )));
-}
-
-#endif
+#include "systemc/utils/sc_exception.h"
 
 
 // ----------------------------------------------------------------------------
@@ -320,12 +302,7 @@ sc_thread_process::sc_thread_process( const char*   nm,
 : sc_process_b( nm, fn, mod ),
   m_is_cthread( is_cthread_ ),
   m_stack_size( SC_DEFAULT_STACK_SIZE ),
-#ifndef WIN32
-  m_stack( 0 ),
-  m_sp( 0 )
-#else
-  m_fiber( (PVOID) 0 )
-#endif
+  m_cor( 0 )
 {
     if( m_is_cthread ) {
 	do_initialize( false );
@@ -334,16 +311,10 @@ sc_thread_process::sc_thread_process( const char*   nm,
 
 sc_thread_process::~sc_thread_process()
 {
-    stack_protect( false );
-#ifndef WIN32
-    if( m_stack != 0 ) {
-        delete[] (char*) m_stack;
+    if( m_cor != 0 ) {
+	m_cor->stack_protect( false );
+	delete m_cor;
     }
-#else
-    if( m_fiber != (PVOID) 0 ) {
-	DeleteFiber( m_fiber );
-    }
-#endif
 }
 
 
@@ -355,125 +326,35 @@ sc_thread_process::set_stack_size( size_t size )
 
 
 void
-sc_thread_process::stack_protect( bool enable )
-{
-    // Code needs to be tested on HP-UX and disabled if it doesn't work there
-    // Code still needs to be ported to WIN32
-
-#ifndef WIN32
-
-    static size_t pagesize;
-    
-    if( pagesize == 0 ) {
-	pagesize = sysconf( _SC_PAGESIZE );
-    }
-
-    assert( pagesize != 0 );
-    assert( m_stack_size > ( 2 * pagesize ) );
-
-#ifdef QT_GROW_DOWN
-    // Stacks grow from high address down to low address
-    caddr_t redzone = caddr_t( ( ( size_t( m_stack ) + pagesize - 1 ) /
-				 pagesize ) * pagesize );
-#else
-    // Stacks grow from low address up to high address
-    caddr_t redzone = caddr_t( ( ( size_t( m_stack ) +
-				   m_stack_size - pagesize ) /
-				 pagesize ) * pagesize );
-#endif
-
-    int ret;
-
-    if( enable ) {
-	ret = mprotect( redzone, pagesize - 1, PROT_NONE );
-    } else {
-	ret = mprotect( redzone, pagesize - 1, PROT_READ | PROT_WRITE );
-    }
-
-    assert( ret == 0 );
-
-#endif
-}
-
-
-void
 sc_thread_process::prepare_for_simulation()
 {
-#ifndef WIN32
-    m_stack = new char[m_stack_size];
-    assert( m_stack != 0 );
-    void* sto = stack_align( m_stack, QT_STKALIGN, &m_stack_size );
-    m_sp = QT_SP( sto, m_stack_size - QT_STKALIGN );
-    m_sp = QT_ARGS( m_sp, this, this, 0, sc_thread_only );
-#else
-    // forward declare fiber function
-    void WINAPI sc_thread_fiber_func( PVOID );
-    m_fiber = CreateFiber( m_stack_size, sc_thread_fiber_func, this );
-#endif
-    stack_protect( true );
+    m_cor = simcontext()->cor_pkg()->create( m_stack_size,
+					     sc_thread_cor_fn, this );
+    m_cor->stack_protect( true );
 }
 
 
-#ifndef WIN32
-
 void
-sc_thread_only( void*, void* p, qt_userf_t* )
+sc_thread_cor_fn( void* arg )
 {
-    sc_thread_handle thread_h = RCAST<sc_thread_handle>( p );
+    sc_thread_handle thread_h = RCAST<sc_thread_handle>( arg );
 
     try {
 	thread_h->execute();
     }
     catch( const sc_exception& ex ) {
-	cout << "\n" << ex.str() << "\n";
-	thread_h->simcontext()->set_error();
-    }
-
-    // if control reaches this point, then the process has gone to heaven
-    qt_t* next_qt = thread_h->simcontext()->next_thread_qt();
-    QT_ABORT( sc_thread_aborthelp, thread_h, 0, next_qt );
-}
-
-void*
-sc_thread_aborthelp( qt_t*, void* old, void* )
-{
-    sc_thread_handle thread_h = RCAST<sc_thread_handle>( old );
-    thread_h->remove_static_events();
-    thread_h->entry_fn = SC_DEFUNCT_PROCESS_FUNCTION;  // mark defunct
-    return 0;
-}
-
-void*
-sc_thread_yieldhelp( qt_t* sp, void* old, void* )
-{
-    RCAST<sc_thread_handle>( old )->m_sp = sp;
-    return sp;
-}
-
-#else
-
-void
-WINAPI
-sc_thread_fiber_func( PVOID p )
-{
-    sc_thread_handle thread_h = RCAST<sc_thread_handle>( p );
-
-    try {
-        thread_h->execute();
-    }
-    catch( const sc_exception& ex ) {
-	cout << "\n" << ex.str() << "\n";
+	cout << "\n" << ex.what() << endl;
 	thread_h->simcontext()->set_error();
     }
 
     // if control reaches this point, then the process has gone to heaven
     thread_h->remove_static_events();
     thread_h->entry_fn = SC_DEFUNCT_PROCESS_FUNCTION;  // mark defunct
-    PVOID next_fiber = thread_h->simcontext()->next_thread_fiber();
-    SwitchToFiber( next_fiber );
-}
 
-#endif
+    // abort the current coroutine and resume the next
+    sc_simcontext* simc = thread_h->simcontext();
+    simc->cor_pkg()->abort( simc->next_cor() );
+}
 
 
 bool
@@ -609,17 +490,9 @@ sc_cthread_process::~sc_cthread_process()
 void
 sc_cthread_process::prepare_for_simulation()
 {
-#ifndef WIN32
-    m_stack = new char[m_stack_size];
-    assert( m_stack != 0 );
-    void* sto = stack_align( m_stack, QT_STKALIGN, &m_stack_size );
-    m_sp = QT_SP( sto, m_stack_size - QT_STKALIGN );
-    m_sp = QT_ARGS( m_sp, this, this, 0, sc_cthread_only );
-#else
-    void WINAPI sc_cthread_fiber_func( LPVOID );
-    m_fiber = CreateFiber( m_stack_size, sc_cthread_fiber_func, this );
-#endif
-    stack_protect( true );
+    m_cor = simcontext()->cor_pkg()->create( m_stack_size,
+					     sc_cthread_cor_fn, this );
+    m_cor->stack_protect( true );
 }
 
 
@@ -647,12 +520,10 @@ sc_cthread_process::ready_to_run()
 }
 
 
-#ifndef WIN32
-
 void
-sc_cthread_only( void*, void* p, qt_userf_t* )
+sc_cthread_cor_fn( void* arg )
 {
-    sc_cthread_handle cthread_h = RCAST<sc_cthread_handle>( p );
+    sc_cthread_handle cthread_h = RCAST<sc_cthread_handle>( arg );
 
     while( true ) {
         try {
@@ -663,49 +534,10 @@ sc_cthread_only( void*, void* p, qt_userf_t* )
 	    continue;
         }
         catch( sc_halt ) {
-            cout << "Terminating process " << cthread_h->name() << "\n";
+            cout << "Terminating process " << cthread_h->name() << endl;
         }
 	catch( const sc_exception& ex ) {
-	    cout << "\n" << ex.str() << "\n";
-	    cthread_h->simcontext()->set_error();
-	}
-	break;
-    }
-
-    // if control reaches this point, then the process has gone to heaven
-    qt_t* next_qt = cthread_h->simcontext()->next_thread_qt();
-    QT_ABORT( sc_cthread_aborthelp, cthread_h, 0, next_qt );
-}
-
-void*
-sc_cthread_aborthelp( qt_t*, void* old, void* )
-{
-    sc_cthread_handle cthread_h = RCAST<sc_cthread_handle>( old );
-    cthread_h->remove_static_events();
-    cthread_h->entry_fn = SC_DEFUNCT_PROCESS_FUNCTION;  // mark defunct
-    return 0;
-}
-
-#else
-
-void WINAPI
-sc_cthread_fiber_func( LPVOID p )
-{
-    sc_cthread_handle cthread_h = RCAST<sc_cthread_handle>( p );
-
-    while( true ) {
-        try {
-            cthread_h->execute();
-        }
-        catch( sc_user ) {
-            assert( cthread_h->m_watch_level == 0 );
-	    continue;
-        }
-        catch( sc_halt ) {
-            cout << "Terminating process " << cthread_h->name() << "\n";
-        }
-	catch( const sc_exception& ex ) {
-	    cout << "\n" << ex.str() << "\n";
+	    cout << "\n" << ex.what() << endl;
 	    cthread_h->simcontext()->set_error();
 	}
 	break;
@@ -714,11 +546,11 @@ sc_cthread_fiber_func( LPVOID p )
     // if control reaches this point, then the process has gone to heaven
     cthread_h->remove_static_events();
     cthread_h->entry_fn = SC_DEFUNCT_PROCESS_FUNCTION;  // mark defunct
-    PVOID next_fiber = cthread_h->simcontext()->next_thread_fiber();
-    SwitchToFiber( next_fiber );
-}
 
-#endif
+    // abort the current coroutine and resume the next
+    sc_simcontext* simc = cthread_h->simcontext();
+    simc->cor_pkg()->abort( simc->next_cor() );
+}
 
 
 bool

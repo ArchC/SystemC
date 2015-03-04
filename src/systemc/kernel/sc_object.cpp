@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -40,11 +40,11 @@
 #include <ctype.h>
 
 #include "systemc/kernel/sc_externs.h"
+#include "systemc/kernel/sc_kernel_ids.h"
 #include "systemc/kernel/sc_module.h"
 #include "systemc/kernel/sc_object.h"
 #include "systemc/kernel/sc_object_manager.h"
 #include "systemc/kernel/sc_simcontext.h"
-#include "systemc/utils/sc_exception.h"
 #include "systemc/utils/sc_hash.h"
 #include "systemc/utils/sc_iostream.h"
 #include "systemc/utils/sc_list.h"
@@ -144,14 +144,14 @@ sc_object::sc_object_init(const char* nm)
        object manager */
     if (parent) {
         int pn_len = strlen(parent->name());
-        m_name = new char[pn_len + strlen(newname) + 3];
-        m_name++;
+	m_ptr = new char[pn_len + strlen( newname ) + 3];
+	m_name = m_ptr + 1;
         strcpy(m_name, parent->name());
         m_name[pn_len] = SC_HIERARCHY_CHAR;
         m_name[pn_len + 1] = '\0';
     } else {
-        m_name = new char[strlen(newname) + 3];
-        m_name++;
+	m_ptr = new char[strlen( newname ) + 3];
+	m_name = m_ptr + 1;
         m_name[0] = '\0';
     }
     m_name[-1] = put_in_table;
@@ -159,7 +159,8 @@ sc_object::sc_object_init(const char* nm)
 
     if (put_in_table) {
         if (object_manager->find_object(m_name)) {
-	    REPORT_WARNING(1021,sc_string::to_string("%s. Latter"
+	    SC_REPORT_WARNING( SC_ID_OBJECT_EXISTS_,
+                sc_string::to_string("%s. Latter"
 	        " declaration will be ignored", m_name).c_str());
 	} else {
             /* should check for the uniqueness of the name */
@@ -211,8 +212,9 @@ sc_object::sc_object(const char* nm)
         *q = '\0';
         p = namebuf;
         if (has_illegal_char)
-          REPORT_WARNING(1022,sc_string::to_string("%s substituted by %s",
-                         nm,namebuf).c_str());
+          SC_REPORT_WARNING( SC_ID_ILLEGAL_CHARACTERS_,
+			     sc_string::to_string("%s substituted by %s",
+						  nm,namebuf).c_str());
     }
     sc_object_init(p);
     sc_mempool::release( namebuf, namebuf_alloc );
@@ -231,8 +233,7 @@ sc_object::~sc_object()
 	    m_simc->remove_child_object( this );
 	}
     }
-    --m_name;
-    delete[] m_name;
+    delete [] m_ptr;
 }
 
 void

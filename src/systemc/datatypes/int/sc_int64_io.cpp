@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -37,10 +37,15 @@
 #include "systemc/utils/sc_iostream.h"
 #include "systemc/datatypes/int/sc_unsigned.h"
 #include "systemc/datatypes/int/sc_signed.h"
-#include "systemc/datatypes/int/sc_int.h"
-#include "systemc/datatypes/int/sc_uint.h"
+#include "systemc/datatypes/int/sc_int_base.h"
+#include "systemc/datatypes/int/sc_uint_base.h"
 
-#if defined(_MSC_VER) && !defined(SC_VC6_SCL)
+
+#if defined( _MSC_VER )
+
+namespace sc_dt
+{
+
 static void
 write_uint64(ostream& os, uint64 val, int sign)
 {
@@ -134,7 +139,7 @@ fail:
 }
 
 ostream&
-operator<<(ostream& os, int64 n)
+operator << ( ostream& os, int64 n )
 {
     if (os.opfx()) {
         int sign = 1;
@@ -143,19 +148,21 @@ operator<<(ostream& os, int64 n)
             abs_n = -1*((uint64) n);
             sign = -1;
         }
-        write_uint64(os, abs_n, sign);
+        sc_dt::write_uint64(os, abs_n, sign);
     }
     return os;
 }
 
 ostream&
-operator<<(ostream& os, uint64 n)
+operator << ( ostream& os, uint64 n )
 {
     if (os.opfx()) {
-        write_uint64(os, n, 0);
+        sc_dt::write_uint64(os, n, 0);
     }
     return os;
 }
+
+} // namespace sc_dt
 
 
 #endif

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -53,11 +53,25 @@ sc_max( const T& a, const T& b )
     return ( ( a >= b ) ? a : b );
 }
 
-
-/// #if defined( _MSC_VER )
-/// #define _WIN32_WINNT 0x0400
-/// #include <Windows.h>
-/// #endif
+template <class T>
+inline
+const T
+sc_abs( const T& a )
+{
+    // return ( a >= 0 ? a : -a );
+    // the code below is functionaly the same as the code above; the
+    // difference is that the code below works for all arithmetic
+    // SystemC datatypes.
+    T z( a );
+    z = 0;
+    if( a >= z ) {
+	return a;
+    } else {
+	T c( a );
+	c = -a;
+	return c;
+    }
+}
 
 
 #if defined(__GNUC__) && defined(USE_RTTI)

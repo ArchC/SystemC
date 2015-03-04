@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -33,22 +33,28 @@
 
  *****************************************************************************/
 
-
 #ifndef SC_FXVAL_H
 #define SC_FXVAL_H
 
 
 #include "systemc/datatypes/fx/scfx_rep.h"
 #ifndef SC_FX_EXCLUDE_OTHER
-#include "systemc/datatypes/int/sc_int.h"
-#include "systemc/datatypes/int/sc_uint.h"
+#include "systemc/datatypes/int/sc_int_base.h"
+#include "systemc/datatypes/int/sc_uint_base.h"
 #include "systemc/datatypes/int/sc_signed.h"
 #include "systemc/datatypes/int/sc_unsigned.h"
 #endif
 #include "systemc/datatypes/fx/sc_fxval_observer.h"
 
 
+namespace sc_dt
+{
+
+// classes defined in this module
+class sc_fxval;
 class sc_fxval_fast;
+
+// forward class declarations
 class sc_fxnum;
 class sc_fxnum_fast;
 
@@ -353,8 +359,10 @@ public:
 
     const sc_string to_string() const;
     const sc_string to_string( sc_numrep ) const;
+    const sc_string to_string( sc_numrep, bool ) const;
     const sc_string to_string( sc_fmt ) const;
     const sc_string to_string( sc_numrep, sc_fmt ) const;
+    const sc_string to_string( sc_numrep, bool, sc_fmt ) const;
 
     const sc_string to_dec() const;
     const sc_string to_bin() const;
@@ -376,6 +384,7 @@ public:
     // print or dump content
 
     void print( ostream& = cout ) const;
+    void scan( istream& = cin );
     void dump( ostream& = cout ) const;
 
 
@@ -692,8 +701,10 @@ public:
 
     const sc_string to_string() const;
     const sc_string to_string( sc_numrep ) const;
+    const sc_string to_string( sc_numrep, bool ) const;
     const sc_string to_string( sc_fmt ) const;
     const sc_string to_string( sc_numrep, sc_fmt ) const;
+    const sc_string to_string( sc_numrep, bool, sc_fmt ) const;
 
     const sc_string to_dec() const;
     const sc_string to_bin() const;
@@ -715,6 +726,7 @@ public:
     // print or dump content
 
     void print( ostream& = cout ) const;
+    void scan( istream& = cin );
     void dump( ostream& = cout ) const;
 
 
@@ -801,7 +813,7 @@ sc_fxval::sc_fxval( tp a,                                                     \
 
 #define DEFN_CTOR_T_A(tp) DEFN_CTOR_T(tp,a)
 #define DEFN_CTOR_T_B(tp) DEFN_CTOR_T(tp,a.to_double())
-#define DEFN_CTOR_T_C(tp) DEFN_CTOR_T(tp,a.num)
+#define DEFN_CTOR_T_C(tp) DEFN_CTOR_T(tp,a.value())
 
 DEFN_CTOR_T_A(int)
 DEFN_CTOR_T_A(unsigned int)
@@ -860,7 +872,7 @@ const sc_fxval
 sc_fxval::operator - () const
 {
     SC_FXVAL_OBSERVER_READ_( *this )
-    return sc_fxval( ::neg__scfx_rep( *m_rep ) );
+    return sc_fxval( sc_dt::neg__scfx_rep( *m_rep ) );
 }
 
 inline
@@ -880,7 +892,7 @@ neg( sc_fxval& c, const sc_fxval& a )
 {
     SC_FXVAL_OBSERVER_READ_( a )
     delete c.m_rep;
-    c.m_rep = ::neg__scfx_rep( *a.m_rep );
+    c.m_rep = sc_dt::neg__scfx_rep( *a.m_rep );
     SC_FXVAL_OBSERVER_WRITE_( c )
 }
 
@@ -894,7 +906,7 @@ operator op ( const sc_fxval& a, tp b )                                       \
 {                                                                             \
     SC_FXVAL_OBSERVER_READ_( a )                                              \
     sc_fxval tmp( b );                                                        \
-    return sc_fxval( ::fnc ## __scfx_rep( *a.m_rep, *tmp.m_rep ) );           \
+    return sc_fxval( sc_dt::fnc ## __scfx_rep( *a.m_rep, *tmp.m_rep ) );      \
 }                                                                             \
                                                                               \
 inline                                                                        \
@@ -903,7 +915,7 @@ operator op ( tp a, const sc_fxval& b )                                       \
 {                                                                             \
     SC_FXVAL_OBSERVER_READ_( b )                                              \
     sc_fxval tmp( a );                                                        \
-    return sc_fxval( ::fnc ## __scfx_rep( *tmp.m_rep, *b.m_rep ) );           \
+    return sc_fxval( sc_dt::fnc ## __scfx_rep( *tmp.m_rep, *b.m_rep ) );      \
 }
 
 #ifndef SC_FX_EXCLUDE_OTHER
@@ -925,7 +937,7 @@ operator op ( const sc_fxval& a, const sc_fxval& b )                          \
 {                                                                             \
     SC_FXVAL_OBSERVER_READ_( a )                                              \
     SC_FXVAL_OBSERVER_READ_( b )                                              \
-    return sc_fxval( ::fnc ## __scfx_rep( *a.m_rep, *b.m_rep ) );             \
+    return sc_fxval( sc_dt::fnc ## __scfx_rep( *a.m_rep, *b.m_rep ) );        \
 }                                                                             \
                                                                               \
 DEFN_BIN_OP_T(op,fnc,int)                                                     \
@@ -948,7 +960,7 @@ operator / ( const sc_fxval& a, const sc_fxval& b )
 {
     SC_FXVAL_OBSERVER_READ_( a )
     SC_FXVAL_OBSERVER_READ_( b )
-    return sc_fxval( ::div__scfx_rep( *a.m_rep, *b.m_rep ) );
+    return sc_fxval( sc_dt::div__scfx_rep( *a.m_rep, *b.m_rep ) );
 }
 
 DEFN_BIN_OP_T(/,div,int)
@@ -978,7 +990,7 @@ const sc_fxval
 operator << ( const sc_fxval& a, int b )
 {
     SC_FXVAL_OBSERVER_READ_( a )
-    return sc_fxval( ::lsh__scfx_rep( *a.m_rep, b ) );
+    return sc_fxval( sc_dt::lsh__scfx_rep( *a.m_rep, b ) );
 }
 
 inline
@@ -986,7 +998,7 @@ const sc_fxval
 operator >> ( const sc_fxval& a, int b )
 {
     SC_FXVAL_OBSERVER_READ_( a )
-    return sc_fxval( ::rsh__scfx_rep( *a.m_rep, b ) );
+    return sc_fxval( sc_dt::rsh__scfx_rep( *a.m_rep, b ) );
 }
 
 
@@ -1000,7 +1012,7 @@ fnc ( sc_fxval& c, const sc_fxval& a, tp b )                                  \
     SC_FXVAL_OBSERVER_READ_( a )                                              \
     sc_fxval tmp( b );                                                        \
     delete c.m_rep;                                                           \
-    c.m_rep = ::fnc ## __scfx_rep( *a.m_rep, *tmp.m_rep );                    \
+    c.m_rep = sc_dt::fnc ## __scfx_rep( *a.m_rep, *tmp.m_rep );               \
     SC_FXVAL_OBSERVER_WRITE_( c )                                             \
 }                                                                             \
                                                                               \
@@ -1011,7 +1023,7 @@ fnc ( sc_fxval& c, tp a, const sc_fxval& b )                                  \
     SC_FXVAL_OBSERVER_READ_( b )                                              \
     sc_fxval tmp( a );                                                        \
     delete c.m_rep;                                                           \
-    c.m_rep = ::fnc ## __scfx_rep( *tmp.m_rep, *b.m_rep );                    \
+    c.m_rep = sc_dt::fnc ## __scfx_rep( *tmp.m_rep, *b.m_rep );               \
     SC_FXVAL_OBSERVER_WRITE_( c )                                             \
 }
 
@@ -1035,7 +1047,7 @@ fnc( sc_fxval& c, const sc_fxval& a, const sc_fxval& b )                      \
     SC_FXVAL_OBSERVER_READ_( a )                                              \
     SC_FXVAL_OBSERVER_READ_( b )                                              \
     delete c.m_rep;                                                           \
-    c.m_rep = ::fnc ## __scfx_rep( *a.m_rep, *b.m_rep );                      \
+    c.m_rep = sc_dt::fnc ## __scfx_rep( *a.m_rep, *b.m_rep );                 \
     SC_FXVAL_OBSERVER_WRITE_( c )                                             \
 }                                                                             \
                                                                               \
@@ -1064,7 +1076,7 @@ lshift( sc_fxval& c, const sc_fxval& a, int b )
 {
     SC_FXVAL_OBSERVER_READ_( a )
     delete c.m_rep;
-    c.m_rep = ::lsh__scfx_rep( *a.m_rep, b );
+    c.m_rep = sc_dt::lsh__scfx_rep( *a.m_rep, b );
     SC_FXVAL_OBSERVER_WRITE_( c )
 }
 
@@ -1074,7 +1086,7 @@ rshift( sc_fxval& c, const sc_fxval& a, int b )
 {
     SC_FXVAL_OBSERVER_READ_( a )
     delete c.m_rep;
-    c.m_rep = ::rsh__scfx_rep( *a.m_rep, b );
+    c.m_rep = sc_dt::rsh__scfx_rep( *a.m_rep, b );
     SC_FXVAL_OBSERVER_WRITE_( c )
 }
 
@@ -1088,7 +1100,7 @@ operator op ( const sc_fxval& a, tp b )                                       \
 {                                                                             \
     SC_FXVAL_OBSERVER_READ_( a )                                              \
     sc_fxval tmp( b );                                                        \
-    int result = ::cmp__scfx_rep( *a.m_rep, *tmp.m_rep );                     \
+    int result = sc_dt::cmp__scfx_rep( *a.m_rep, *tmp.m_rep );                \
     return ( ret );                                                           \
 }                                                                             \
                                                                               \
@@ -1098,7 +1110,7 @@ operator op ( tp a, const sc_fxval& b )                                       \
 {                                                                             \
     SC_FXVAL_OBSERVER_READ_( b )                                              \
     sc_fxval tmp( a );                                                        \
-    int result = ::cmp__scfx_rep( *tmp.m_rep, *b.m_rep );                     \
+    int result = sc_dt::cmp__scfx_rep( *tmp.m_rep, *b.m_rep );                \
     return ( ret );                                                           \
 }
 
@@ -1121,7 +1133,7 @@ operator op ( const sc_fxval& a, const sc_fxval& b)                           \
 {                                                                             \
     SC_FXVAL_OBSERVER_READ_( a )                                              \
     SC_FXVAL_OBSERVER_READ_( b )                                              \
-    int result = ::cmp__scfx_rep( *a.m_rep, *b.m_rep );                       \
+    int result = sc_dt::cmp__scfx_rep( *a.m_rep, *b.m_rep );                  \
     return ( ret );                                                           \
 }                                                                             \
                                                                               \
@@ -1198,7 +1210,7 @@ sc_fxval::operator op ( tp b )                                                \
 {                                                                             \
     SC_FXVAL_OBSERVER_READ_( *this )                                          \
     sc_fxval tmp( b );                                                        \
-    scfx_rep* new_rep = ::fnc ## __scfx_rep( *m_rep, *tmp.m_rep );            \
+    scfx_rep* new_rep = sc_dt::fnc ## __scfx_rep( *m_rep, *tmp.m_rep );       \
     delete m_rep;                                                             \
     m_rep = new_rep;                                                          \
     SC_FXVAL_OBSERVER_WRITE_( *this )                                         \
@@ -1224,7 +1236,7 @@ sc_fxval::operator op ( const sc_fxval& b )                                   \
 {                                                                             \
     SC_FXVAL_OBSERVER_READ_( *this )                                          \
     SC_FXVAL_OBSERVER_READ_( b )                                              \
-    scfx_rep* new_rep = ::fnc ## __scfx_rep( *m_rep, *b.m_rep );              \
+    scfx_rep* new_rep = sc_dt::fnc ## __scfx_rep( *m_rep, *b.m_rep );         \
     delete m_rep;                                                             \
     m_rep = new_rep;                                                          \
     SC_FXVAL_OBSERVER_WRITE_( *this )                                         \
@@ -1459,14 +1471,14 @@ inline
 const sc_fxval
 sc_fxval::quantization( const scfx_params& params, bool& q_flag ) const
 {
-    return sc_fxval( ::quantization__scfx_rep( *m_rep, params, q_flag ) );
+    return sc_fxval( sc_dt::quantization__scfx_rep( *m_rep, params, q_flag ) );
 }
 
 inline
 const sc_fxval
 sc_fxval::overflow( const scfx_params& params, bool& o_flag ) const
 {
-    return sc_fxval( ::overflow__scfx_rep( *m_rep, params, o_flag ) );
+    return sc_fxval( sc_dt::overflow__scfx_rep( *m_rep, params, o_flag ) );
 }
 
 
@@ -1476,6 +1488,14 @@ operator << ( ostream& os, const sc_fxval& a )
 {
     a.print( os );
     return os;
+}
+
+inline
+istream&
+operator >> ( istream& is, sc_fxval& a )
+{
+    a.scan( is );
+    return is;
 }
 
 
@@ -1533,8 +1553,6 @@ sc_fxval_fast::sc_fxval_fast( tp a,                                           \
 #define DEFN_CTOR_T_A(tp) DEFN_CTOR_T(tp,static_cast<double>( a ))
 #define DEFN_CTOR_T_B(tp) DEFN_CTOR_T(tp,from_string( a ))
 #define DEFN_CTOR_T_C(tp) DEFN_CTOR_T(tp,a.to_double())
-#define DEFN_CTOR_T_D(tp) DEFN_CTOR_T(tp,static_cast<double>( a.num ))
-#define DEFN_CTOR_T_E(tp) DEFN_CTOR_T(tp,static_cast<double>( static_cast<int64>( a.num ) ))
 
 DEFN_CTOR_T_A(int)
 DEFN_CTOR_T_A(unsigned int)
@@ -1546,12 +1564,8 @@ DEFN_CTOR_T_C(const sc_fxval&)
 #ifndef SC_FX_EXCLUDE_OTHER
 DEFN_CTOR_T_A(int64)
 DEFN_CTOR_T_A(uint64)
-DEFN_CTOR_T_D(const sc_int_base&)
-#if defined( _MSC_VER ) && ! defined( _32BIT_ )
-DEFN_CTOR_T_E(const sc_uint_base&)
-#else
-DEFN_CTOR_T_D(const sc_uint_base&)
-#endif
+DEFN_CTOR_T_C(const sc_int_base&)
+DEFN_CTOR_T_C(const sc_uint_base&)
 DEFN_CTOR_T_C(const sc_signed&)
 DEFN_CTOR_T_C(const sc_unsigned&)
 #endif
@@ -1902,6 +1916,7 @@ DEFN_ASN_OP_T(long)
 DEFN_ASN_OP_T(unsigned long)
 DEFN_ASN_OP_T(double)
 DEFN_ASN_OP_T(const char*)
+DEFN_ASN_OP_T(const sc_fxval&)
 #ifndef SC_FX_EXCLUDE_OTHER
 DEFN_ASN_OP_T(int64)
 DEFN_ASN_OP_T(uint64)
@@ -1956,6 +1971,7 @@ DEFN_ASN_OP_T(op,long)                                                        \
 DEFN_ASN_OP_T(op,unsigned long)                                               \
 DEFN_ASN_OP_T(op,double)                                                      \
 DEFN_ASN_OP_T(op,const char*)                                                 \
+DEFN_ASN_OP_T(op,const sc_fxval&)                                             \
 DEFN_ASN_OP_OTHER(op)
 
 DEFN_ASN_OP(*=)
@@ -2177,6 +2193,16 @@ operator << ( ostream& os, const sc_fxval_fast& a )
     a.print( os );
     return os;
 }
+
+inline
+istream&
+operator >> ( istream& is, sc_fxval_fast& a )
+{
+    a.scan( is );
+    return is;
+}
+
+} // namespace sc_dt
 
 
 #endif

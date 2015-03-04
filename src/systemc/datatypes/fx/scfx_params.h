@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -33,13 +33,20 @@
 
  *****************************************************************************/
 
-
 #ifndef SCFX_PARAMS_H
 #define SCFX_PARAMS_H
 
 
+#include "systemc/datatypes/fx/sc_fx_ids.h"
 #include "systemc/datatypes/fx/sc_fxcast_switch.h"
 #include "systemc/datatypes/fx/sc_fxtype_params.h"
+
+
+namespace sc_dt
+{
+
+// classes defined in this module
+class scfx_params;
 
 
 // ----------------------------------------------------------------------------
@@ -104,8 +111,8 @@ scfx_params::scfx_params( const sc_fxtype_params& type_params_,
 {
     if( m_enc == SC_US_ && m_type_params.o_mode() == SC_WRAP_SM )
     {
-	sc_report::error( SC_ID_INVALID_O_MODE_,
-			  "SC_WRAP_SM not defined for unsigned numbers" );
+	SC_REPORT_ERROR( SC_ID_INVALID_O_MODE_,
+			 "SC_WRAP_SM not defined for unsigned numbers" );
     }
 
 }
@@ -195,6 +202,8 @@ scfx_params::dump( ostream& os ) const
     m_cast_switch.dump( os );
     os << ")" << endl;
 }
+
+} // namespace sc_dt
 
 
 #endif

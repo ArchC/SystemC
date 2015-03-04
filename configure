@@ -1330,17 +1330,17 @@ case "$target" in
                 DEBUG_CXXFLAGS="-g"
                 OPT_CXXFLAGS="-O3"
                 TARGET_ARCH="sparcOS5"
-		AR_TOOL="CC -xar -o"
-        	CC="cc"
-        	CFLAGS="-xO2"
+		AR_TOOL="$CXX -xar -o"
+        	CC="$CXX"
+        	CFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
                 ;;
             c++ | g++)
                 EXTRA_CXXFLAGS="-Wall"
                 DEBUG_CXXFLAGS="-g"
                 OPT_CXXFLAGS="-O3"
                 TARGET_ARCH="gccsparcOS5"
-        	CC="gcc -ansi -Wall -pedantic"
-        	CFLAGS="-O2"
+        	CC="$CXX"
+        	CFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
                 ;;
             *)
                 { echo "configure: error: "sorry...compiler not supported"" 1>&2; exit 1; }
@@ -1355,8 +1355,8 @@ case "$target" in
                 DEBUG_CXXFLAGS="-g"
                 OPT_CXXFLAGS="-O3"
                 TARGET_ARCH="linux"
-        	CC="gcc -ansi -Wall -pedantic"
-        	CFLAGS="-O2"
+        	CC="$CXX"
+        	CFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
                 ;;
             *)
                 { echo "configure: error: "sorry...compiler not supported"" 1>&2; exit 1; }
@@ -1371,8 +1371,8 @@ case "$target" in
                 DEBUG_CXXFLAGS="-g"
                 OPT_CXXFLAGS="-O3"
                 TARGET_ARCH="cygwin"
-        	CC="gcc -ansi -Wall -pedantic"
-        	CFLAGS="-O2"
+        	CC="$CXX"
+        	CFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
                 ;;
             *)
                 { echo "configure: error: "sorry...compiler not supported"" 1>&2; exit 1; }
@@ -1383,20 +1383,20 @@ case "$target" in
     *hpux11*)
         case "$CXX_COMP" in
             aCC)
-                EXTRA_CXXFLAGS="-Aa +DA2.0 +DS2.0"
+                EXTRA_CXXFLAGS="-Aa -ext +DA2.0 +DS2.0"
                 DEBUG_CXXFLAGS="-g"
                 OPT_CXXFLAGS="+O1"
                 TARGET_ARCH="hpux11"
-		CC="cc -Ae +DA2.0 +DS2.0"
-        	CFLAGS="-O"
+        	CC="$CXX"
+        	CFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS -Wa,-w36"
                 ;;
             c++ | g++)
                 EXTRA_CXXFLAGS="-Wall"
                 DEBUG_CXXFLAGS="-g"
                 OPT_CXXFLAGS="-O3"
                 TARGET_ARCH="gcchpux11"
-        	CC="cc -Ae"
-        	CFLAGS="-O"
+        	CC="$CXX"
+        	CFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
                 ;;
             *)
                 { echo "configure: error: "sorry...compiler not supported"" 1>&2; exit 1; }

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -34,8 +34,7 @@
  *****************************************************************************/
 
 
-#include <assert.h>
-
+#include "systemc/kernel/sc_kernel_ids.h"
 #include "systemc/kernel/sc_name_gen.h"
 #include "systemc/utils/sc_iostream.h"
 
@@ -64,7 +63,9 @@ sc_name_gen::~sc_name_gen()
 const char*
 sc_name_gen::gen_unique_name( const char* basename_ )
 {
-    assert( basename_ != 0 );
+    if( basename_ == 0 ) {
+	SC_REPORT_ERROR( SC_ID_GEN_UNIQUE_NAME_, 0 );
+    }
     int* c = m_unique_name_map[basename_];
     if( c == 0 ) {
 	c = new int( -1 );

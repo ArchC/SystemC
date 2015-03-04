@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -36,23 +36,22 @@
 
 
 #include <ctype.h>
+#include "systemc/datatypes/int/sc_int_ids.h"
 #include "systemc/datatypes/int/sc_nbutils.h"
 #include "systemc/kernel/sc_macros.h"
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: General utility functions.
-/////////////////////////////////////////////////////////////////////////////
 
-void 
-warn_help(const char *ex, const char *msg, const char *fname, int lnum)
+namespace sc_dt
 {
-  printf("%s:%u: failed soft assertion `%s': %s\n", fname, lnum, ex, msg);
-}
 
+// ----------------------------------------------------------------------------
+//  SECTION: General utility functions.
+// ----------------------------------------------------------------------------
 
 // Return the number of characters to advance the source of c.  This
 // function implements one move of the FSM to parse the following
 // regular expressions. Error checking is done in the caller.
+
 small_type
 fsm_move(char c, small_type &b, small_type &s, small_type &state)
 {
@@ -156,8 +155,11 @@ const char
   // Handles empty strings or strings without any digits after the
   // base or base and sign specifier.
   if (*v == '\0') { 
-    printf("SystemC error: The char string must contain at least one digit.\n");
-    abort();
+      char msg[BUFSIZ];
+      sprintf( msg,
+	       "get_base_and_sign( const char* v, small_type&, small_type& ) : "
+	       "v = \"\" is not valid" );
+      SC_REPORT_ERROR( SC_ID_CONVERSION_FAILED_, msg );
   }
 
   return v;
@@ -165,9 +167,9 @@ const char
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: Utility functions involving unsigned vectors.
-/////////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------------
+//  SECTION: Utility functions involving unsigned vectors.
+// ----------------------------------------------------------------------------
 
 // Read u from a null terminated char string v. Note that operator>>
 // in sc_nbcommon.cpp is similar to this function.
@@ -191,9 +193,12 @@ vec_from_str(int unb, int und, unsigned long *u,
     if (b == NB_DEFAULT_BASE)
       b = base;
     else {
-      printf("SystemC error:\n");
-      printf("The base set in the program does not match the base in the input string.\n");
-      abort();    
+	char msg[BUFSIZ];
+	sprintf( msg,
+		 "vec_from_str( int, int, unsigned long*, const char*, sc_numrep base ) : "
+		 "base = %s does not match the default base",
+		 to_string( base ).c_str() );
+	SC_REPORT_ERROR( SC_ID_CONVERSION_FAILED_, msg );
     }
   }
 
@@ -213,8 +218,12 @@ vec_from_str(int unb, int und, unsigned long *u,
         val = c - '0';
       
       if (val >= b) {
-        printf("SystemC error: %c is not a valid digit in base %d\n", *v, b);
-        abort();
+	  char msg[BUFSIZ];
+	  sprintf( msg,
+		   "vec_from_str( int, int, unsigned long*, const char*, sc_numrep base ) : "
+		   "'%c' is not a valid digit in base %d",
+		   *v, b );
+	  SC_REPORT_ERROR( SC_ID_CONVERSION_FAILED_, msg );
       }
       
       // digit = digit * b + val;
@@ -225,13 +234,16 @@ vec_from_str(int unb, int und, unsigned long *u,
 
     }
     else {
-      printf("SystemC error: %c is not a valid digit in base %d\n", *v, b);
-      abort();
+	char msg[BUFSIZ];
+	sprintf( msg,
+		 "vec_from_str( int, int, unsigned long*, const char*, sc_numrep base ) : "
+		 "'%c' is not a valid digit in base %d",
+		 *v, b );
+	SC_REPORT_ERROR( SC_ID_CONVERSION_FAILED_, msg );
     }
   }
 
   return convert_signed_SM_to_2C_to_SM(s, unb, und, u);
-  
 }
 
 
@@ -319,7 +331,12 @@ vec_add_on(int ulen, unsigned long *ubegin,
   }
 
 #ifdef DEBUG_SYSTEMC
-  warn(carry == 0, "Result of addition (in vec_add_on) is wrapped around.");
+  if( carry != 0 ) {
+      SC_REPORT_WARNING( SC_ID_WITHOUT_MESSAGE_,
+			 "vec_add_on( int, unsigned long*, int, const "
+			 "unsigned long* ) : "
+			 "result of addition is wrapped around" );
+  }
 #endif
 
 }
@@ -329,7 +346,11 @@ vec_add_on(int ulen, unsigned long *ubegin,
 // - ulen < vlen
 void
 vec_add_on2(int ulen, unsigned long *ubegin, 
-            int /* vlen */, const unsigned long *v)
+            int
+#ifdef DEBUG_SYSTEMC
+            vlen
+#endif
+            , const unsigned long *v)
 {
 
 #ifdef DEBUG_SYSTEMC
@@ -351,9 +372,13 @@ vec_add_on2(int ulen, unsigned long *ubegin,
   }
 
 #ifdef DEBUG_SYSTEMC
-  warn(carry == 0, "Result of addition (in vec_add_on2) is wrapped around.");
+  if( carry != 0 ) {
+      SC_REPORT_WARNING( SC_ID_WITHOUT_MESSAGE_,
+                         "vec_add_on2( int, unsigned long*, int, const "
+			 "unsigned long* ) : "
+			 "result of addition is wrapped around" );
+  }
 #endif
-
 }
 
 
@@ -411,7 +436,12 @@ vec_add_small_on(int ulen, unsigned long *u, unsigned long v)
   }
 
 #ifdef DEBUG_SYSTEMC
-  warn(v == 0, "Result of addition (in vec_add_small_on) is wrapped around.");
+  if( v != 0 ) {
+      SC_REPORT_WARNING( SC_ID_WITHOUT_MESSAGE_,
+                         "vec_add_small_on( int, unsigned long*, unsigned "
+			 "long ) : "
+			 "result of addition is wrapped around" );
+  }
 #endif
 
 }
@@ -527,9 +557,13 @@ vec_sub_on2(int ulen, unsigned long *ubegin,
   }
 
 #ifdef DEBUG_SYSTEMC
-  warn(borrow == 0, "Result of subtraction (in vec_sub_on2) is wrapped around.");
+  if( borrow != 0 ) {
+      SC_REPORT_WARNING( SC_ID_WITHOUT_MESSAGE_,
+                         "vec_sub_on2( int, unsigned long*, int, const "
+			 "unsigned long* ) : "
+			 "result of subtraction is wrapped around" );
+  }
 #endif
-
 }
 
 // Compute w = u - v, where w and u are vectors, and v is a scalar.
@@ -790,9 +824,13 @@ vec_mul_small_on(int ulen, unsigned long *u, unsigned long v)
 #undef prod_h
 
 #ifdef DEBUG_SYSTEMC
-  warn(carry == 0, "Result of multiplication (in vec_mul_small_on) is wrapped around.");
+  if( carry != 0 ) {
+      SC_REPORT_WARNING( SC_ID_WITHOUT_MESSAGE_,
+                         "vec_mul_small_on( int, unsigned long*, unsigned "
+			 "long ) : "
+			 "result of multiplication is wrapped around" );
+  }
 #endif
-
 }
 
 // Compute w = u / v, where w, u, and v are vectors. 
@@ -1437,8 +1475,11 @@ vec_reverse(int unb, int und, unsigned long *ud,
 #endif
 
   if (l < r) {
-    printf("SystemC warning: Ensure that left index %d >= right index %d\n", l, r);
-    abort();
+      char msg[BUFSIZ];
+      sprintf( msg, "vec_reverse( int, int, unsigned long*, int l, int r ) : "
+	       "l = %d < r = %d is not valid",
+	       l, r );
+      SC_REPORT_ERROR( SC_ID_CONVERSION_FAILED_, msg );
   }
 
   // Make sure that l and r are within bounds.
@@ -1472,6 +1513,8 @@ vec_reverse(int unb, int und, unsigned long *ud,
 #endif
     
 }
+
+} // namespace sc_dt
 
 
 // End of file.

@@ -13,7 +13,7 @@ CFG=systemc - Win32 Release
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "systemc.mak" CFG="systemc - Win32 Debug"
+!MESSAGE NMAKE /f "systemc.mak" CFG="systemc - Win32 Release"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
@@ -63,8 +63,8 @@ LIB32=link.exe -lib
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ  /c
-# ADD CPP /nologo /W3 /Gm /GR /GX /ZI /Od /I "../../src" /D "SC_INCLUDE_FX" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ  /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /GR /GX /ZI /Od /I "../../src" /D "SC_INCLUDE_FX" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -101,6 +101,14 @@ SOURCE=..\..\src\systemc\communication\sc_clock.h
 # Begin Source File
 
 SOURCE=..\..\src\systemc\communication\sc_clock_ports.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\communication\sc_communication_ids.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\communication\sc_communication_ids.h
 # End Source File
 # Begin Source File
 
@@ -231,15 +239,27 @@ SOURCE=..\..\src\systemc\datatypes\bit\sc_bit.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\src\systemc\datatypes\bit\sc_bit_ids.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\datatypes\bit\sc_bit_ids.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\src\systemc\datatypes\bit\sc_bit_proxies.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\systemc\datatypes\bit\sc_bv.cpp
+SOURCE=..\..\src\systemc\datatypes\bit\sc_bv.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\systemc\datatypes\bit\sc_bv.h
+SOURCE=..\..\src\systemc\datatypes\bit\sc_bv_base.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\datatypes\bit\sc_bv_base.h
 # End Source File
 # Begin Source File
 
@@ -251,11 +271,15 @@ SOURCE=..\..\src\systemc\datatypes\bit\sc_logic.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\systemc\datatypes\bit\sc_lv.cpp
+SOURCE=..\..\src\systemc\datatypes\bit\sc_lv.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\systemc\datatypes\bit\sc_lv.h
+SOURCE=..\..\src\systemc\datatypes\bit\sc_lv_base.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\datatypes\bit\sc_lv_base.h
 # End Source File
 # Begin Source File
 
@@ -280,6 +304,14 @@ SOURCE=..\..\src\systemc\datatypes\fx\sc_fix.h
 # Begin Source File
 
 SOURCE=..\..\src\systemc\datatypes\fx\sc_fixed.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\datatypes\fx\sc_fx_ids.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\datatypes\fx\sc_fx_ids.h
 # End Source File
 # Begin Source File
 
@@ -336,22 +368,6 @@ SOURCE=..\..\src\systemc\datatypes\fx\sc_fxval_observer.cpp
 # Begin Source File
 
 SOURCE=..\..\src\systemc\datatypes\fx\sc_fxval_observer.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\systemc\datatypes\fx\sc_report.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\systemc\datatypes\fx\sc_report.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\systemc\datatypes\fx\sc_report_handler.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\systemc\datatypes\fx\sc_report_handler.h
 # End Source File
 # Begin Source File
 
@@ -423,10 +439,6 @@ SOURCE=..\..\src\systemc\datatypes\int\sc_biguint.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\systemc\datatypes\int\sc_int.cpp
-# End Source File
-# Begin Source File
-
 SOURCE=..\..\src\systemc\datatypes\int\sc_int.h
 # End Source File
 # Begin Source File
@@ -440,6 +452,30 @@ SOURCE=..\..\src\systemc\datatypes\int\sc_int64_io.cpp
 # Begin Source File
 
 SOURCE=..\..\src\systemc\datatypes\int\sc_int64_mask.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\datatypes\int\sc_int_base.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\datatypes\int\sc_int_base.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\datatypes\int\sc_int_ids.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\datatypes\int\sc_int_ids.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\datatypes\int\sc_length_param.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\datatypes\int\sc_length_param.h
 # End Source File
 # Begin Source File
 
@@ -475,11 +511,15 @@ SOURCE=..\..\src\systemc\datatypes\int\sc_signed.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\systemc\datatypes\int\sc_uint.cpp
+SOURCE=..\..\src\systemc\datatypes\int\sc_uint.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\systemc\datatypes\int\sc_uint.h
+SOURCE=..\..\src\systemc\datatypes\int\sc_uint_base.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\datatypes\int\sc_uint_base.h
 # End Source File
 # Begin Source File
 
@@ -512,11 +552,23 @@ SOURCE=..\..\src\systemc\kernel\sc_constants.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\systemc\kernel\sc_context_switch.cpp
+SOURCE=..\..\src\systemc\kernel\sc_cor.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\systemc\kernel\sc_context_switch.h
+SOURCE=..\..\src\systemc\kernel\sc_cor_fiber.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\kernel\sc_cor_fiber.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\kernel\sc_cor_qt.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\kernel\sc_cor_qt.h
 # End Source File
 # Begin Source File
 
@@ -533,6 +585,14 @@ SOURCE=..\..\src\systemc\kernel\sc_except.h
 # Begin Source File
 
 SOURCE=..\..\src\systemc\kernel\sc_externs.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\kernel\sc_kernel_ids.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\kernel\sc_kernel_ids.h
 # End Source File
 # Begin Source File
 
@@ -565,14 +625,6 @@ SOURCE=..\..\src\systemc\kernel\sc_macros_int.h
 # Begin Source File
 
 SOURCE=..\..\src\systemc\kernel\sc_main.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\systemc\kernel\sc_measure.cpp
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\src\systemc\kernel\sc_measure.h
 # End Source File
 # Begin Source File
 
@@ -784,7 +836,27 @@ SOURCE=..\..\src\systemc\utils\sc_pq.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\src\systemc\utils\sc_ptr.h
+SOURCE=..\..\src\systemc\utils\sc_report.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\utils\sc_report.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\utils\sc_report_handler.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\utils\sc_report_handler.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\utils\sc_stop_here.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\utils\sc_stop_here.h
 # End Source File
 # Begin Source File
 
@@ -793,6 +865,14 @@ SOURCE=..\..\src\systemc\utils\sc_string.cpp
 # Begin Source File
 
 SOURCE=..\..\src\systemc\utils\sc_string.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\utils\sc_utils_ids.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\src\systemc\utils\sc_utils_ids.h
 # End Source File
 # Begin Source File
 

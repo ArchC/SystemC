@@ -1,7 +1,8 @@
-		INSTALL NOTES FOR SystemC Release 2.0
-		-------------------------------------
+		INSTALL NOTES FOR SystemC Release 2.0.1
+		---------------------------------------
 
 Contents:
+
 	1. Installation Notes for Unix 
 
 	2. Installation Notes for Windows
@@ -15,13 +16,17 @@ System Requirements
 
 SystemC can be installed on the following UNIX platforms
 
-  1. Sun Solaris 2.7 and 2.8 with GNU C++ compiler version 2.95.2.
+  1. Sun Solaris 2.7 and 2.8 with GNU C++ compiler versions gcc-2.95.2 and
+     gcc-2.95.3.
 
-  2. Sun Solaris 2.7 and 2.8 with SC6.1 and SC6.2
+  2. Sun Solaris 2.7 and 2.8 with Sun C++ compiler versions SC6.1 and SC6.2.
 
-  3. Linux (Redhat 6.2) with GNU C++ compiler version 2.95.2.
+  3. Linux (Redhat 6.2) with GNU C++ compiler versions gcc-2.95.2 and
+     gcc-2.95.3.
 
-  4. HP-UX 11.00 with aCC C++ compiler versions A.03.31 and A.03.15.
+  4. Linux (Redhat 7.2) with GNU C++ compiler version gcc-2.95.3.
+
+  5. HP-UX 11.00 with HP C++ compiler versions A.03.15 and A.03.33.
 
 
 Sources for Compilers and Related Tools
@@ -30,9 +35,23 @@ Sources for Compilers and Related Tools
 To build, install, and use SystemC on UNIX platforms, you need the
 following tools:
 
-  1. GNU C++ Compiler version 2.95.2,
-     or Sun WorkShop 6 update 1 C++ 5.2 (SC6.1) or update 2 C++ 5.3 (SC6.2),
-     or HP aCC version A.03.31 or A.03.15.
+  1. GNU C++ compiler version gcc-2.95.2:
+       gcc version 2.95.2 19991024 (release)
+
+     or GNU C++ compiler version gcc-2.95.3:
+       gcc version 2.95.3 20010315 (release)
+
+     or Sun C++ compiler version SC 6.1:
+       CC: Sun WorkShop 6 update 1 C++ 5.2 Patch 109508-02 2001/03/04
+
+     or Sun C++ compiler version SC6.2:
+       CC: Sun WorkShop 6 update 2 C++ 5.3 Patch 111685-04 2001/12/13
+
+     or HP C++ compiler version A.03.15:
+       aCC: HP ANSI C++ B3910B A.03.15
+
+     or HP C++ compiler version A.03.33:
+       aCC: HP ANSI C++ B3910B A.03.33
 
   2. GNU Make (gmake)
 
@@ -49,7 +68,7 @@ Basic SystemC Installation
 
 To install SystemC on a UNIX system, do the following steps:
 
-  1. Change to the top level directory (systemc-2.0)
+  1. Change to the top level directory (systemc-2.0.1)
 
   2. Create a temporary directory, e.g.,
 
@@ -61,21 +80,23 @@ To install SystemC on a UNIX system, do the following steps:
 
   4. Set the following environment variable(s):
 
-     For gcc-2.95.2 on Solaris:
+     For gcc-2.95.2 or gcc-2.95.3 on Solaris:
 
 	> setenv CXX g++
 
-     For SC 6.1 or 6.2 on Solaris:
+     For SC6.1 or SC6.2 on Solaris:
 
 	> setenv CXX CC
 
-     For gcc-2.95.2 on Linux:
+     For gcc-2.95.3 on Linux:
 
 	> setenv CXX g++
 
      For aCC on HP-UX:
 
 	> setenv CXX aCC
+
+     You can also specify an absolute path to the compiler of your choice.
 
   5. Configure the package for your system, e.g.,
      (The configure script is explained below.)
@@ -91,19 +112,19 @@ To install SystemC on a UNIX system, do the following steps:
      need to use the `sh ../configure' command instead of '../configure'.
      Otherwise, `csh' will attempt to `configure' itself.
 
-     SystemC 2.0 includes a fixed-point package that is always built.
+     SystemC 2.0.1 includes a fixed-point package that is always built.
      When compiling your applications with fixed-point types, you still have
      to use compiler flag -DSC_INCLUDE_FX. Note that compile times increase
      significantly when using this compiler flag.
 
      In case you want to install the package in another place than the
-     top level directory (systemc-2.0), configure the package e.g. as
+     top level directory (systemc-2.0.1), configure the package e.g. as
      follows:
 
-	> ../configure --prefix=/usr/local/systemc-2.0
+	> ../configure --prefix=/usr/local/systemc-2.0.1
 
      Note: make sure you have created the target directory before installing
-           the package. Do *not* use /usr/local as a prefix.
+           the package. Do _not_ use /usr/local as a prefix.
 
   6. Compile the package.
 
@@ -137,13 +158,13 @@ To install SystemC on a UNIX system, do the following steps:
 Running the Examples
 ====================
 
-1. Change to the example directory (e.g. systemc-2.0/examples/pipe/ ).
+1. Change to the example directory (e.g. systemc-2.0.1/examples/pipe/ ).
 
 2. Read the brief description of the example in the README file. 
 
 3. Build the example using `gmake' and corresponding Makefile:
 
-   For Solaris and gcc compiler: gmake -f Makefile.gcc
+   For Solaris and g++ compiler: gmake -f Makefile.gcc
    For Solaris and CC compiler : gmake -f Makefile.sun
    For Linux and gcc compiler  : gmake -f Makefile.linux
    For HP-UX and aCC compiler  : gmake -f Makefile.hp
@@ -312,18 +333,18 @@ Use the `--help' option to print a list.
 
 
 
-2. Installation for Windows
----------------------------
+2. Installation Notes for Windows
+---------------------------------
 
-This release has been ported to Windows NT 4.0 (SP3 and higher) and will
-work with Visual C++ 6.0. 
+This release has been ported to Windows NT 4.0 (SP6a) and will
+work with Visual C++ 6.0 (SP5).
 
 The SystemC distribution includes project and workspace files for
 Visual C++. If you use these project and workspace files the SystemC
 source files are available to your new project. For Visual C++ 6.0 the
 project and workspace files are located in directory:
 
-  ...\systemc-2.0\msvc60
+  ...\systemc-2.0.1\msvc60
 
 This directory contains two subdirectories: `systemc' and
 `examples'.

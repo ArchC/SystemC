@@ -283,12 +283,12 @@ qt.o qtmdc.c qtmds.s: configuration
 qtmds.o: qtmds.s
 
 configuration:
-	-@ln -s $(srcdir)/md .
+	@test -d md || ln -s $(srcdir)/md .
 	@$(srcdir)/config $(QT_ARCH)
 
 clean:
-	rm -f configuration qtmdc.c qtmds.s
-	-rm -f md
+	-rm -f configuration qtmdc.c qtmds.s
+	-test -h md && rm -f md || true
 
 install-data-local:
 	@$(NORMAL_INSTALL)

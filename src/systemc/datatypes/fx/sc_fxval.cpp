@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -41,6 +41,9 @@
 #include "systemc/datatypes/fx/sc_fxval.h"
 
 
+namespace sc_dt
+{
+
 // ----------------------------------------------------------------------------
 //  CLASS : sc_fxval
 //
@@ -52,50 +55,62 @@
 const sc_string
 sc_fxval::to_string() const
 {
-    return sc_string( m_rep->to_string( SC_DEC, SC_E ) );
+    return sc_string( m_rep->to_string( SC_DEC, -1, SC_E ) );
 }
 
 const sc_string
 sc_fxval::to_string( sc_numrep numrep ) const
 {
-    return sc_string( m_rep->to_string( numrep, SC_E ) );
+    return sc_string( m_rep->to_string( numrep, -1, SC_E ) );
+}
+
+const sc_string
+sc_fxval::to_string( sc_numrep numrep, bool w_prefix ) const
+{
+    return sc_string( m_rep->to_string( numrep, (w_prefix ? 1 : 0), SC_E ) );
 }
 
 const sc_string
 sc_fxval::to_string( sc_fmt fmt ) const
 {
-    return sc_string( m_rep->to_string( SC_DEC, fmt ) );
+    return sc_string( m_rep->to_string( SC_DEC, -1, fmt ) );
 }
 
 const sc_string
 sc_fxval::to_string( sc_numrep numrep, sc_fmt fmt ) const
 {
-    return sc_string( m_rep->to_string( numrep, fmt ) );
+    return sc_string( m_rep->to_string( numrep, -1, fmt ) );
+}
+
+const sc_string
+sc_fxval::to_string( sc_numrep numrep, bool w_prefix, sc_fmt fmt ) const
+{
+    return sc_string( m_rep->to_string( numrep, (w_prefix ? 1 : 0), fmt ) );
 }
 
 
 const sc_string
 sc_fxval::to_dec() const
 {
-    return sc_string( m_rep->to_string( SC_DEC, SC_E ) );
+    return sc_string( m_rep->to_string( SC_DEC, -1, SC_E ) );
 }
 
 const sc_string
 sc_fxval::to_bin() const
 {
-    return sc_string( m_rep->to_string( SC_BIN, SC_E ) );
+    return sc_string( m_rep->to_string( SC_BIN, -1, SC_E ) );
 }
 
 const sc_string
 sc_fxval::to_oct() const
 {
-    return sc_string( m_rep->to_string( SC_OCT, SC_E ) );
+    return sc_string( m_rep->to_string( SC_OCT, -1, SC_E ) );
 }
 
 const sc_string
 sc_fxval::to_hex() const
 {
-    return sc_string( m_rep->to_string( SC_HEX, SC_E ) );
+    return sc_string( m_rep->to_string( SC_HEX, -1, SC_E ) );
 }
 
 
@@ -105,6 +120,14 @@ void
 sc_fxval::print( ostream& os ) const
 {
     m_rep->print( os );
+}
+
+void
+sc_fxval::scan( istream& is )
+{
+    sc_string s;
+    is >> s;
+    *this = s.c_str();
 }
 
 void
@@ -152,12 +175,16 @@ sc_fxval::unlock_observer( sc_fxval_observer* observer_ ) const
 
 static
 void
-print_dec( scfx_string& s, scfx_ieee_double id, sc_fmt fmt )
+print_dec( scfx_string& s, scfx_ieee_double id, int w_prefix, sc_fmt fmt )
 {
     if( id.negative() != 0 )
     {
 	id.negative( 0 );
 	s += '-';
+    }
+
+    if( w_prefix == 1 ) {
+	scfx_print_prefix( s, SC_DEC );
     }
 
     if( id.is_zero() )
@@ -272,8 +299,8 @@ print_dec( scfx_string& s, scfx_ieee_double id, sc_fmt fmt )
 
 static
 void
-print_other( scfx_string& s, const scfx_ieee_double& id,
-	     sc_numrep numrep, sc_fmt fmt, const scfx_params* params )
+print_other( scfx_string& s, const scfx_ieee_double& id, sc_numrep numrep,
+	     int w_prefix, sc_fmt fmt, const scfx_params* params )
 {
     scfx_ieee_double id2 = id;
 
@@ -306,7 +333,9 @@ print_other( scfx_string& s, const scfx_ieee_double& id,
 	}
     }
 
-    scfx_print_prefix( s, numrep );
+    if( w_prefix != 0 ) {
+	scfx_print_prefix( s, numrep );
+    }
 
     numrep = numrep2;
 
@@ -433,13 +462,13 @@ print_other( scfx_string& s, const scfx_ieee_double& id,
     }
 
     if( numrep == SC_CSD )
-	scfx_tc2csd( s );
+	scfx_tc2csd( s, w_prefix );
 }
 
 
 const char*
-to_string( const scfx_ieee_double& id, sc_numrep numrep, sc_fmt fmt,
-	   const scfx_params* params = 0 )
+to_string( const scfx_ieee_double& id, sc_numrep numrep, int w_prefix,
+	   sc_fmt fmt, const scfx_params* params = 0 )
 {
     static scfx_string s;
 
@@ -455,9 +484,9 @@ to_string( const scfx_ieee_double& id, sc_numrep numrep, sc_fmt fmt,
 	       numrep == SC_HEX_US ) )
         s += "negative";
     else if( numrep == SC_DEC )
-        ::print_dec( s, id, fmt );
+        sc_dt::print_dec( s, id, w_prefix, fmt );
     else
-        ::print_other( s, id, numrep, fmt, params );
+        sc_dt::print_other( s, id, numrep, w_prefix, fmt, params );
 
     return s;
 }
@@ -468,50 +497,64 @@ to_string( const scfx_ieee_double& id, sc_numrep numrep, sc_fmt fmt,
 const sc_string
 sc_fxval_fast::to_string() const
 {
-    return sc_string( ::to_string( m_val, SC_DEC, SC_E ) );
+    return sc_string( sc_dt::to_string( m_val, SC_DEC, -1, SC_E ) );
 }
 
 const sc_string
 sc_fxval_fast::to_string( sc_numrep numrep ) const
 {
-    return sc_string( ::to_string( m_val, numrep, SC_E ) );
+    return sc_string( sc_dt::to_string( m_val, numrep, -1, SC_E ) );
+}
+
+const sc_string
+sc_fxval_fast::to_string( sc_numrep numrep, bool w_prefix ) const
+{
+    return sc_string( sc_dt::to_string( m_val, numrep, (w_prefix ? 1 : 0),
+					SC_E ) );
 }
 
 const sc_string
 sc_fxval_fast::to_string( sc_fmt fmt ) const
 {
-    return sc_string( ::to_string( m_val, SC_DEC, fmt ) );
+    return sc_string( sc_dt::to_string( m_val, SC_DEC, -1, fmt ) );
 }
 
 const sc_string
 sc_fxval_fast::to_string( sc_numrep numrep, sc_fmt fmt ) const
 {
-    return sc_string( ::to_string( m_val, numrep, fmt ) );
+    return sc_string( sc_dt::to_string( m_val, numrep, -1, fmt ) );
+}
+
+const sc_string
+sc_fxval_fast::to_string( sc_numrep numrep, bool w_prefix, sc_fmt fmt ) const
+{
+    return sc_string( sc_dt::to_string( m_val, numrep, (w_prefix ? 1 : 0),
+					fmt ) );
 }
 
 
 const sc_string
 sc_fxval_fast::to_dec() const
 {
-    return sc_string( ::to_string( m_val, SC_DEC, SC_E ) );
+    return sc_string( sc_dt::to_string( m_val, SC_DEC, -1, SC_E ) );
 }
 
 const sc_string
 sc_fxval_fast::to_bin() const
 {
-    return sc_string( ::to_string( m_val, SC_BIN, SC_E ) );
+    return sc_string( sc_dt::to_string( m_val, SC_BIN, -1, SC_E ) );
 }
 
 const sc_string
 sc_fxval_fast::to_oct() const
 {
-    return sc_string( ::to_string( m_val, SC_OCT, SC_E ) );
+    return sc_string( sc_dt::to_string( m_val, SC_OCT, -1, SC_E ) );
 }
 
 const sc_string
 sc_fxval_fast::to_hex() const
 {
-    return sc_string( ::to_string( m_val, SC_HEX, SC_E ) );
+    return sc_string( sc_dt::to_string( m_val, SC_HEX, -1, SC_E ) );
 }
 
 
@@ -520,7 +563,15 @@ sc_fxval_fast::to_hex() const
 void
 sc_fxval_fast::print( ostream& os ) const
 {
-    os << ::to_string( m_val, SC_DEC, SC_E );
+    os << sc_dt::to_string( m_val, SC_DEC, -1, SC_E );
+}
+
+void
+sc_fxval_fast::scan( istream& is )
+{
+    sc_string s;
+    is >> s;
+    *this = s.c_str();
 }
 
 void
@@ -814,6 +865,8 @@ sc_fxval_fast::from_string( const char* s )
 }
 
 #undef SCFX_FAIL_IF_
+
+} // namespace sc_dt
 
 
 // Taf!

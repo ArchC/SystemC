@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -36,7 +36,7 @@
 
 #include <stdio.h>
 
-#include "systemc/utils/sc_exception.h"
+#include "systemc/communication/sc_communication_ids.h"
 #include "systemc/communication/sc_signal_resolved.h"
 #include "systemc/communication/sc_signal_resolved_ports.h"
 
@@ -60,7 +60,7 @@ sc_in_resolved::end_of_elaboration()
     if( DCAST<sc_signal_resolved*>( get_interface() ) == 0 ) {
 	char msg[BUFSIZ];
 	sprintf( msg, "%s (%s)", name(), kind() );
-	REPORT_ERROR( 7071, msg );
+	SC_REPORT_ERROR( SC_ID_RESOLVED_PORT_NOT_BOUND_, msg );
     }
 }
 
@@ -84,7 +84,7 @@ sc_inout_resolved::end_of_elaboration()
     if( DCAST<sc_signal_resolved*>( get_interface() ) == 0 ) {
 	char msg[BUFSIZ];
 	sprintf( msg, "%s (%s)", name(), kind() );
-	REPORT_ERROR( 7071, msg );
+	SC_REPORT_ERROR( SC_ID_RESOLVED_PORT_NOT_BOUND_, msg );
     }
 }
 

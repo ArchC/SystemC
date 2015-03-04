@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -47,6 +47,7 @@
 #include <stdio.h>
 
 #include "systemc/kernel/sc_event.h"
+#include "systemc/kernel/sc_kernel_ids.h"
 #include "systemc/kernel/sc_macros_int.h"
 #include "systemc/kernel/sc_module.h"
 #include "systemc/kernel/sc_module_registry.h"
@@ -56,6 +57,7 @@
 #include "systemc/kernel/sc_process_int.h"
 #include "systemc/kernel/sc_simcontext.h"
 #include "systemc/kernel/sc_simcontext_int.h"
+#include "systemc/communication/sc_communication_ids.h"
 #include "systemc/communication/sc_interface.h"
 #include "systemc/communication/sc_port.h"
 #include "systemc/utils/sc_iostream.h"
@@ -177,8 +179,8 @@ sc_module::sc_module( const char* nm )
  *     of the constructor -- a common negligence.
  *
  *  But it is important to note that sc_module_name may be used
- *  in the user's constructor's parameter.  If it is used anywhere
- *  else, unexpected things will happen.  The error-checking
+ *  in the user's constructor's parameter. If it is used anywhere
+ *  else, unexpected things will happen. The error-checking
  *  mechanism builtin here cannot hope to catch all misuses.
  *
  */
@@ -197,12 +199,12 @@ sc_module::sc_module()
     sc_module_name* mod_name = 
         simcontext()->get_object_manager()->top_of_module_name_stack();
     if (0 == mod_name || 0 != mod_name->m_module)
-        REPORT_ERROR(4003,"");
+        SC_REPORT_ERROR( SC_ID_SC_MODULE_NAME_REQUIRED_, 0 );
     mod_name->m_module = this;
     sc_module_init();
 }
 
-sc_module::sc_module(const sc_module_name& mn)
+sc_module::sc_module( const sc_module_name& )
 : sc_object(::sc_get_curr_simcontext()
             ->get_object_manager()
             ->top_of_module_name_stack()
@@ -219,7 +221,7 @@ sc_module::sc_module(const sc_module_name& mn)
     sc_module_name* mod_name = 
         simcontext()->get_object_manager()->top_of_module_name_stack();
     if (0 == mod_name || 0 != mod_name->m_module)
-      REPORT_ERROR(4003,"");
+      SC_REPORT_ERROR( SC_ID_SC_MODULE_NAME_REQUIRED_, 0 );
     mod_name->m_module = this;
     sc_module_init();
 }
@@ -298,7 +300,7 @@ sc_module::dont_initialize()
 	break;
     }
     default:
-	REPORT_WARNING( 6018, "" );
+	SC_REPORT_WARNING( SC_ID_DONT_INITIALIZE_, 0 );
 	break;
     }
 }
@@ -325,10 +327,10 @@ sc_module::elaboration_done( bool& error_ )
 {
     if( ! m_end_module_called ) {
 	char msg[BUFSIZ];
-	sprintf( msg, "for %s ?", name() );
-	REPORT_WARNING( 3004, msg );
+	sprintf( msg, "module '%s'", name() );
+	SC_REPORT_WARNING( SC_ID_END_MODULE_NOT_CALLED_, msg );
 	if( error_ ) {
-	    REPORT_WARNING( 3005, "" );
+	    SC_REPORT_WARNING( SC_ID_HIER_NAME_INCORRECT_, 0 );
 	}
 	error_ = true;
     }
@@ -349,7 +351,7 @@ sc_module::set_stack_size( size_t size )
 	break;
     }
     default:
-	REPORT_WARNING( 3006, "" );
+	SC_REPORT_WARNING( SC_ID_SET_STACK_SIZE_, 0 );
 	break;
     }
 }
@@ -376,7 +378,7 @@ sc_module::operator << ( sc_interface& interface_ )
 	} else {
 	    sprintf( msg, "all ports of module `%s' are bound", name() );
 	}
-	REPORT_ERROR( 7021, msg );
+	SC_REPORT_ERROR( SC_ID_BIND_IF_TO_PORT_, msg );
     }
     int status = (*m_port_vec)[m_port_index]->pbind( interface_ );
     if( status != 0 ) {
@@ -394,7 +396,7 @@ sc_module::operator << ( sc_interface& interface_ )
 	    sprintf( msg, "unknown error" );
 	    break;
 	}
-	REPORT_ERROR( 7021, msg );
+	SC_REPORT_ERROR( SC_ID_BIND_IF_TO_PORT_, msg );
     }
     ++ m_port_index;
     return *this;
@@ -410,7 +412,7 @@ sc_module::operator << ( sc_port_base& port_ )
 	} else {
 	    sprintf( msg, "all ports of module `%s' are bound", name() );
 	}
-	REPORT_ERROR( 7022, msg );
+	SC_REPORT_ERROR( SC_ID_BIND_PORT_TO_PORT_, msg );
     }
     int status = (*m_port_vec)[m_port_index]->pbind( port_ );
     if( status != 0 ) {
@@ -428,7 +430,7 @@ sc_module::operator << ( sc_port_base& port_ )
 	    sprintf( msg, "unknown error" );
 	    break;
 	}
-	REPORT_ERROR( 7022, msg );
+	SC_REPORT_ERROR( SC_ID_BIND_PORT_TO_PORT_, msg );
     }
     ++ m_port_index;
     return *this;

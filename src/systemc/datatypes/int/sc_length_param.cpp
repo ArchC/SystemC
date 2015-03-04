@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -17,9 +17,9 @@
 
 /*****************************************************************************
 
-  sc_report_handler.h - 
+  sc_length_param.cpp - 
 
-  Original Author: Martin Janssen, Synopsys, Inc.
+  Original Author: Martin Janssen, Synopsys, Inc., 2002-03-19
 
  *****************************************************************************/
 
@@ -34,43 +34,50 @@
  *****************************************************************************/
 
 
-#ifndef SC_REPORT_HANDLER_H
-#define SC_REPORT_HANDLER_H
+#include "systemc/datatypes/int/sc_length_param.h"
 
 
-#include "systemc/datatypes/fx/sc_report.h"
-
-
-// ----------------------------------------------------------------------------
-//  CLASS : sc_report_handler
-//
-//  Default report handler class.
-// ----------------------------------------------------------------------------
-
-// ADD USAGE MODEL HERE
-
-class sc_report_handler : public sc_report_handler_base
+namespace sc_dt
 {
 
-    friend class sc_report_handler_gc;
+// ----------------------------------------------------------------------------
+//  CLASS : sc_length_param
+//
+//  Length parameter type.
+// ----------------------------------------------------------------------------
 
-public:
+const sc_string
+sc_length_param::to_string() const
+{
+    sc_string s;
 
-    static void install();
-    static void deinstall();
+    char buf[BUFSIZ];
 
-protected:
+    s += "(";
+    sprintf( buf, "%d", m_len );
+    s += buf;
+    s += ")";
 
-    sc_report_handler();
-    virtual ~sc_report_handler();
-
-    virtual void report( sc_severity /* report severity */,
-			 const char* /* report id */,
-			 const char* /* additional message */ ) const;
-
-};
+    return s;
+}
 
 
-#endif
+void
+sc_length_param::print( ostream& os ) const
+{
+    os << to_string();
+}
+
+void
+sc_length_param::dump( ostream& os ) const
+{
+    os << "sc_length_param" << endl;
+    os << "(" << endl;
+    os << "len = " << m_len << endl;
+    os << ")" << endl;
+}
+
+} // namespace sc_dt
+
 
 // Taf!

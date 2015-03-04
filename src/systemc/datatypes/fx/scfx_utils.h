@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -33,7 +33,6 @@
 
  *****************************************************************************/
 
-
 #ifndef SCFX_UTILS_H
 #define SCFX_UTILS_H
 
@@ -42,6 +41,9 @@
 #include "systemc/datatypes/fx/scfx_params.h"
 #include "systemc/datatypes/fx/scfx_string.h"
 
+
+namespace sc_dt
+{
 
 // ----------------------------------------------------------------------------
 //  Find the most and least significant non-zero bits in a unsigned long
@@ -113,116 +115,67 @@ inline
 sc_numrep
 scfx_parse_prefix( const char*& s )
 {
-    if( s[0] == '0' )
-    {
-	switch( s[1] )
+    if( s[0] == '0' ) {
+	switch( s[1] ) {
+	case 'b':
+	case 'B':
 	{
-	    case 'b':
-	    {
-		if( s[2] == 'u' && s[3] == 's' )
-		{
-		    s += 4;
-		    return SC_BIN_US;
-		}
-		if( s[2] == 's' && s[3] == 'm' )
-		{
-		    s += 4;
-		    return SC_BIN_SM;
-		}
-		s += 2;
-		return SC_BIN;
+	    if( s[2] == 'u' || s[2] == 'U' && s[3] == 's' || s[3] == 'S' ) {
+		s += 4;
+		return SC_BIN_US;
 	    }
-	    case 'B':
-	    {
-		if( s[2] == 'U' && s[3] == 'S' )
-		{
-		    s += 4;
-		    return SC_BIN_US;
-		}
-		if( s[2] == 'S' && s[3] == 'M' )
-		{
-		    s += 4;
-		    return SC_BIN_SM;
-		}
-		s += 2;
-		return SC_BIN;
+	    if( s[2] == 's' || s[2] == 'S' && s[3] == 'm' || s[3] == 'M' ) {
+		s += 4;
+		return SC_BIN_SM;
 	    }
-	    case 'o':
-	    {
-		if( s[2] == 'u' && s[3] == 's' )
-		{
-		    s += 4;
-		    return SC_OCT_US;
-		}
-		if( s[2] == 's' && s[3] == 'm' )
-		{
-		    s += 4;
-		    return SC_OCT_SM;
-		}
-		s += 2;
-		return SC_OCT;
+	    s += 2;
+	    return SC_BIN;
+	}
+	case 'o':
+	case 'O':
+	{
+	    if( s[2] == 'u' || s[2] == 'U' && s[3] == 's' || s[3] == 'S' ) {
+		s += 4;
+		return SC_OCT_US;
 	    }
-	    case 'O':
-	    {
-		if( s[2] == 'U' && s[3] == 'S' )
-		{
-		    s += 4;
-		    return SC_OCT_US;
-		}
-		if( s[2] == 'S' && s[3] == 'M' )
-		{
-		    s += 4;
-		    return SC_OCT_SM;
-		}
-		s += 2;
-		return SC_OCT;
+	    if( s[2] == 's' || s[2] == 'S' && s[3] == 'm' || s[3] == 'M' ) {
+		s += 4;
+		return SC_OCT_SM;
 	    }
-	    case 'x':
-	    {
-		if( s[2] == 'u' && s[3] == 's' )
-		{
-		    s += 4;
-		    return SC_HEX_US;
-		}
-		if( s[2] == 's' && s[3] == 'm' )
-		{
-		    s += 4;
-		    return SC_HEX_SM;
-		}
-		s += 2;
-		return SC_HEX;
+	    s += 2;
+	    return SC_OCT;
+	}
+	case 'x':
+	case 'X':
+	{
+	    if( s[2] == 'u' || s[2] == 'U' && s[3] == 's' || s[3] == 'S' ) {
+		s += 4;
+		return SC_HEX_US;
 	    }
-	    case 'X':
-	    {
-		if( s[2] == 'U' && s[3] == 'S' )
-		{
-		    s += 4;
-		    return SC_HEX_US;
-		}
-		if( s[2] == 'S' && s[3] == 'M' )
-		{
-		    s += 4;
-		    return SC_HEX_SM;
-		}
-		s += 2;
-		return SC_HEX;
+	    if( s[2] == 's' || s[2] == 'S' && s[3] == 'm' || s[3] == 'M' ) {
+		s += 4;
+		return SC_HEX_SM;
 	    }
-	    case 'c':
-	    {
-		if( s[2] == 's' && s[3] == 'd' )
-		{
-		    s += 4;
-		    return SC_CSD;
-		}
+	    s += 2;
+	    return SC_HEX;
+	}
+	case 'd':
+	case 'D':
+	{
+	    s += 2;
+	    return SC_DEC;
+	}
+	case 'c':
+	case 'C':
+	{
+	    if( s[2] == 's' || s[2] == 'S' && s[3] == 'd' || s[3] == 'D' ) {
+		s += 4;
+		return SC_CSD;
 	    }
-	    case 'C':
-	    {
-		if( s[2] == 'S' && s[3] == 'D' )
-		{
-		    s += 4;
-		    return SC_CSD;
-		}
-	    }
+	    break;
+	}
+	default:
+	    break;
 	}
     }
 
@@ -474,6 +427,7 @@ scfx_print_prefix( scfx_string& s, sc_numrep numrep )
     switch( numrep )
     {
         case SC_DEC:
+	    s += "0d";
 	    break;
         case SC_BIN:
 	    s += "0b";
@@ -544,8 +498,10 @@ scfx_print_exp( scfx_string& s, int exp )
 }
 
 
-void scfx_tc2csd( scfx_string& );
+void scfx_tc2csd( scfx_string&, int );
 void scfx_csd2tc( scfx_string& );
+
+} // namespace sc_dt
 
 
 #endif

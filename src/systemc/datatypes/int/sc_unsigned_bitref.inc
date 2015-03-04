@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -34,86 +34,99 @@
  *****************************************************************************/
 
 
-sc_unsigned_bitref&
-sc_unsigned_bitref::operator=(const sc_unsigned_bitref& v)
+// ----------------------------------------------------------------------------
+//  CLASS : sc_unsigned_bitref_r
+//
+//  Proxy class for sc_unsigned bit selection (r-value only).
+// ----------------------------------------------------------------------------
+
+// implicit conversion to bool
+
+sc_unsigned_bitref_r::operator bool () const
 {
-  snum->set(index, v.snum->test(v.index));
-  return *this;
+    return m_obj.test( m_index );
 }
-
-
-sc_unsigned_bitref&
-sc_unsigned_bitref::operator=(bool v)
-{
-  snum->set(index, v);
-  return *this;
-}
-
-
-sc_unsigned_bitref&
-sc_unsigned_bitref::operator&=(bool v)
-{
-  if (! v)
-    snum->clear(index);
-  return *this;
-}
-
-
-sc_unsigned_bitref&
-sc_unsigned_bitref::operator|=(bool v)
-{
-  if (v)
-    snum->set(index);
-  return *this;
-}
-
-
-sc_unsigned_bitref&
-sc_unsigned_bitref::operator^=(bool v)
-{
-  if (v)
-    snum->invert(index);
-  return *this;
-}
-
-sc_unsigned_bitref::operator bool() const
-{
-  return snum->test(index);
-}
-
 
 bool
-sc_unsigned_bitref::operator~() const
+sc_unsigned_bitref_r::operator ! () const
 {
-  return (! snum->test(index));
+    return ( ! m_obj.test( m_index ) );
+}
+
+bool
+sc_unsigned_bitref_r::operator ~ () const
+{
+    return ( ! m_obj.test( m_index ) );
 }
 
 
-istream&
-operator>>(istream& is, sc_unsigned_bitref& u)
+// ----------------------------------------------------------------------------
+//  CLASS : sc_unsigned_bitref
+//
+//  Proxy class for sc_unsigned bit selection (r-value and l-value).
+// ----------------------------------------------------------------------------
+
+// assignment operators
+
+sc_unsigned_bitref&
+sc_unsigned_bitref::operator = ( const sc_unsigned_bitref_r& b )
 {
-
-  char c;
-  is >> c;
-
-  if ((c == '0') || (c == '1'))
-#ifndef WIN32
-    u = static_cast<bool>( c - '0' );
-#else
-    u = (c != '0');
-#endif
-  else
-    u = 0;
-
-  return is;
-
+    m_obj.set( m_index, (bool) b );
+    return *this;
 }
 
-ostream&
-operator<<(ostream& os, const sc_unsigned_bitref& u)
+sc_unsigned_bitref&
+sc_unsigned_bitref::operator = ( const sc_unsigned_bitref& b )
 {
-  os << "01"[u.snum->test(u.index)];
-  return os;
+    m_obj.set( m_index, (bool) b );
+    return *this;
 }
+
+sc_unsigned_bitref&
+sc_unsigned_bitref::operator = ( bool b )
+{
+    m_obj.set( m_index, b );
+    return *this;
+}
+
+
+sc_unsigned_bitref&
+sc_unsigned_bitref::operator &= ( bool b )
+{
+    if( ! b ) {
+	m_obj.clear( m_index );
+    }
+    return *this;
+}
+
+sc_unsigned_bitref&
+sc_unsigned_bitref::operator |= ( bool b )
+{
+    if( b ) {
+	m_obj.set( m_index );
+    }
+    return *this;
+}
+
+sc_unsigned_bitref&
+sc_unsigned_bitref::operator ^= ( bool b )
+{
+    if( b ) {
+	m_obj.invert( m_index );
+    }
+    return *this;
+}
+
+
+// other methods
+
+void
+sc_unsigned_bitref::scan( istream& is )
+{
+    bool b;
+    is >> b;
+    *this = b;
+}
+
 
 // End of file

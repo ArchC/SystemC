@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -34,24 +34,26 @@
 
  *****************************************************************************/
 
-
 #ifndef SCFX_REP_H
 #define SCFX_REP_H
 
+
+#include <limits.h>
 
 #include "systemc/datatypes/fx/scfx_mant.h"
 #include "systemc/datatypes/fx/scfx_params.h"
 #include "systemc/datatypes/fx/scfx_string.h"
 
 
-namespace sc_bv_ns
+namespace sc_dt
 {
-    class sc_bv_base;
-};
-using sc_bv_ns::sc_bv_base;
 
-#include <limits.h>
+// classes defined in this module
+class scfx_index;
+class scfx_rep;
 
+// forward class declarations
+class sc_bv_base;
 class sc_signed;
 class sc_unsigned;
 
@@ -136,7 +138,10 @@ public:
 
     double to_double() const;
 
-    const char* to_string( sc_numrep, sc_fmt, const scfx_params* = 0 ) const;
+    const char* to_string( sc_numrep,
+			   int,
+			   sc_fmt,
+			   const scfx_params* = 0 ) const;
 
 
     // assignment operator
@@ -235,9 +240,9 @@ private:
     int  size() const;
     void toggle_tc();
 
-    friend void print_dec( scfx_string&, const scfx_rep&, sc_fmt );
-    friend void print_other( scfx_string&, const scfx_rep&, sc_numrep, sc_fmt,
-			     const scfx_params* );
+    friend void print_dec( scfx_string&, const scfx_rep&, int, sc_fmt );
+    friend void print_other( scfx_string&, const scfx_rep&, sc_numrep, int,
+			     sc_fmt, const scfx_params* );
 
     void quantization( const scfx_params&, bool& );
     void     overflow( const scfx_params&, bool& );
@@ -339,7 +344,7 @@ scfx_rep*
 mult__scfx_rep( const scfx_rep& a, const scfx_rep& b, int max_wl )
 {
     scfx_rep& c = *new scfx_rep;
-    ::multiply( c, a, b, max_wl );
+    sc_dt::multiply( c, a, b, max_wl );
     return &c;
 }
 
@@ -786,6 +791,8 @@ scfx_rep::toggle_tc()
 	inc( m_mant );
     }
 }
+
+} // namespace sc_dt
 
 
 #endif

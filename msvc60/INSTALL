@@ -1,5 +1,5 @@
-		INSTALL NOTES FOR SystemC Release 2.0
-		-------------------------------------
+		INSTALL NOTES FOR SystemC Release 2.0.1b
+		----------------------------------------
 
 Contents:
 	1. Installation Notes for Windows
@@ -9,14 +9,14 @@ Contents:
 ---------------------------
 
 This release has been ported to Windows NT 4.0 (SP3 and higher) and will
-work with Visual C++ 6.0. 
+work with Visual C++ 6.0 (SP5). 
 
 The SystemC distribution includes project and workspace files for
 Visual C++. If you use these project and workspace files the SystemC
 source files are available to your new project. For Visual C++ 6.0 the
 project and workspace files are located in directory:
 
-  ...\systemc-2.0\msvc60
+  ...\systemc-2.0.1b\msvc60
 
 This directory contains two subdirectories: `systemc' and
 `examples'.

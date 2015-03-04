@@ -78,7 +78,7 @@ VERSION = @VERSION@
 
 SUBDIRS = 
 
-INST_FILES =  	Makefile.defs 	fft 	fir 	forkjoin 	pipe 	pkt_switch 	risc_cpu 	rsa 	simple_fifo 	simple_perf
+INST_FILES =  	Makefile.defs 	fft 	fir 	forkjoin 	pipe 	pkt_switch 	risc_cpu 	rsa 	simple_bus 	simple_fifo 	simple_perf
 
 
 EXAMPLES_DIR = $(prefix)/examples/systemc

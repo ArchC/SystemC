@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -41,11 +41,14 @@
 #include "systemc/datatypes/fx/scfx_pow10.h"
 #include "systemc/datatypes/fx/scfx_utils.h"
 
-#include "systemc/datatypes/bit/sc_bv.h"
+#include "systemc/datatypes/bit/sc_bv_base.h"
 
 #include <ctype.h>
 #include <math.h>
 
+
+namespace sc_dt
+{
 
 // ----------------------------------------------------------------------------
 //  some utilities
@@ -844,10 +847,14 @@ scfx_rep::to_double() const
 // ----------------------------------------------------------------------------
 
 void
-print_dec( scfx_string& s, const scfx_rep& num, sc_fmt fmt )
+print_dec( scfx_string& s, const scfx_rep& num, int w_prefix, sc_fmt fmt )
 {
     if( num.is_neg() )
 	s += '-';
+
+    if( w_prefix == 1 ) {
+	scfx_print_prefix( s, SC_DEC );
+    }
 
     if( num.is_zero() )
     {
@@ -934,7 +941,7 @@ print_dec( scfx_string& s, const scfx_rep& num, sc_fmt fmt )
 	frac_zeros = (int) floor( frac_wl * log10( 2. ) );
 
 	scfx_rep temp;
-	::multiply( temp, frac_part, pow10_fx( frac_zeros ) );
+	sc_dt::multiply( temp, frac_part, pow10_fx( frac_zeros ) );
 	frac_part = temp;
 	if( frac_part.m_msw == frac_part.size() - 1 )
 	    frac_part.resize_to( frac_part.size() + 1, 1 );
@@ -980,8 +987,8 @@ print_dec( scfx_string& s, const scfx_rep& num, sc_fmt fmt )
 }
 
 void
-print_other( scfx_string& s, const scfx_rep& a, sc_numrep numrep, sc_fmt fmt,
-	     const scfx_params* params )
+print_other( scfx_string& s, const scfx_rep& a, sc_numrep numrep, int w_prefix,
+	     sc_fmt fmt, const scfx_params* params )
 {
     scfx_rep b = a;
 
@@ -1014,7 +1021,9 @@ print_other( scfx_string& s, const scfx_rep& a, sc_numrep numrep, sc_fmt fmt,
 	}
     }
     
-    scfx_print_prefix( s, numrep );
+    if( w_prefix != 0 ) {
+	scfx_print_prefix( s, numrep );
+    }
 
     numrep = numrep2;
 
@@ -1139,12 +1148,12 @@ print_other( scfx_string& s, const scfx_rep& a, sc_numrep numrep, sc_fmt fmt,
     }
 
     if( numrep == SC_CSD )
-	scfx_tc2csd( s );
+	scfx_tc2csd( s, w_prefix );
 }
 
 const char*
-scfx_rep::to_string( sc_numrep numrep, sc_fmt fmt,
-		     const scfx_params* params ) const
+scfx_rep::to_string( sc_numrep numrep, int w_prefix,
+		     sc_fmt fmt, const scfx_params* params ) const
 {
     static scfx_string s;
 
@@ -1160,9 +1169,9 @@ scfx_rep::to_string( sc_numrep numrep, sc_fmt fmt,
 	       numrep == SC_HEX_US ) )
         s += "negative";
     else if( numrep == SC_DEC )
-        ::print_dec( s, *this, fmt );
+        sc_dt::print_dec( s, *this, w_prefix, fmt );
     else
-        ::print_other( s, *this, numrep, fmt, params );
+        sc_dt::print_other( s, *this, numrep, w_prefix, fmt, params );
 
     return s;
 }
@@ -2088,7 +2097,7 @@ scfx_rep::overflow( const scfx_params& params, bool& o_flag )
             case SC_WRAP_SM:			// sign magnitude wrap-around
 	    {
 		SC_ERROR_IF_( enc == SC_US_,
-			      "SC_WRAP_SM not defined for unsigned numbers" );
+			      SC_ID_WRAP_SM_NOT_DEFINED_ );
 
 		int n_bits = params.n_bits();
 
@@ -2675,7 +2684,7 @@ scfx_rep::set_slice( int i, int j, const scfx_params& params,
     int l = j;
     for( int k = 0; k < bv.length(); ++ k )
     {
-	if( bv[k] )
+	if( bv[k].to_bool() )
 	    set( l, params );
 	else
 	    clear( l, params );
@@ -2697,7 +2706,7 @@ scfx_rep::set_slice( int i, int j, const scfx_params& params,
 void
 scfx_rep::print( ostream& os ) const
 {
-    os << to_string( SC_DEC, SC_E );
+    os << to_string( SC_DEC, -1, SC_E );
 }
 
 
@@ -2847,6 +2856,8 @@ scfx_rep::round( int wl )
 
     m_r_flag = true;
 }
+
+} // namespace sc_dt
 
 
 // Taf!

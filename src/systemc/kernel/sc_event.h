@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -37,14 +37,16 @@
 #define SC_EVENT_H
 
 
+#include "systemc/kernel/sc_kernel_ids.h"
 #include "systemc/kernel/sc_simcontext.h"
-#include "systemc/utils/sc_exception.h"
 #include "systemc/utils/sc_vector.h"
 
 
 // forward declarations
-class sc_event_list;
 class sc_event_timed;
+class sc_event_list;
+class sc_event_or_list;
+class sc_event_and_list;
 
 
 // ----------------------------------------------------------------------------
@@ -75,6 +77,10 @@ public:
 
     void notify_delayed();
     void notify_delayed( const sc_time& );
+    void notify_delayed( double, sc_time_unit );
+
+    sc_event_or_list&  operator | ( const sc_event& ) const;
+    sc_event_and_list& operator & ( const sc_event& ) const;
 
 private:
 
@@ -94,10 +100,12 @@ private:
 
 private:
 
-    sc_simcontext*              m_simc;
-    enum { NONE, DELTA, TIMED } m_notify_type;
-    int                         m_delta;
-    sc_event_timed*             m_timed;
+    enum notify_t { NONE, DELTA, TIMED };
+
+    sc_simcontext*  m_simc;
+    notify_t        m_notify_type;
+    int             m_delta;
+    sc_event_timed* m_timed;
 
     mutable sc_pvector<sc_method_handle> m_methods_static;
     mutable sc_pvector<sc_method_handle> m_methods_dynamic;
@@ -195,7 +203,9 @@ inline
 void
 sc_event::notify_delayed()
 {
-    assert( m_notify_type == NONE );
+    if( m_notify_type != NONE ) {
+	SC_REPORT_ERROR( SC_ID_NOTIFY_DELAYED_, 0 );
+    }
     // add this event to the delta events set
     m_delta = m_simc->add_delta_event( this );
     m_notify_type = DELTA;
@@ -205,7 +215,9 @@ inline
 void
 sc_event::notify_delayed( const sc_time& t )
 {
-    assert( m_notify_type == NONE );
+    if( m_notify_type != NONE ) {
+	SC_REPORT_ERROR( SC_ID_NOTIFY_DELAYED_, 0 );
+    }
     if( t == SC_ZERO_TIME ) {
 	// add this event to the delta events set
 	m_delta = m_simc->add_delta_event( this );
@@ -218,6 +230,13 @@ sc_event::notify_delayed( const sc_time& t )
 	m_timed = et;
 	m_notify_type = TIMED;
     }
+}
+
+inline
+void
+sc_event::notify_delayed( double v, sc_time_unit tu )
+{
+    notify_delayed( sc_time( v, tu, m_simc ) );
 }
 
 
@@ -367,6 +386,7 @@ sc_event_list::auto_delete()
 class sc_event_or_list
 : public sc_event_list
 {
+    friend class sc_event;
     friend class sc_method_process;
     friend class sc_thread_process;
 
@@ -374,10 +394,9 @@ protected:
 
     sc_event_or_list( const sc_event&, bool auto_delete_ = false );
 
-    friend sc_event_or_list& operator | ( const sc_event&,
-					  const sc_event& );
-    friend sc_event_or_list& operator | ( sc_event_or_list&,
-					  const sc_event& );
+public:
+
+    sc_event_or_list& operator | ( const sc_event& );
 
 private:
 
@@ -399,20 +418,23 @@ sc_event_or_list::sc_event_or_list( const sc_event& e,
 
 inline
 sc_event_or_list&
-operator | ( const sc_event& e1, const sc_event& e2 )
+sc_event_or_list::operator | ( const sc_event& e )
 {
-    sc_event_or_list* el = new sc_event_or_list( e1, true );
-    el->push_back( e2 );
-    return *el;
-};
+    push_back( e );
+    return *this;
+}
+
+
+// sc_event
 
 inline
 sc_event_or_list&
-operator | ( sc_event_or_list& el, const sc_event& e )
+sc_event::operator | ( const sc_event& e2 ) const
 {
-    el.push_back( e );
-    return el;
-};
+    sc_event_or_list* el = new sc_event_or_list( *this, true );
+    el->push_back( e2 );
+    return *el;
+}
 
 
 // ----------------------------------------------------------------------------
@@ -424,6 +446,7 @@ operator | ( sc_event_or_list& el, const sc_event& e )
 class sc_event_and_list
 : public sc_event_list
 {
+    friend class sc_event;
     friend class sc_method_process;
     friend class sc_thread_process;
 
@@ -431,10 +454,9 @@ protected:
 
     sc_event_and_list( const sc_event&, bool auto_delete_ = false );
 
-    friend sc_event_and_list& operator & ( const sc_event&,
-					   const sc_event& );
-    friend sc_event_and_list& operator & ( sc_event_and_list&,
-					   const sc_event& );
+public:
+
+    sc_event_and_list& operator & ( const sc_event& );
 
 private:
 
@@ -456,20 +478,23 @@ sc_event_and_list::sc_event_and_list( const sc_event& e,
 
 inline
 sc_event_and_list&
-operator & ( const sc_event& e1, const sc_event& e2 )
+sc_event_and_list::operator & ( const sc_event& e )
 {
-    sc_event_and_list* el = new sc_event_and_list( e1, true );
-    el->push_back( e2 );
-    return *el;
-};
+    push_back( e );
+    return *this;
+}
+
+
+// sc_event
 
 inline
 sc_event_and_list&
-operator & ( sc_event_and_list& el, const sc_event& e )
+sc_event::operator & ( const sc_event& e2 ) const
 {
-    el.push_back( e );
-    return el;
-};
+    sc_event_and_list* el = new sc_event_and_list( *this, true );
+    el->push_back( e2 );
+    return *el;
+}
 
 
 #endif

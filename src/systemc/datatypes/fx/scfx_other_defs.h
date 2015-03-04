@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -33,18 +33,20 @@
 
  *****************************************************************************/
 
-
 #ifndef SCFX_OTHER_DEFS_H
 #define SCFX_OTHER_DEFS_H
 
 
-#include "systemc/datatypes/int/sc_bigint.h"
-#include "systemc/datatypes/int/sc_biguint.h"
-#include "systemc/datatypes/int/sc_int.h"
-#include "systemc/datatypes/int/sc_uint.h"
+#include "systemc/datatypes/fx/sc_fx_ids.h"
+#include "systemc/datatypes/int/sc_signed.h"
+#include "systemc/datatypes/int/sc_unsigned.h"
+#include "systemc/datatypes/int/sc_int_base.h"
+#include "systemc/datatypes/int/sc_uint_base.h"
 #include "systemc/tracing/sc_trace.h"
-#include "systemc/utils/sc_exception.h"
 
+
+namespace sc_dt
+{
 
 #ifdef SC_INCLUDE_FX
 
@@ -60,7 +62,8 @@ sc_signed::operator = ( const sc_fxval& v )
 {
     if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
     {
-	REPORT_ERROR( 2020, "sc_signed::operator = ( const sc_fxval& )" );
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_signed::operator = ( const sc_fxval& )" );
     }
 
     for( int i = 0; i < length(); ++ i )
@@ -75,7 +78,8 @@ sc_signed::operator = ( const sc_fxval_fast& v )
 {
     if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
     {
-	REPORT_ERROR( 2020, "sc_signed::operator = ( const sc_fxval_fast& )" );
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_signed::operator = ( const sc_fxval_fast& )" );
     }
 
     for( int i = 0; i < length(); ++ i )
@@ -90,7 +94,8 @@ sc_signed::operator = ( const sc_fxnum& v )
 {
     if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
     {
-	REPORT_ERROR( 2020, "sc_signed::operator = ( const sc_fxnum& )" );
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_signed::operator = ( const sc_fxnum& )" );
     }
 
     for( int i = 0; i < length(); ++ i )
@@ -105,7 +110,8 @@ sc_signed::operator = ( const sc_fxnum_fast& v )
 {
     if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
     {
-	REPORT_ERROR( 2020, "sc_signed::operator = ( const sc_fxnum_fast& )" );
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_signed::operator = ( const sc_fxnum_fast& )" );
     }
 
     for( int i = 0; i < length(); ++ i )
@@ -127,7 +133,8 @@ sc_unsigned::operator = ( const sc_fxval& v )
 {
     if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
     {
-	REPORT_ERROR( 2020, "sc_unsigned::operator = ( const sc_fxval& )" );
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_unsigned::operator = ( const sc_fxval& )" );
     }
 
     for( int i = 0; i < length(); ++ i )
@@ -142,8 +149,8 @@ sc_unsigned::operator = ( const sc_fxval_fast& v )
 {
     if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
     {
-	REPORT_ERROR( 2020,
-		      "sc_unsigned::operator = ( const sc_fxval_fast& )" );
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_unsigned::operator = ( const sc_fxval_fast& )" );
     }
 
     for( int i = 0; i < length(); ++ i )
@@ -158,7 +165,8 @@ sc_unsigned::operator = ( const sc_fxnum& v )
 {
     if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
     {
-	REPORT_ERROR( 2020, "sc_unsigned::operator = ( const sc_fxnum& )" );
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_unsigned::operator = ( const sc_fxnum& )" );
     }
 
     for( int i = 0; i < length(); ++ i )
@@ -173,8 +181,8 @@ sc_unsigned::operator = ( const sc_fxnum_fast& v )
 {
     if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
     {
-	REPORT_ERROR( 2020,
-		      "sc_unsigned::operator = ( const sc_fxnum_fast& )" );
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_unsigned::operator = ( const sc_fxnum_fast& )" );
     }
 
     for( int i = 0; i < length(); ++ i )
@@ -201,17 +209,14 @@ inline
 sc_int_base&
 sc_int_base::operator = ( const sc_fxval& v )
 {
-    if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
-    {
-	REPORT_ERROR( 2020, "sc_int_base::operator = ( const sc_fxval& )" );
+    if( ! v.is_normal() ) { /* also triggers OBSERVER_READ call */
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_int_base::operator = ( const sc_fxval& )" );
     }
-
-    for( int i = 0; i < width; ++ i )
+    for( int i = 0; i < m_len; ++ i ) {
 	set( i, v.get_bit( i ) );
-
-    int S = NUM_WIDTH - width;
-    num = num << S >> S;
-
+    }
+    extend_sign();
     return *this;
 }
 
@@ -219,18 +224,14 @@ inline
 sc_int_base&
 sc_int_base::operator = ( const sc_fxval_fast& v )
 {
-    if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
-    {
-	REPORT_ERROR( 2020,
-		      "sc_int_base::operator = ( const sc_fxval_fast& )" );
+    if( ! v.is_normal() ) { /* also triggers OBSERVER_READ call */
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_int_base::operator = ( const sc_fxval_fast& )" );
     }
-
-    for( int i = 0; i < width; ++ i )
+    for( int i = 0; i < m_len; ++ i ) {
 	set( i, v.get_bit( i ) );
-
-    int S = NUM_WIDTH - width;
-    num = num << S >> S;
-
+    }
+    extend_sign();
     return *this;
 }
 
@@ -238,17 +239,14 @@ inline
 sc_int_base&
 sc_int_base::operator = ( const sc_fxnum& v )
 {
-    if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
-    {
-	REPORT_ERROR( 2020, "sc_int_base::operator = ( const sc_fxnum& )" );
+    if( ! v.is_normal() ) { /* also triggers OBSERVER_READ call */
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_int_base::operator = ( const sc_fxnum& )" );
     }
-
-    for( int i = 0; i < width; ++ i )
+    for( int i = 0; i < m_len; ++ i ) {
 	set( i, v.get_bit( i ) );
-
-    int S = NUM_WIDTH - width;
-    num = num << S >> S;
-
+    }
+    extend_sign();
     return *this;
 }
 
@@ -256,18 +254,14 @@ inline
 sc_int_base&
 sc_int_base::operator = ( const sc_fxnum_fast& v )
 {
-    if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
-    {
-	REPORT_ERROR( 2020,
-		      "sc_int_base::operator = ( const sc_fxnum_fast& )" );
+    if( ! v.is_normal() ) { /* also triggers OBSERVER_READ call */
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_int_base::operator = ( const sc_fxnum_fast& )" );
     }
-
-    for( int i = 0; i < width; ++ i )
+    for( int i = 0; i < m_len; ++ i ) {
 	set( i, v.get_bit( i ) );
-
-    int S = NUM_WIDTH - width;
-    num = num << S >> S;
-
+    }
+    extend_sign();
     return *this;
 }
 
@@ -284,16 +278,14 @@ inline
 sc_uint_base&
 sc_uint_base::operator = ( const sc_fxval& v )
 {
-    if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
-    {
-	REPORT_ERROR( 2020, "sc_uint_base::operator = ( const sc_fxval& )" );
+    if( ! v.is_normal() ) { /* also triggers OBSERVER_READ call */
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_uint_base::operator = ( const sc_fxval& )" );
     }
-
-    for( int i = 0; i < width; ++ i )
+    for( int i = 0; i < m_len; ++ i ) {
 	set( i, v.get_bit( i ) );
-
-    num &= MASK( width );
-
+    }
+    extend_sign();
     return *this;
 }
 
@@ -301,17 +293,14 @@ inline
 sc_uint_base&
 sc_uint_base::operator = ( const sc_fxval_fast& v )
 {
-    if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
-    {
-	REPORT_ERROR( 2020,
-		      "sc_uint_base::operator = ( const sc_fxval_fast& )" );
+    if( ! v.is_normal() ) { /* also triggers OBSERVER_READ call */
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_uint_base::operator = ( const sc_fxval_fast& )" );
     }
-
-    for( int i = 0; i < width; ++ i )
+    for( int i = 0; i < m_len; ++ i ) {
 	set( i, v.get_bit( i ) );
-
-    num &= MASK( width );
-
+    }
+    extend_sign();
     return *this;
 }
 
@@ -319,16 +308,14 @@ inline
 sc_uint_base&
 sc_uint_base::operator = ( const sc_fxnum& v )
 {
-    if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
-    {
-	REPORT_ERROR( 2020, "sc_uint_base::operator = ( const sc_fxnum& )" );
+    if( ! v.is_normal() ) { /* also triggers OBSERVER_READ call */
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_uint_base::operator = ( const sc_fxnum& )" );
     }
-
-    for( int i = 0; i < width; ++ i )
+    for( int i = 0; i < m_len; ++ i ) {
 	set( i, v.get_bit( i ) );
-
-    num &= MASK( width );
-
+    }
+    extend_sign();
     return *this;
 }
 
@@ -336,17 +323,14 @@ inline
 sc_uint_base&
 sc_uint_base::operator = ( const sc_fxnum_fast& v )
 {
-    if( ! v.is_normal() ) /* also triggers OBSERVER_READ call */
-    {
-	REPORT_ERROR( 2020,
-		      "sc_uint_base::operator = ( const sc_fxnum_fast& )" );
+    if( ! v.is_normal() ) { /* also triggers OBSERVER_READ call */
+	SC_REPORT_ERROR( SC_ID_INVALID_FX_VALUE_,
+			 "sc_uint_base::operator = ( const sc_fxnum_fast& )" );
     }
-
-    for( int i = 0; i < width; ++ i )
+    for( int i = 0; i < m_len; ++ i ) {
 	set( i, v.get_bit( i ) );
-
-    num &= MASK( width );
-
+    }
+    extend_sign();
     return *this;
 }
 
@@ -429,6 +413,8 @@ sc_trace( sc_trace_file* tf,
     if( tf )
 	tf->trace( *object, name );
 }
+
+} // namespace sc_dt
 
 
 #endif

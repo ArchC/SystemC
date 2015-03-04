@@ -73,7 +73,7 @@ _qt_blocki:
 _qt_abort:
 	ta 0x03			/* Save locals and ins. */
 	mov %sp, %o5		/* Remember old sp w/o chng ins/locals. */
-	sub %o3, 64, %sp	/* Allocate kwsa, switch stacks. */
+	sub %o3, 96, %sp	/* Allocate kwsa, switch stacks. */
 	call %o0, 0		/* Call `helper' routine. */
 	mov %o5, %o0		/* Pass old thread to qt_after_t() */
 				/* .. along w/ args in %o1 & %o2. */
@@ -82,18 +82,18 @@ _qt_abort:
 	// is on this stack, so offset all
 	// loads by sizeof(kwsa), 64 bytes.
 	*/
-	ldd [%sp+ 0+64], %l0
-	ldd [%sp+ 8+64], %l2
-	ldd [%sp+16+64], %l4
-	ldd [%sp+24+64], %l6
-	ldd [%sp+32+64], %i0
-	ldd [%sp+40+64], %i2
-	ldd [%sp+48+64], %i4
-	ldd [%sp+56+64], %i6
-	ld [%sp+64+64], %o7	/* Restore return pc. */
+	ldd [%sp+ 0+96], %l0
+	ldd [%sp+ 8+96], %l2
+	ldd [%sp+16+96], %l4
+	ldd [%sp+24+96], %l6
+	ldd [%sp+32+96], %i0
+	ldd [%sp+40+96], %i2
+	ldd [%sp+48+96], %i4
+	ldd [%sp+56+96], %i6
+	ld [%sp+64+96], %o7	/* Restore return pc. */
 
 	retl			/* Return to address in %o7. */
-	add %sp, 72, %sp	/* Deallocate kwsa, ret pc area. */
+	add %sp, 104, %sp	/* Deallocate kwsa, ret pc area. */
 
 
 /* The function calling conventions say there has to be a 1-word area

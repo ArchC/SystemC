@@ -78,12 +78,15 @@ VERSION = @VERSION@
 
 noinst_LIBRARIES = libutils.a
 
-H_FILES =  	sc_exception.h 	sc_hash.h 	sc_iostream.h 	sc_list.h 	sc_mempool.h 	sc_pq.h 	sc_ptr.h 	sc_string.h 	sc_vector.h
+H_FILES =  	sc_exception.h 	sc_hash.h 	sc_iostream.h 	sc_list.h 	sc_mempool.h 	sc_pq.h 	sc_report.h 	sc_string.h 	sc_utils_ids.h 	sc_vector.h
+
+
+NO_H_FILES =  	sc_report_handler.h 	sc_stop_here.h
 
 
 noinst_HEADERS = $(H_FILES)
 
-CXX_FILES =  	sc_exception.cpp 	sc_hash.cpp 	sc_list.cpp 	sc_mempool.cpp 	sc_pq.cpp 	sc_string.cpp 	sc_vector.cpp
+CXX_FILES =  	sc_exception.cpp 	sc_hash.cpp 	sc_list.cpp 	sc_mempool.cpp 	sc_pq.cpp 	sc_report.cpp 	sc_report_handler.cpp 	sc_stop_here.cpp 	sc_string.cpp 	sc_utils_ids.cpp 	sc_vector.cpp
 
 
 NO_CXX_FILES = 
@@ -91,6 +94,8 @@ NO_CXX_FILES =
 libutils_a_SOURCES = $(H_FILES) $(CXX_FILES)
 
 INCLUDE_DIR = $(prefix)/include/systemc/utils
+
+CXXCOMPILE_DEBUG = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(EXTRA_CXXFLAGS) $(DEBUG_CXXFLAGS)
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 LIBRARIES =  $(noinst_LIBRARIES)
@@ -102,7 +107,8 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libutils_a_LIBADD = 
 libutils_a_OBJECTS =  sc_exception.o sc_hash.o sc_list.o sc_mempool.o \
-sc_pq.o sc_string.o sc_vector.o
+sc_pq.o sc_report.o sc_report_handler.o sc_stop_here.o sc_string.o \
+sc_utils_ids.o sc_vector.o
 AR = ar
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -285,6 +291,9 @@ maintainer-clean-generic clean mostlyclean distclean maintainer-clean
 
 
 include $(top_srcdir)/config/Make-rules
+
+sc_stop_here.o: sc_stop_here.cpp
+	$(CXXCOMPILE_DEBUG) -c $<
 
 install-data-local:
 	@$(NORMAL_INSTALL)

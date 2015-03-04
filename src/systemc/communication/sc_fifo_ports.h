@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -130,6 +130,21 @@ public:
         { return (*this)->num_available(); }
 
 
+    // get the data written event
+
+    const sc_event& data_written_event() const
+	{ return (*this)->data_written_event(); }
+
+
+    // use for static sensitivity to data written event
+
+    sc_event_finder& data_written() const
+    {
+	return *new sc_event_finder_t<in_if_type>(
+	    *this, &in_if_type::data_written_event );
+    }
+
+
     static const char* const kind_string;
 
     virtual const char* kind() const
@@ -233,6 +248,21 @@ public:
 
     int num_free() const
         { return (*this)->num_free(); }
+
+
+    // get the data read event
+
+    const sc_event& data_read_event() const
+	{ return (*this)->data_read_event(); }
+
+
+    // use for static sensitivity to data read event
+
+    sc_event_finder& data_read() const
+    {
+	return *new sc_event_finder_t<out_if_type>(
+	    *this, &out_if_type::data_read_event );
+    }
 
 
     static const char* const kind_string;

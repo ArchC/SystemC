@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -36,6 +36,9 @@
 
 #include "systemc/datatypes/fx/sc_fxdefs.h"
 
+
+namespace sc_dt
+{
 
 // ----------------------------------------------------------------------------
 //  ENUM : sc_enc
@@ -155,86 +158,7 @@ to_string( sc_fmt fmt )
     }
 }
 
-
-// ----------------------------------------------------------------------------
-//  Predefined report ids.
-// ----------------------------------------------------------------------------
-
-const char* SC_ID_NO_DEFN_ =
-    "no_defn";
-
-const char* SC_ID_INTERNAL_ERROR_ =
-    "internal_error";
-
-const char* SC_ID_INVALID_WL_ =
-    "invalid_wl";
-
-const char* SC_ID_INVALID_N_BITS_ =
-    "invalid_n_bits";
-
-const char* SC_ID_INVALID_DIV_WL_ =
-    "invalid_div_wl";
-
-const char* SC_ID_INVALID_CTE_WL_ =
-    "invalid_cte_wl";
-
-const char* SC_ID_INVALID_MAX_WL_ =
-    "invalid_max_wl";
-
-const char* SC_ID_INVALID_VALUE_ =
-    "invalid_value";
-
-const char* SC_ID_INVALID_O_MODE_ =
-    "invalid_o_mode";
-
-const char* SC_ID_OUT_OF_RANGE_ =
-    "out_of_range";
-
-const char* SC_ID_CONTEXT_BEGIN_FAILED_ =
-    "context_begin_failed";
-
-const char* SC_ID_CONTEXT_END_FAILED_ =
-    "context_end_failed";
-
-
-// ----------------------------------------------------------------------------
-//  Register error ids and messages.
-// ----------------------------------------------------------------------------
-
-static
-int
-initialize()
-{
-    sc_report::register_id( SC_ID_NO_DEFN_,
-                            "no definition" );
-    sc_report::register_id( SC_ID_INTERNAL_ERROR_,
-			    "internal error" );
-    sc_report::register_id( SC_ID_INVALID_WL_,
-                            "total wordlength <= 0 is not valid" );
-    sc_report::register_id( SC_ID_INVALID_N_BITS_,
-                            "number of bits < 0 is not valid" );
-    sc_report::register_id( SC_ID_INVALID_DIV_WL_,
-                            "division wordlength <= 0 is not valid" );
-    sc_report::register_id( SC_ID_INVALID_CTE_WL_,
-                            "constant wordlength <= 0 is not valid" );
-    sc_report::register_id( SC_ID_INVALID_MAX_WL_,
-                            "maximum wordlength <= 0 and != -1 is not valid" );
-    sc_report::register_id( SC_ID_INVALID_VALUE_,
-			    "invalid fixed-point value" );
-    sc_report::register_id( SC_ID_INVALID_O_MODE_,
-			    "invalid overflow mode" );
-    sc_report::register_id( SC_ID_OUT_OF_RANGE_,
-			    "index out of range" );
-    sc_report::register_id( SC_ID_CONTEXT_BEGIN_FAILED_,
-			    "context begin failed" );
-    sc_report::register_id( SC_ID_CONTEXT_END_FAILED_,
-			    "context end failed" );
-
-    return 42;
-}
-
-
-static int forty_two = initialize();
+} // namespace sc_dt
 
 
 // Taf!

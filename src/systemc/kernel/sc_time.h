@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -42,23 +42,10 @@
 #include "systemc/utils/sc_iostream.h"
 #include "systemc/utils/sc_string.h"
 
+using sc_dt::int64;
+using sc_dt::uint64;
+
 class sc_simcontext;
-
-
-// ----------------------------------------------------------------------------
-
-inline
-double
-uint64_to_double( uint64 a )
-{
-#if defined( _MSC_VER )
-    // conversion from uint64 to double not implemented; use int64
-    double tmp = static_cast<double>( static_cast<int64>( a ) );
-    return ( tmp >= 0 ) ? tmp : tmp + scfx_pow2( 64 );
-#else
-    return static_cast<double>( a );
-#endif
-}
 
 
 // ----------------------------------------------------------------------------
@@ -194,7 +181,7 @@ inline
 double
 sc_time::to_double() const  // relative to the time resolution
 {
-    return uint64_to_double( m_value );
+    return sc_dt::uint64_to_double( m_value );
 }
 
 
@@ -282,7 +269,7 @@ sc_time&
 sc_time::operator *= ( double d )
 {
     // linux bug workaround; don't change next two lines
-    volatile double tmp = uint64_to_double( m_value ) * d;
+    volatile double tmp = sc_dt::uint64_to_double( m_value ) * d + 0.5;
     m_value = SCAST<int64>( tmp );
     return *this;
 }
@@ -292,7 +279,7 @@ sc_time&
 sc_time::operator /= ( double d )
 {
     // linux bug workaround; don't change next two lines
-    volatile double tmp = uint64_to_double( m_value ) / d;
+    volatile double tmp = sc_dt::uint64_to_double( m_value ) / d + 0.5;
     m_value = SCAST<int64>( tmp );
     return *this;
 }

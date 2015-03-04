@@ -1,11 +1,11 @@
 ## ****************************************************************************
 ##
 ##  The following code is derived, directly or indirectly, from the SystemC
-##  source code Copyright (c) 1996-2001 by all Contributors.
+##  source code Copyright (c) 1996-2002 by all Contributors.
 ##  All Rights reserved.
 ##
 ##  The contents of this file are subject to the restrictions and limitations
-##  set forth in the SystemC Open Source License Version 2.2 (the "License");
+##  set forth in the SystemC Open Source License Version 2.3 (the "License");
 ##  You may not use this file except in compliance with such restrictions and
 ##  limitations. You may obtain instructions on how to receive a copy of the
 ##  License at http://www.systemc.org/. Software distributed by Contributors
@@ -36,19 +36,23 @@ noinst_LIBRARIES = libbit.a
 
 H_FILES = \
 	sc_bit.h \
+	sc_bit_ids.h \
 	sc_bit_proxies.h \
 	sc_bv.h \
+	sc_bv_base.h \
 	sc_logic.h \
 	sc_lv.h \
+	sc_lv_base.h \
 	sc_proxy.h
 
 noinst_HEADERS = $(H_FILES)
 
 CXX_FILES = \
 	sc_bit.cpp \
-	sc_bv.cpp \
+	sc_bit_ids.cpp \
+	sc_bv_base.cpp \
 	sc_logic.cpp \
-	sc_lv.cpp
+	sc_lv_base.cpp
 
 NO_CXX_FILES =
 

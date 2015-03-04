@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -17,9 +17,9 @@
 
 /*****************************************************************************
 
-  sc_context_switch.cpp -- Manage context switching.
+  sc_fx_ids.h -- Report ids for the datatypes/fx code.
 
-  Original Author: Stan Y. Liao, Synopsys, Inc.
+  Original Author: Martin Janssen, Synopsys, Inc., 2002-01-17
 
  *****************************************************************************/
 
@@ -30,34 +30,35 @@
 
       Name, Affiliation, Date:
   Description of Modification:
-
+    
  *****************************************************************************/
 
+#ifndef SC_FX_IDS_H
+#define SC_FX_IDS_H
 
-#include "systemc/kernel/sc_context_switch.h"
-#include "systemc/kernel/sc_measure.h"
+
+#include "systemc/utils/sc_report.h"
 
 
-#ifndef WIN32
+// ----------------------------------------------------------------------------
+//  Report ids (datatypes/fx)
+//
+//  Report ids in the range of 300-399.
+// ----------------------------------------------------------------------------
 
-#include "systemc/qt/qt.h"
+extern const int SC_ID_INVALID_WL_;
+extern const int SC_ID_INVALID_N_BITS_;
+extern const int SC_ID_INVALID_DIV_WL_;
+extern const int SC_ID_INVALID_CTE_WL_;
+extern const int SC_ID_INVALID_MAX_WL_;
+extern const int SC_ID_INVALID_FX_VALUE_;
+extern const int SC_ID_INVALID_O_MODE_;
+extern const int SC_ID_OUT_OF_RANGE_;
+extern const int SC_ID_CONTEXT_BEGIN_FAILED_;
+extern const int SC_ID_CONTEXT_END_FAILED_;
+extern const int SC_ID_WRAP_SM_NOT_DEFINED_;
 
-void
-context_switch( AFT yieldhelper, void* data, void* user, qt_t* qt )
-{
-    begin_context_switch();
-    QT_BLOCK( yieldhelper, data, user, qt );
-    end_context_switch();
-}
-
-#else
-
-void
-context_switch( LPVOID fiber )
-{
-    begin_context_switch();
-    SwitchToFiber( fiber );
-    end_context_switch();
-}
 
 #endif
+
+// Taf!

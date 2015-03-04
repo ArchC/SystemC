@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -38,38 +38,76 @@
 #define SC_CMNHDR_H
 
 
-#ifdef WIN32
+// all windows 32-bit compilers should define WIN32
+
+#if defined( _MSC_VER ) || defined( __BORLANDC__ )
+#ifndef WIN32
+#define WIN32
+#endif
+#endif
+
+// WIN64 is reserved for the future 64-bit OS
+
+#ifdef WIN64
+#error WIN64 keyword is reserved for 64-bit Windows
+#endif
+
+
+// ----------------------------------------------------------------------------
 
 #ifdef _MSC_VER
 
-/* Disable VC++ warnings 4355 and 4291 that are harmless */
+// Disable VC++ warnings that are harmless
 
-/* this : used in base member initializer list */
+// this : used in base member initializer list
 #pragma warning(disable: 4355)
 
-/* new and delete warning when exception handling is turned on */
+// new and delete warning when exception handling is turned on
 #pragma warning(disable: 4291)
 
-/* in many places implicit conversion to bool
-   from other integral types is performed */
+// in many places implicit conversion to bool
+// from other integral types is performed
 #pragma warning(disable: 4800)
 
-/* unary minus operator applied to unsigned */
+// unary minus operator applied to unsigned
 #pragma warning(disable: 4146)
 
 // multiple copy constructors
 #pragma warning(disable: 4521)
 
-/*  Windows Version Build Option */
+
+// Windows Version Build Option
 
 #define _WIN32_WINNT 0x0400
 #include <Windows.h>
 
-#define for if(false);else for
 
-#endif // #ifdef _MSC_VER
+// MSVC6.0 for() scope bug
 
-#endif // #ifdef WIN32
+#define for if( false ); else for
+
+#endif
+
+
+// ----------------------------------------------------------------------------
+
+#ifdef __BORLANDC__
+
+// Windows Version Build Option
+
+#define _WIN32_WINNT 0x0400
+#include <Windows.h>
+
+#endif
+
+
+// ----------------------------------------------------------------------------
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 
 #endif
+
+// Taf!

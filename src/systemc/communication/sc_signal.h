@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -45,9 +45,24 @@
 #include "systemc/kernel/sc_simcontext.h"
 #include "systemc/datatypes/bit/sc_logic.h"
 #include "systemc/tracing/sc_trace.h"
-#include "systemc/utils/sc_exception.h"
 #include "systemc/utils/sc_string.h"
 #include <typeinfo>
+
+using sc_dt::sc_logic;
+using sc_dt::SC_LOGIC_0;
+using sc_dt::SC_LOGIC_1;
+using sc_dt::SC_LOGIC_Z;
+using sc_dt::SC_LOGIC_X;
+
+
+// to avoid code bloat in sc_signal<T>
+
+extern
+void
+sc_signal_invalid_writer( const char* name,
+			  const char* kind,
+			  const char* first_writer,
+			  const char* second_writer );
 
 
 // ----------------------------------------------------------------------------
@@ -67,14 +82,14 @@ public:
 
     sc_signal()
 	: sc_prim_channel( sc_gen_unique_name( "signal" ) ),
-          m_output( 0 ), m_cur_val( T() ), m_new_val( T() ), m_old_val( T() ),
-          m_delta( ~const_one_ull ), m_writer( 0 )
+          m_output( 0 ), m_cur_val( T() ), m_new_val( T() ),
+          m_delta( ~sc_dt::UINT64_ONE ), m_writer( 0 )
 	{}
 
     explicit sc_signal( const char* name_ )
 	: sc_prim_channel( name_ ),
-          m_output( 0 ), m_cur_val( T() ), m_new_val( T() ), m_old_val( T() ),
-          m_delta( ~const_one_ull ), m_writer( 0 )
+          m_output( 0 ), m_cur_val( T() ), m_new_val( T() ),
+          m_delta( ~sc_dt::UINT64_ONE ), m_writer( 0 )
 	{}
 
 
@@ -132,18 +147,17 @@ public:
     const T& get_new_value() const
 	{ return m_new_val; }
 
-    const T& get_old_value() const
-	{ return m_old_val; }
-
 
     void trace( sc_trace_file* tf ) const
+#ifdef DEBUG_SYSTEMC
 	{ ::sc_trace( tf, get_data_ref(), name() ); }
+#else
+	{}
+#endif
 
 
-// #ifdef DEBUG_SYSTEMC
     virtual void print( ostream& ) const;
     virtual void dump( ostream& ) const;
-// #endif
 
 
     static const char* const kind_string;
@@ -163,7 +177,6 @@ protected:
 
     T             m_cur_val;
     T             m_new_val;
-    T             m_old_val;
 
     sc_event      m_value_changed_event;
 
@@ -194,12 +207,8 @@ sc_signal<T>::register_port( sc_port_base& port_, const char* if_typename_ )
     if( nm == typeid( sc_signal_inout_if<T> ).name() ) {
 	// an out or inout port; only one can be connected
 	if( m_output != 0 ) {
-	    char msg[BUFSIZ];
-	    sprintf( msg, "\n signal `%s' (%s)"
-                          "\n first driver `%s'"
-		          "\n second driver `%s'",
-		     name(), kind(), m_output->name(), port_.name() );
-	    REPORT_ERROR( 7041, msg );
+	    sc_signal_invalid_writer( name(), kind(),
+				      m_output->name(), port_.name() );
 	}
 	m_output = &port_;
     }
@@ -224,8 +233,6 @@ sc_signal<T>::write( const T& value_ )
 }
 
 
-// #ifdef DEBUG_SYSTEMC
-
 template <class T>
 inline
 void
@@ -242,10 +249,7 @@ sc_signal<T>::dump( ostream& os ) const
     os << "     name = " << name() << endl;
     os << "    value = " << m_cur_val << endl;
     os << "new value = " << m_new_val << endl;
-    os << "old value = " << m_old_val << endl;
 }
-
-// #endif
 
 
 template <class T>
@@ -254,7 +258,6 @@ void
 sc_signal<T>::update()
 {
     if( !( m_new_val == m_cur_val ) ) {
-	m_old_val = m_cur_val;
 	m_cur_val = m_new_val;
 	m_value_changed_event.notify_delayed();
 	m_delta = simcontext()->delta_count();
@@ -271,12 +274,8 @@ sc_signal<T>::check_writer()
     if( m_writer == 0 ) {
 	m_writer = writer;
     } else if( m_writer != writer ) {
-	char msg[BUFSIZ];
-	sprintf( msg, "\n signal `%s' (%s)"
-		      "\n first driver `%s'"
-		      "\n second driver `%s'",
-		 name(), kind(), m_writer->name(), writer->name() );
-	REPORT_ERROR( 7041, msg );
+	sc_signal_invalid_writer( name(), kind(),
+				  m_writer->name(), writer->name() );
     }
 }
 
@@ -301,8 +300,7 @@ public:
           m_output( 0 ),
           m_cur_val( false ),
           m_new_val( false ),
-          m_old_val( false ),
-          m_delta( ~const_one_ull ),
+          m_delta( ~sc_dt::UINT64_ONE ),
           m_writer( 0 )
 	{}
 
@@ -311,8 +309,7 @@ public:
           m_output( 0 ),
           m_cur_val( false ),
           m_new_val( false ),
-          m_old_val( false ),
-          m_delta( ~const_one_ull ),
+          m_delta( ~sc_dt::UINT64_ONE ),
           m_writer( 0 )
 	{}
 
@@ -392,18 +389,17 @@ public:
     const bool& get_new_value() const
 	{ return m_new_val; }
 
-    const bool& get_old_value() const
-	{ return m_old_val; }
-
 
     void trace( sc_trace_file* tf ) const
+#ifdef DEBUG_SYSTEMC
 	{ ::sc_trace( tf, get_data_ref(), name() ); }
+#else
+	{}
+#endif
 
 
-// #ifdef DEBUG_SYSTEMC
     virtual void print( ostream& ) const;
     virtual void dump( ostream& ) const;
-// #endif
 
 
     static const char* const kind_string;
@@ -423,7 +419,6 @@ protected:
 
     bool          m_cur_val;
     bool          m_new_val;
-    bool          m_old_val;
 
     sc_event      m_value_changed_event;
     sc_event      m_posedge_event;
@@ -451,12 +446,8 @@ sc_signal<bool>::register_port( sc_port_base& port_, const char* if_typename_ )
     if( nm == typeid( sc_signal_inout_if<bool> ).name() ) {
 	// an out or inout port; only one can be connected
 	if( m_output != 0 ) {
-	    char msg[BUFSIZ];
-	    sprintf( msg, "\n signal `%s' (%s)"
-                          "\n first driver `%s'"
-		          "\n second driver `%s'",
-		     name(), kind(), m_output->name(), port_.name() );
-	    REPORT_ERROR( 7041, msg );
+	    sc_signal_invalid_writer( name(), kind(),
+				      m_output->name(), port_.name() );
 	}
 	m_output = &port_;
     }
@@ -491,8 +482,6 @@ sc_signal<bool>::delayed() const
 }
 
 
-// #ifdef DEBUG_SYSTEMC
-
 inline
 void
 sc_signal<bool>::print( ostream& os ) const
@@ -507,10 +496,7 @@ sc_signal<bool>::dump( ostream& os ) const
     os << "     name = " << name() << endl;
     os << "    value = " << m_cur_val << endl;
     os << "new value = " << m_new_val << endl;
-    os << "old value = " << m_old_val << endl;
 }
-
-// #endif
 
 
 inline
@@ -518,7 +504,6 @@ void
 sc_signal<bool>::update()
 {
     if( !( m_new_val == m_cur_val ) ) {
-	m_old_val = m_cur_val;
 	m_cur_val = m_new_val;
 	m_value_changed_event.notify_delayed();
 	if( m_cur_val ) {
@@ -539,12 +524,8 @@ sc_signal<bool>::check_writer()
     if( m_writer == 0 ) {
 	m_writer = writer;
     } else if( m_writer != writer ) {
-	char msg[BUFSIZ];
-	sprintf( msg, "\n signal `%s' (%s)"
-		      "\n first driver `%s'"
-		      "\n second driver `%s'",
-		 name(), kind(), m_writer->name(), writer->name() );
-	REPORT_ERROR( 7041, msg );
+	sc_signal_invalid_writer( name(), kind(),
+				  m_writer->name(), writer->name() );
     }
 }
 
@@ -566,14 +547,20 @@ public:
 
     sc_signal()
 	: sc_prim_channel( sc_gen_unique_name( "signal" ) ),
-          m_output( 0 ), m_cur_val( 'X' ), m_new_val( 'X' ), m_old_val( 'X' ),
-          m_delta( ~const_one_ull ), m_writer( 0 )
+          m_output( 0 ),
+	  m_cur_val(),
+	  m_new_val(),
+          m_delta( ~sc_dt::UINT64_ONE ),
+	  m_writer( 0 )
 	{}
 
     explicit sc_signal( const char* name_ )
 	: sc_prim_channel( name_ ),
-          m_output( 0 ), m_cur_val( 'X' ), m_new_val( 'X' ), m_old_val( 'X' ),
-          m_delta( ~const_one_ull ), m_writer( 0 )
+          m_output( 0 ),
+	  m_cur_val(),
+	  m_new_val(),
+          m_delta( ~sc_dt::UINT64_ONE ),
+	  m_writer( 0 )
 	{}
 
 
@@ -597,6 +584,14 @@ public:
     virtual const sc_event& value_changed_event() const
 	{ return m_value_changed_event; }
 
+    // get the positive edge event
+    virtual const sc_event& posedge_event() const
+	{ return m_posedge_event; }
+
+    // get the negative edge event
+    virtual const sc_event& negedge_event() const
+	{ return m_negedge_event; }
+
 
     // read the current value
     virtual const sc_logic& read() const
@@ -610,6 +605,14 @@ public:
     // was there an event?
     virtual bool event() const
         { return ( simcontext()->delta_count() == m_delta + 1 ); }
+
+    // was there a positive edge event?
+    virtual bool posedge() const
+	{ return ( event() && m_cur_val == SC_LOGIC_1 ); }
+
+    // was there a negative edge event?
+    virtual bool negedge() const
+	{ return ( event() && m_cur_val == SC_LOGIC_0 ); }
 
 
     // write the new value
@@ -636,18 +639,17 @@ public:
     const sc_logic& get_new_value() const
 	{ return m_new_val; }
 
-    const sc_logic& get_old_value() const
-	{ return m_old_val; }
-
 
     void trace( sc_trace_file* tf ) const
+#ifdef DEBUG_SYSTEMC
 	{ ::sc_trace( tf, get_data_ref(), name() ); }
+#else
+	{}
+#endif
 
 
-// #ifdef DEBUG_SYSTEMC
     virtual void print( ostream& ) const;
     virtual void dump( ostream& ) const;
-// #endif
 
 
     static const char* const kind_string;
@@ -667,9 +669,10 @@ protected:
 
     sc_logic      m_cur_val;
     sc_logic      m_new_val;
-    sc_logic      m_old_val;
 
     sc_event      m_value_changed_event;
+    sc_event      m_posedge_event;
+    sc_event      m_negedge_event;
 
     uint64        m_delta; // delta of last event
 
@@ -694,12 +697,8 @@ sc_signal<sc_logic>::register_port( sc_port_base& port_,
     if( nm == typeid( sc_signal_inout_if<sc_logic> ).name() ) {
 	// an out or inout port; only one can be connected
 	if( m_output != 0 ) {
-	    char msg[BUFSIZ];
-	    sprintf( msg, "\n signal `%s' (%s)"
-                          "\n first driver `%s'"
-		          "\n second driver `%s'",
-		     name(), kind(), m_output->name(), port_.name() );
-	    REPORT_ERROR( 7041, msg );
+	    sc_signal_invalid_writer( name(), kind(),
+				      m_output->name(), port_.name() );
 	}
 	m_output = &port_;
     }
@@ -734,8 +733,6 @@ sc_signal<sc_logic>::delayed() const
 }
 
 
-// #ifdef DEBUG_SYSTEMC
-
 inline
 void
 sc_signal<sc_logic>::print( ostream& os ) const
@@ -750,10 +747,7 @@ sc_signal<sc_logic>::dump( ostream& os ) const
     os << "     name = " << name() << endl;
     os << "    value = " << m_cur_val << endl;
     os << "new value = " << m_new_val << endl;
-    os << "old value = " << m_old_val << endl;
 }
-
-// #endif
 
 
 inline
@@ -761,12 +755,17 @@ void
 sc_signal<sc_logic>::update()
 {
     if( !( m_new_val == m_cur_val ) ) {
-	m_old_val = m_cur_val;
 	m_cur_val = m_new_val;
 	m_value_changed_event.notify_delayed();
+	if( m_cur_val == SC_LOGIC_1 ) {
+	    m_posedge_event.notify_delayed();
+	} else if( m_cur_val == SC_LOGIC_0 ) {
+	    m_negedge_event.notify_delayed();
+	}
 	m_delta = simcontext()->delta_count();
     }
 }
+
 
 
 inline
@@ -777,12 +776,8 @@ sc_signal<sc_logic>::check_writer()
     if( m_writer == 0 ) {
 	m_writer = writer;
     } else if( m_writer != writer ) {
-	char msg[BUFSIZ];
-	sprintf( msg, "\n signal `%s' (%s)"
-		      "\n first driver `%s'"
-		      "\n second driver `%s'",
-		 name(), kind(), m_writer->name(), writer->name() );
-	REPORT_ERROR( 7041, msg );
+	sc_signal_invalid_writer( name(), kind(),
+				  m_writer->name(), writer->name() );
     }
 }
 

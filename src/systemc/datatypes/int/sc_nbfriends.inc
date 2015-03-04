@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -47,18 +47,17 @@
 
  *****************************************************************************/
 
-/////////////////////////////////////////////////////////////////////////////
-// Naming conventions:
-// For sc_signed or sc_unsigned number u:
-//   us : u's sign, unb : u's number of bits, 
-//   und : u's number of digits, ud : u's digits array.
-/////////////////////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: Friend functions for PLUS operators.
-/////////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------------
+//  Naming conventions:
+//  For sc_signed or sc_unsigned number u:
+//    us : u's sign, unb : u's number of bits, 
+//    und : u's number of digits, ud : u's digits array.
+// ----------------------------------------------------------------------------
 
-#include "systemc/kernel/sc_macros.h"
+// ----------------------------------------------------------------------------
+//  SECTION: Friend functions for PLUS operators.
+// ----------------------------------------------------------------------------
 
 // Handles cases 3 and 4 and returns the result.
 CLASS_TYPE
@@ -135,9 +134,9 @@ ADD_HELPER(small_type us, int unb, int und,
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: Friend functions of MULTIPLICATION operators.
-/////////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------------
+//  SECTION: Friend functions of MULTIPLICATION operators.
+// ----------------------------------------------------------------------------
 
 // Handles the case 4 and returns the result.
 CLASS_TYPE 
@@ -193,9 +192,9 @@ MUL_HELPER(small_type s,
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: Friend functions for DIVISION operators.
-/////////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------------
+//  SECTION: Friend functions for DIVISION operators.
+// ----------------------------------------------------------------------------
 
 // Handles the cases 3-4 and returns the result.
 CLASS_TYPE 
@@ -251,9 +250,9 @@ DIV_HELPER(small_type s,
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: Friend functions for MOD operators.
-/////////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------------
+//  SECTION: Friend functions for MOD operators.
+// ----------------------------------------------------------------------------
 
 // Handles the cases 3-4 and returns the result.
 CLASS_TYPE 
@@ -314,9 +313,9 @@ MOD_HELPER(small_type us,
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: Friend functions for AND operators.
-/////////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------------
+//  SECTION: Friend functions for AND operators.
+// ----------------------------------------------------------------------------
 
 // Handles the cases 2-5 and returns the result.
 CLASS_TYPE 
@@ -446,9 +445,9 @@ AND_HELPER(small_type us,
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: Friend functions for OR operators.
-/////////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------------
+//  SECTION: Friend functions for OR operators.
+// ----------------------------------------------------------------------------
 
 // Handles the cases 3-5 and returns the result.
 CLASS_TYPE 
@@ -582,9 +581,9 @@ OR_HELPER(small_type us,
 }
 
 
-/////////////////////////////////////////////////////////////////////////////
-// SECTION: Friend functions for XOR operators.
-/////////////////////////////////////////////////////////////////////////////
+// ----------------------------------------------------------------------------
+//  SECTION: Friend functions for XOR operators.
+// ----------------------------------------------------------------------------
 
 // Handles the cases 3-5 and returns the result.
 CLASS_TYPE 

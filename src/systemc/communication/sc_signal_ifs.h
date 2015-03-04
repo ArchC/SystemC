@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -36,9 +36,16 @@
 #ifndef SC_SIGNAL_IFS_H
 #define SC_SIGNAL_IFS_H
 
+
 #include "systemc/communication/sc_interface.h"
 
-class sc_logic;
+
+namespace sc_dt
+{
+    class sc_logic;
+}
+using sc_dt::sc_logic;
+
 class sc_signal_bool_deval;
 class sc_signal_logic_deval;
 
@@ -156,6 +163,12 @@ public:
     // get the value changed event
     virtual const sc_event& value_changed_event() const = 0;
 
+    // get the positive edge event
+    virtual const sc_event& posedge_event() const = 0;
+
+    // get the negative edge event
+    virtual const sc_event& negedge_event() const = 0;
+
 
     // read the current value
     virtual const sc_logic& read() const = 0;
@@ -166,6 +179,12 @@ public:
 
     // was there a value changed event?
     virtual bool event() const = 0;
+
+    // was there a positive edge event?
+    virtual bool posedge() const = 0;
+
+    // was there a negative edge event?
+    virtual bool negedge() const = 0;
 
 
     // delayed evaluation

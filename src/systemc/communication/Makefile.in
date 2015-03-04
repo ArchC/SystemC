@@ -78,12 +78,12 @@ VERSION = @VERSION@
 
 noinst_LIBRARIES = libcommunication.a
 
-H_FILES =  	sc_buffer.h 	sc_clock.h 	sc_clock_ports.h 	sc_event_finder.h 	sc_fifo.h 	sc_fifo_ifs.h 	sc_fifo_ports.h 	sc_interface.h 	sc_mutex.h 	sc_mutex_if.h 	sc_port.h 	sc_prim_channel.h 	sc_semaphore.h 	sc_semaphore_if.h 	sc_signal.h 	sc_signal_ifs.h 	sc_signal_ports.h 	sc_signal_resolved.h 	sc_signal_resolved_ports.h 	sc_signal_rv.h 	sc_signal_rv_ports.h
+H_FILES =  	sc_buffer.h 	sc_clock.h 	sc_clock_ports.h 	sc_communication_ids.h 	sc_event_finder.h 	sc_fifo.h 	sc_fifo_ifs.h 	sc_fifo_ports.h 	sc_interface.h 	sc_mutex.h 	sc_mutex_if.h 	sc_port.h 	sc_prim_channel.h 	sc_semaphore.h 	sc_semaphore_if.h 	sc_signal.h 	sc_signal_ifs.h 	sc_signal_ports.h 	sc_signal_resolved.h 	sc_signal_resolved_ports.h 	sc_signal_rv.h 	sc_signal_rv_ports.h
 
 
 noinst_HEADERS = $(H_FILES)
 
-CXX_FILES =  	sc_clock.cpp 	sc_event_finder.cpp 	sc_interface.cpp 	sc_mutex.cpp 	sc_port.cpp 	sc_prim_channel.cpp 	sc_semaphore.cpp 	sc_signal.cpp 	sc_signal_ports.cpp 	sc_signal_resolved.cpp 	sc_signal_resolved_ports.cpp
+CXX_FILES =  	sc_clock.cpp 	sc_communication_ids.cpp 	sc_event_finder.cpp 	sc_interface.cpp 	sc_mutex.cpp 	sc_port.cpp 	sc_prim_channel.cpp 	sc_semaphore.cpp 	sc_signal.cpp 	sc_signal_ports.cpp 	sc_signal_resolved.cpp 	sc_signal_resolved_ports.cpp
 
 
 NO_CXX_FILES = 
@@ -101,9 +101,9 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libcommunication_a_LIBADD = 
-libcommunication_a_OBJECTS =  sc_clock.o sc_event_finder.o \
-sc_interface.o sc_mutex.o sc_port.o sc_prim_channel.o sc_semaphore.o \
-sc_signal.o sc_signal_ports.o sc_signal_resolved.o \
+libcommunication_a_OBJECTS =  sc_clock.o sc_communication_ids.o \
+sc_event_finder.o sc_interface.o sc_mutex.o sc_port.o sc_prim_channel.o \
+sc_semaphore.o sc_signal.o sc_signal_ports.o sc_signal_resolved.o \
 sc_signal_resolved_ports.o
 AR = ar
 CXXFLAGS = @CXXFLAGS@

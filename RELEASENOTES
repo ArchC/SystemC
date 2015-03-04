@@ -1,253 +1,331 @@
-		Release Notes for SystemC Release 2.0
-                =====================================
+		Release Notes for SystemC Release 2.0.1
+                =======================================
 
 CONTENTS
 ========
 
   1) What's new in this release?
 
-  2) The SystemC 2.0 core language and elementary channels
+  2) Bug fixes and enhancements
 
-  3) Differences with previous (1.X) SystemC Releases
+  3) Other changes
 
-  4) No support anymore for SystemC 0.9 specific features
+  4) Known limitations
 
-  5) Directory structure changed
+  5) Beta features
 
-  6) Build process changed
+  6) Deprecated features
 
-  7) Known limitations
-
-  8) Fixed-point library
+  7) Fixed-point library
 
 
 1) What's new in this release?
 ==============================
 
-Compared to 2.0 beta-2 release, this release has the following new items:
+Compared to the 2.0 Production release, this release has the following
+new items:
 
-  i) Bug fixes and enhancements:
-     o (128062) undefined symbols when configured with --with-fx-types=no
-     o (127848) bitvector (partial) self assignment with ranges doesn't work
-     o (127712) multi-port sensitivity doesn't work
-     o (127640) Ports cannot be given a name
-     o (127624) Single bit concatenation differs between sc_uint and sc_lv
-     o (127536) sc_cycle doesn't take care of timed events
-     o (127534) Make sc_out and sc_out_rv real classes to ease debugging
-     o (127527) sc_[u]fix[_fast] copy constructors do not copy type params
-     o (127351) sc_fifo print and dump methods produce wrong output when full
+  - Several bug fixes and enhancements. See Section 2) for details.
 
-  ii) Ports to the following new platforms:
-      o Windows NT 4.0 (SP3 and higher) with VC++6.0
+  - Several other code changes. See Section 3) for details.
 
-Compared to the SystemC 1.X releases, there are many new items that are
-outlined in the following sections.
+  - The simple bus example, an example of modeling a bus at the
+    transaction level. This example includes source code as well
+    as detailed documentation.
 
-2) The SystemC 2.0 core language and elementary channels
-========================================================
+  - From this release onwards, a SystemC regression test suite is also
+    released (separately).
 
-This production release of SystemC implements the core language and the
-elementary channels as defined in the "Functional Specification for
-SystemC 2.0" document (see the docs/FuncSpec20.pdf file). This release
-fixes bugs in the beta-2 release, it is supported on a larger number of 
-platforms, and has an example showing dynamic thread creation.
 
-Here is an overview of changes with respect to 1.0.2. Note that all these
-changes were also available in 2.0 beta-2 release:
+2) Bug fixes and enhancements
+=============================
 
-  - Process initialization has changed. All SC_METHODs and SC_THREADs
-    are initialized at the beginning of the simulation. SC_CTHREADs
-    are not initialized.
-    For backward compatibility, use a wait() in the beginning of an
-    SC_THREAD process. For SC_METHODs, you can use the
-    `dont_initialize()` function after declaration of the SC_METHOD
-    process (only do this for SystemC 1.0.2 and SystemC 1.2.1 beta
-    designs). The latter function is a beta feature (not part of the
-    functional specification proper).
+Following is the list of bug fixes and enhancements for this release:
 
-  - The model of time has changed to absolute and integer-valued. The
-    new type `sc_time' is implemented as defined in the functional
-    specification. There are a few minor changes in the utility
-    functions. For details, see the updated functional specification
-    in the docs directory.
+  - (104531) Fixed-point datatypes need more information.
+  - (105656) Need explanation when to use end_module()
+  - (125720) Need to document resolution of resolved vector signals
+  - (126722) concatination operator errors out on more than 16 arguments
+  - (129353) memory leak in fixed-point slicing operators
+  - (129901) Link failure: some sc_fxval methods are declared but not impl
+  - (129933) sc_bit declares many methods that are not defined
+  - (130513) compilation error when including iostream.h before systemc.h
+  - (130782) part select on sc_biguint produces wrong result in cornercase
+  - (130786) code doesn't compile with gcc-2.95.2
+  - (131145) library compilation error with -DDEBUG_SYSTEMC
+  - (132075) Comparison of sc_[u]int bit-slices does not work
+  - (132136) inconsistency: sc_bv.range()=int not allowed
+  - (132137) sc_bv & int does not work
+  - (132221) bug in QuickThreads code (sparc.s) when using -fast
+  - (133377) sc_bigint::operator(,) gives wrong results
+  - (135336) Syntax error in hierarchical channel example in func spec docu
+  - (135767) bogus sc_logic assignment
+  - (135771) range method with sc_lv doesn't work
+  - (137040) bool sc_uint_base::operator[](int) const, bug ?
+  - (137233) stream I/O for sc_bigint and sc_biguint cannot be used
+  - (137234) The SystemC library should never call abort()
+  - (138408) sc_bit x = my_sc_bv[0] doesn't compile
 
-  - The events and dynamic sensitivity have been implemented as
-    defined in the functional specification, with the exception that
-    `sensitive << port->some_event()' is not working for unbound
-    ports (an advanced feature called "event finder" can be used to
-    deal with these situations). In addition, dynamic sensitivity for
-    SC_METHODS is added (instead of the `wait()' function, use the
-    `next_trigger()' function). 
-    After a wait()/next_trigger() with a time argument and an event or
-    event list, it is possible to query whether or not the timeout
-    event was notified with function `timed_out()'. This is a beta
-    feature.
-    In the SystemC scheduler, controlled randomization is not yet
-    implemented.
 
-  - The base classes for interfaces, ports, and channels have been
-    implemented as defined in the functional specification. There is
-    one difference with the specification: interfaces classes that 
-    directly derive from `sc_interface' must be derived `virtual' (see
-    the docs/FuncSpec20.pdf file).
+3) Other changes
+================
 
-  - The SC_HAS_PROCESS macro has been defined (this is called
-    SC_HAS_PROCS in the functional specification) to allow full access
-    to a module constructor, both for port and parameter
-    initialization and for module inheritance.
-    Note that instead of `const sc_module_name&' `sc_module_name' must
-    be used for the module name type (see the docs/FuncSpec20.pdf file).
-    This will support the creation of user-defined constructors, necessary
-    for creating parameterizable modules and processes.
+Here is an overview of changes with respect to 2.0 Production:
 
-  - The `end_of_elaboration()' function has been implemented for
-    ports, primitive channels, and modules.
+  - When used with signals, a user-defined type _must_ define
+    the following operators:
 
-  - The following elementary channels have been (re)implemented:
-      o sc_signal<T>
-      o sc_signal_resolved
-      o sc_signal_rv<N>
-      o sc_fifo<T>
-      o sc_mutex
-      o sc_semaphore
-      o sc_buffer<T>
+      o T& operator = ( const T& );                  // assignment
+      o bool operator == ( const T& );               // comparison
+      o ostream& operator << ( ostream&, const T& ); // output streaming
 
-  - Unbound (output) signal ports can be initialized with the
-    `initialize()' method. This is a beta feature. E.g.
+    If (and only if) a user-defined type is used in tracing, the
+    following function _must_ also be defined:
 
-      SC_MODULE( my_module ) {
-        sc_out<int> out;
-        ...
-        SC_CTOR( my_module ) {
-          ...
-          out.initialize( 3 );
-        }
+      o void sc_trace( sc_trace_file*, const T&, const sc_string& );
+
+    The SystemC code has been changed such that the sc_trace() function
+    is only required if it is actually used.
+
+  - On Windows NT 4.0 and Windows 2000, the SC_VC6_SCL macro didn't work
+    in 2.0 Production. This macro was used in earlier releases of SystemC
+    to enable the use of Standard Class Library header files, such as
+    <vector>. The SystemC code has been changed such that Standard Class
+    Library header files can be included _without_ setting the SC_VC6_SCL
+    macro. The systemc.h header file takes care of including <iostream>,
+    <strstream>, and <fstream>. Because <iostream.h>, <strstrea.h>, and
+    <fstream.h> (on Windows) cannot be combined with the above header
+    files, one should avoid including these header files.
+
+  - All datatypes and supporting types are now put in the 'sc_dt' namespace.
+    The 'sc_bv_ns' namespace, in which the bit types (e.g. sc_bv, sc_lv)
+    used to reside, has been removed and replaced with the 'sc_dt' namespace.
+    The systemc.h header files "exports" most datatypes (e.g.
+    'using sc_dt::sc_bv'). In case you cannot access a certain datatype,
+    try 'sc_dt::type'.
+
+  - Concatenation is now also possible with the 'concat()' function. For
+    all datatypes for which concatentation was defined with 'operator , ()',
+    now also the two-argument 'concat()' function is defined.
+
+  - Concatentation is still _not_ possible for the arbitrary size integer
+    datatypes sc_big[u]int and their base classes sc_[un]signed. Dummy
+    functions have been put into place to avoid that 'operator ,()' on
+    these types falls back to the C++ list operator. But when you use
+    concatenation on these types, you will get a run-time "not implemented"
+    error.
+
+  - A number of methods and types related to the datatypes are now
+    deprecated (in order better to align with the VSIA datatypes "standard").
+    For these deprecated methods and types there are alternatives. In case
+    you want to use a deprecated method or type, you can define the
+    SC_DT_DEPRECATED macro.
+
+    Some of the deprecated methods and types (left deprecated, right the
+    alternative you should use instead):
+
+      o sc_logic_0     ->  SC_LOGIC_0
+      o sc_logic_1     ->  SC_LOGIC_1
+      o sc_logic_Z     ->  SC_LOGIC_Z
+      o sc_logic_X     ->  SC_LOGIC_X
+      o to_signed()    ->  to_int()
+      o to_unsigned()  ->  to_uint()
+
+  - String input and output for the bitvector types and the integer types
+    has been improved. They now support all number representations as
+    already supported by the fixed-point types. The bitvector types behave
+    slightly different, because the default number representation is still
+    binary, whereas for the integer and fixed-point types this is decimal.
+
+    BEWARE:
+      Due to the extended support of number representations in string
+      input and output, "0x" and "0X" are no longer valid as start of
+      a logic character string, because this is seen as a hexadecimal
+      number representation prefix! In this case, add a "0" in front
+      (to get "00x" and "00X"). E.g.
+
+        sc_lv<4> a;
+        a = "0XX1";  // error
+        a = "00XX1"; // ok
+
+    String output with the to_string() function takes zero, one or two
+    arguments (in most cases). The (optional) first argument is of
+    type sc_numrep and indicated the required number representation.
+    The (optional) second argument is of type bool and indicated if
+    a prefix should be added (default true).
+
+  - The limited precision integer types sc_[u]int and their base classes
+    sc_[u]int_base now have the reduce functions defined. These are:
+
+      o and_reduce()
+      o nand_reduce()
+      o or_reduce()
+      o nor_reduce()
+      o xor_reduce()
+      o xnor_reduce()
+
+    In addition, also length checks have been added for the limited precision
+    integer types.
+
+  - When including systemc.h, you can use the sc_min(), sc_max(), or sc_abs()
+    functions to calculate the minimum, maximum, or absolute value of some
+    datatype value(s). You can use these functions with SystemC datatypes,
+    with C/C++ native types, or with you own datatypes.
+
+  - Positive and negative edges have now also been defined for signals of
+    type sc_logic. The definition of positive and negative is exactly like
+    in VHDL or Verilog (a positive edge is any non-one to one transition,
+    and a negative edge is any non-zero to zero transition).
+
+  - The signal ports now also define the event access methods of their
+    respective interfaces. You can write in a module, e.g.
+
+      wait( in_port.value_changed_event() );
+
+  - The build process has been changed such that only a C++ compiler is
+    needed to compile the SystemC object code library. In 2.0 Production,
+    the QuickThreads code is compiled with a C compiler. In 2.0.1,
+    this code is also compiled with the C++ compiler.
+
+  - On HP-UX, you must additionally use the '-ext' compiler flag to
+    compile you code. You can find the full set of compiler flags in
+    the configure.in file that comes with the distribution (search for
+    hpux11 and take the flags in EXTRA_CXXFLAGS).
+
+  - This release comes with a changed (error) reporting scheme. In 2.0
+    Production, there were several error reporting mechanisms, none of
+    which are also user configurable. In this release, a (error)
+    reporting scheme is provided that can also be extended by the user.
+    In addition, debugging your design in the presence of SystemC warnings
+    or errors has been made easier.
+
+      o Introduction
+
+        In SystemC, report messages come with an id and a severity. There
+        are four severities: SC_INFO, SC_WARNING, SC_ERROR, and SC_FATAL.
+        There are a number of ids predefined by SystemC (everthing below
+        1000). Each id comes with a standard message text, and when invoked,
+        a report can add some additional message text.
+
+        A report id is registered with 'sc_report::register_id(id,msg)',
+        which registers the id and the standard message text. A report
+        is generated with SC_REPORT_INFO(id,msg), SC_REPORT_WARNING(id,msg),
+        SC_REPORT_ERROR(id,msg), or SC_REPORT_FATAL(id,msg). These macros
+        take a report id and an additional message text as arguments.
+
+        In addition, an 'sc_assert(expression)' macro is provided, which
+        behaves much like the standard 'assert()' macro, except that the
+        current process name (full hierarchical name) and the simulation
+        time are also printed (if applicable).
+
+      o Debugging
+
+        SystemC comes with a function called 'sc_stop_here()' that is
+        provided for debugging purposes. You can set a breakpoint at
+        this function in case of an error or warning, or you can set
+        a breakpoint at a specific line within this function if you
+        just want to break with a certain severity (e.g. errors only).
+        The 'sc_stop_here()' function has two arguments, the report
+        id and severity. These can be used in debuggers that support
+        defining conditional breakpoints (e.g. break if id is 5).
+
+      o Extending
+
+        You can register your own report ids and messages with the
+        'sc_report::register_id(id,msg)' function. Then you can generate
+        a report of a certain severity by calling one of the above macros.
+        Beware: report ids below 1000 are reserved for SystemC.
+
+      o Other
+
+        There are several other sc_report functions you can use.
+
+        You can query the message belonging to a given report id with
+        function 'sc_report::get_message(id)'. This function returns
+        a constant character string (type const char*).
+
+        You can (un)suppress an info or warning message for a given
+        report id with function 'sc_report::suppress_id(id,suppress)'.
+        The 'suppress' argument is of type boolean.
+
+        You can query if an info or warning message for a given report
+        id is suppressed with function 'sc_report::is_suppressed(id)'.
+        This function returns a boolean.
+
+        You can (un)suppress all info messages with function
+        'sc_report::suppress_infos(suppress)'. The 'suppress' argument
+        is of type boolean.
+
+        You can (un)suppress all warning messages with function
+        'sc_report::suppress_warnings(suppress)'. The 'suppress'
+        argument is of type boolean.
+
+        You can enable (disable) making all warning messages error
+        messages with function 'sc_report::make_warnings_errors(do)'.
+        The 'do' argument is of type boolean.
+
+  - Instead of using a fixed length, the default constructors of the
+    base classes of the bitvector (sc_bv_base, sc_lv_base) and integer
+    (sc_int_base, sc_uint_base, sc_signed, sc_unsigned) classes now
+    take the length from the current length context (like the base
+    classes of the fixed-point types do). To this purpose two
+    additional types have been added: sc_length_param and
+    sc_length_context. The former type allows to query the length of
+    the current length context, whereas the latter type allows to
+    change the current length context.
+
+  - The sc_fifo interfaces (and ports) have been extended to "export"
+    the internal events. The sc_fifo_in_if interface now has a method
+    'data_written_event()' that can be used to detect data write
+    accesses on the fifo. The sc_fifo_out_if interface now has a
+    method 'data_read_event()' that can be used to detect data read
+    accesses on the fifo. A thread process writing to a fifo can do
+    e.g.
+
+      if( out.num_free() == 0 ) {
+        // do something else first
+        wait( out.data_read_event() );
+      }
+      out.write( a );
+
+    A thread process reading from a fifo can do e.g.
+
+      if( out.num_available() == 0 ) {
+        // do something else first
+        wait( in.data_written_event() );
+      }
+      in.read( a );
+
+    It is now also possible to make a process statically sensitive to
+    either the data read event or the data written event from a fifo.
+    A module writing to a fifo can have e.g.
+
+      SC_CTOR( fifo_writer ) {
+        SC_THREAD( fifo_writer_proc );
+        sensitive << out.data_read();
       }
 
-   Once the (output) port is bound, the `write()' method is called
-   with the value supplied to the `initialize()' method.
-   This will allow the initialization of ports in the constructor of a
-   module.
+    A module reading from a fifo can have e.g.
+
+      SC_CTOR( fifo_reader ) {
+        SC_METHOD( fifo_reader_proc );
+        sensitive << in.data_written();
+      }
+
+    This is a beta feature.
+
+  - All datatypes now also support input streaming, i.e., they support 
+    reading their value from an input stream (istream). E.g.
+
+      sc_bv<8> a;
+      cin >> a;  // read the value for 'a' from standard input
+
+    Input streaming and output streaming use the string input and
+    string output functionality of the datatypes. The same format
+    is/should be used.
 
 
-3) Differences with previous (1.X) SystemC Releases
-===================================================
-
-Here are some important differences with previous releases of SystemC (note 
-that these features were also available with the 2.0 beta-2 release):
-
- - The behavior of SC_CTHREAD has changed. These threads now sample their
-   inputs and produce outputs in response to these inputs at the active
-   edge of the clock that they are sensitive to. This is different from
-   the previous behavior where the outputs where delayed by one clock
-   cycle. With this new behavior, the SC_THREAD processes can be used to
-   produce the behavior of SC_CTHREAD.
-
-   SC_CTHREAD processes are maintained for backward compatibility but their
-   use is discouraged. Instead, use an SC_THREAD process that is sensitive
-   to one edge of one clock.
-
- - Reading from output signal ports is now allowed.
-
- - Custom constructors can be used (see above) and parameterizable modules
-   can be created.
-
- - Writing to an unbound port (in the constructor of a module) is allowed
-   through a special initialization function (see above).
-
- - With the new model of time, the sc_start() and sc_cycle() functions now
-   accept arguments of type double as well as arguments of type sc_time. Note
-   that double arguments will be considered to be in the default time unit
-   and will be rounded to the nearest integer time.
-
- - sc_clock is not derived from sc_signal<bool> anymore. Instead, both
-   sc_signal<T> and sc_clock implement the sc_signal_in_if<bool> interface.
-
- - sc_clock cannot be written to anymore.
-
- - Make derived clocks not with type sc_clock, but with type
-   sc_signal<bool>. Pass this with argument type
-   sc_signal_in_if<bool>& and sc_signal_out_if<bool>&.
-
- - When used with signals, user-defined types must define:
-     o the operator = (assignment)
-     o the operator == (equality)
-     o the operator << (ostream&, user-defined type)
-     o the sc_trace() function
-
- - Function sc_time_stamp() now returns an sc_time object. If you
-   want a double value relative to the default time unit, use
-   sc_simulation_time() instead.
-
-
-4) No support anymore for SystemC 0.9 specific features
-=======================================================
-
-The SystemC 0.9 syntax and classes are no longer supported.
-
-Here is a list of old classes and the new classes that should be used instead:
-
-    old					new
- -----------------------------------------------------------------
-  - sc_bool_vector			sc_bv<N>
-  - sc_logic_vector			sc_lv<N>
-  - sc_array
-  - sc_2d				C/C++ array
-  - sc_signal_bool_vector		sc_signal<sc_bv<N> >
-  - sc_signal_logic_vector		sc_signal<sc_lv<N> >
-  - sc_signal_logic			sc_signal<sc_logic>
-  - sc_signal_resolved_vector		sc_signal_rv<N>
-  - sc_signal_array
-  - sc_channel				sc_fifo<T>
-  - sc_channel_array
-  - sc_sync				SC_MODULE and SC_CTHREAD
-  - sc_async				SC_MODULE and SC_METHOD
-  - sc_aproc				SC_MODULE and SC_THREAD
-
-Furthermore:
-
-  - Functions press_start_button() and press_stop_button() are gone.
-    Use sc_start() and sc_stop() instead.
-
-  - The callback function pointer in the simulate function is gone.
-
-  - The functions sc_sync_tprocess(), sc_async_fprocess(), and
-    sc_async_tprocess() are gone. Use the macros SC_CTHREAD,
-    SC_METHOD, and SC_THREAD instead.
-
-
-5) Directory structure changed
-==============================
-
-The SystemC source code files have been moved from `src' to
-`src/systemc/<subdirectory>'. The QuickThreads source code is now
-shipped with SystemC, in directory `src/systemc/qt'.
-
-The `include' directory is gone from the distribution. This directory
-and its subdirectories are generated when calling `make install'
-during the build process. The same is true for the
-`lib-<target_architecture>' directories. This distribution does not
-come with any precompiled object code archives. Check the `INSTALL'
-file for instructions on how to create the include directory and the
-library.
-
-
-6) Build process changed
-========================
-
-The build process (for details see the `INSTALL' file) now creates
-only *one* object code archive, i.e., `libsystemc.a'. This object code
-archive comes in the place of the libraries `libsystemc.a',
-`libnumeric_bit.a', and `libqt.a' in the SystemC 1.X releases.
-
-The `configure' script now supports the `--prefix=<some_directory>'
-option, which allows you to specify the directory where you want to
-install the include files, the library, and some other files. The
-default is still the top level directory of the SystemC
-distribution. Check the `INSTALL' file for details.
-
-
-7) Known limitations
+4) Known limitations
 ====================
 
 Here is a list of known limitations in this release:
@@ -257,13 +335,74 @@ Here is a list of known limitations in this release:
       o Bit-selects and part-selects on signals and signal ports are not
         yet supported.
       o Delayed write on signals and signal ports are not yet supported.
-      o Various type conversion functions between data types have not yet
-        been implemented.
-      o Various bugs in the data types have not been fixed yet.
+
+  - Concatenation of the arbitrary size integer types (sc_bigint,
+    sc_biguint, sc_signed, sc_unsigned) is not yet implemented. Dummy
+    functions are in place to produce a run-time error message in case 
+    concatenation of these types is requested.
 
 
-8) Fixed-point library
+5) Beta features
+================
+
+In this section the beta features of this release are listed.
+
+  - exported sc_fifo events and static sensitivity for sc_fifo events
+
+
+6) Deprecated features
 ======================
+
+In this section the deprecated features of this release are listed.
+
+  - deprecated but fully functional
+
+    o sc_logic_0, sc_logic_1, sc_logic_Z, and sc_logic_X are
+      deprecated. Instead SC_LOGIC_0, SC_LOGIC_1, SC_LOGIC_Z, and
+      SC_LOGIC_X should be used.
+
+    o The SC_CTHREAD clocked thread process type is deprecated. There
+      is not yet a full replacement, but you are encouraged to use the 
+      SC_THREAD and SC_METHOD process types instead where possible.
+      Until there is a full replacement for the SC_CTHREAD process
+      type it will stay fully functional.
+
+    o The sensitive_pos and sensitive_neg statements are deprecated.
+      Instead use the pos() and neg() methods of the signal ports,
+      e.g.
+
+        sensitive << clk.pos(); // sensitive to the positive edge of clk
+
+        sensitive << clk.neg(); // sensitive to the negative edge of clk
+
+    o The sc_bit datatype is deprecated. Use type 'bool' instead,
+      where possible.
+
+  - deprecated and only functional when defining SC_DT_DEPRECATED
+
+    o The to_signed() and to_unsigned() methods defined in some
+      datatypes are deprecated. Use the to_int() and to_uint() methods
+      instead.
+
+    o The sc_bv_base constructors from datatypes sc_signed,
+      sc_unsigned, sc_int_base, and sc_uint_base are deprecated.
+
+    o The sc_lv_base constructors from datatypes sc_signed,
+      sc_unsigned, sc_int_base, and sc_uint_base are deprecated.
+
+    o The bitwidth() method defined in some datatypes is deprecated.
+      Use the length() method instead.
+
+  - deprecated and removed
+
+    o The ! operator of datatype sc_logic is deprecated. Use the ~
+      operator instead.
+
+
+7) Fixed-point library
+======================
+
+(No change with 2.0 Production.)
 
 SystemC contains a fixed-point datatypes package.
 
@@ -282,4 +421,3 @@ If you want to use the fixed-point data types only (i.e., not data-
 types sc_int, sc_uint, sc_bigint, sc_biguint), compilation time can be
 reduced by defining compile-time macro SC_FX_EXCLUDE_OTHER (in addition
 to SC_INCLUDE_FX).
-

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -71,8 +71,7 @@ sc_attr_base::name() const
 //  CLASS : sc_attr_cltn
 //
 //  Attribute collection class. Stores pointers to attributes.
-//  Note: iterate over the collection by using size() and the index methods.
-//  Beware: the index of an attribute can change!
+//  Note: iterate over the collection by using iterators.
 // ----------------------------------------------------------------------------
 
 // constructors
@@ -112,7 +111,7 @@ sc_attr_cltn::push_back( sc_attr_base* attribute_ )
 }
 
 
-// get attribute by name or index.
+// get attribute by name.
 // returns pointer to attribute, or 0 if name does not exist.
 
 sc_attr_base*
@@ -138,7 +137,7 @@ sc_attr_cltn::operator [] ( const sc_string& name_ ) const
 }
 
 
-// remove attribute by name or index.
+// remove attribute by name.
 // returns pointer to attribute, or 0 if name does not exist.
 
 sc_attr_base*

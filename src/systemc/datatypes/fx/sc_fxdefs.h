@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -33,15 +33,17 @@
 
  *****************************************************************************/
 
-
 #ifndef SC_FXDEFS_H
 #define SC_FXDEFS_H
 
 
+#include "systemc/datatypes/fx/sc_fx_ids.h"
 #include "systemc/datatypes/int/sc_nbutils.h"
 #include "systemc/utils/sc_string.h"
-#include "systemc/datatypes/fx/sc_report.h"
 
+
+namespace sc_dt
+{
 
 // ----------------------------------------------------------------------------
 //  ENUM : sc_enc
@@ -230,32 +232,14 @@ const int SC_DEFAULT_MAX_WL_ = SC_BUILTIN_MAX_WL_;
 
 
 // ----------------------------------------------------------------------------
-//  Predefined report ids.
-// ----------------------------------------------------------------------------
-
-extern const char* SC_ID_NO_DEFN_;
-extern const char* SC_ID_INTERNAL_ERROR_;
-extern const char* SC_ID_INVALID_WL_;
-extern const char* SC_ID_INVALID_N_BITS_;
-extern const char* SC_ID_INVALID_DIV_WL_;
-extern const char* SC_ID_INVALID_CTE_WL_;
-extern const char* SC_ID_INVALID_MAX_WL_;
-extern const char* SC_ID_INVALID_VALUE_;
-extern const char* SC_ID_INVALID_O_MODE_;
-extern const char* SC_ID_OUT_OF_RANGE_;
-extern const char* SC_ID_CONTEXT_BEGIN_FAILED_;
-extern const char* SC_ID_CONTEXT_END_FAILED_;
-
-
-// ----------------------------------------------------------------------------
-//  Predefined error reporting and checking.
+//  Dedicated error reporting and checking.
 // ----------------------------------------------------------------------------
 
 #ifdef DEBUG_SYSTEMC
 #define SC_ASSERT_(cnd,msg)                                                   \
 {                                                                             \
     if( ! (cnd) )                                                             \
-	sc_report::error( SC_ID_INTERNAL_ERROR_, msg );                       \
+        SC_REPORT_ERROR( SC_ID_INTERNAL_ERROR_, msg );                        \
 }
 #else
 #define SC_ASSERT_(cnd,msg)
@@ -264,12 +248,9 @@ extern const char* SC_ID_CONTEXT_END_FAILED_;
 #define SC_ERROR_IF_(cnd,id)                                                  \
 {                                                                             \
     if( cnd )                                                                 \
-	sc_report::error( id );                                               \
+        SC_REPORT_ERROR( id, 0 );                                             \
 }
 
-
-#define SC_NO_DEFN_                                                           \
-    sc_report::fatal( SC_ID_NO_DEFN_ );
 
 #define SC_CHECK_WL_(wl)                                                      \
     SC_ERROR_IF_( (wl) <= 0, SC_ID_INVALID_WL_ )
@@ -306,6 +287,8 @@ extern const char* SC_ID_CONTEXT_END_FAILED_;
     if( m_observer == 0 && observer_type ## ::default_observer != 0 )         \
         m_observer = (* ## observer_type ## ::default_observer)();            \
 }
+
+} // namespace sc_dt
 
 
 #endif

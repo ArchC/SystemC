@@ -78,15 +78,15 @@ VERSION = @VERSION@
 
 noinst_LIBRARIES = libkernel.a
 
-H_FILES =  	sc_attribute.h 	sc_cmnhdr.h 	sc_constants.h 	sc_event.h 	sc_externs.h 	sc_lambda.h 	sc_lambda_defs.h 	sc_lambda_exps.h 	sc_lambda_friends.h 	sc_macros.h 	sc_module.h 	sc_module_name.h 	sc_object.h 	sc_process.h 	sc_process_b.h 	sc_runnable.h 	sc_sensitive.h 	sc_simcontext.h 	sc_time.h 	sc_ver.h 	sc_wait.h 	sc_wait_cthread.h
+H_FILES =  	sc_attribute.h 	sc_cmnhdr.h 	sc_constants.h 	sc_cor.h 	sc_event.h 	sc_externs.h 	sc_kernel_ids.h 	sc_lambda.h 	sc_lambda_defs.h 	sc_lambda_exps.h 	sc_lambda_friends.h 	sc_macros.h 	sc_module.h 	sc_module_name.h 	sc_object.h 	sc_process.h 	sc_process_b.h 	sc_runnable.h 	sc_sensitive.h 	sc_simcontext.h 	sc_time.h 	sc_ver.h 	sc_wait.h 	sc_wait_cthread.h
 
 
-NO_H_FILES =  	sc_context_switch.h 	sc_except.h 	sc_macros_int.h 	sc_measure.h 	sc_module_registry.h 	sc_name_gen.h 	sc_object_manager.h 	sc_process_int.h 	sc_simcontext_int.h
+NO_H_FILES =  	sc_cor_fiber.h 	sc_cor_qt.h 	sc_except.h 	sc_macros_int.h 	sc_module_registry.h 	sc_name_gen.h 	sc_object_manager.h 	sc_process_int.h 	sc_simcontext_int.h
 
 
 noinst_HEADERS = $(H_FILES)
 
-CXX_FILES =  	sc_attribute.cpp 	sc_context_switch.cpp 	sc_event.cpp 	sc_lambda.cpp 	sc_main.cpp 	sc_measure.cpp 	sc_module.cpp 	sc_module_name.cpp 	sc_module_registry.cpp 	sc_name_gen.cpp 	sc_object.cpp 	sc_object_manager.cpp 	sc_process_int.cpp 	sc_runnable.cpp 	sc_sensitive.cpp 	sc_simcontext.cpp 	sc_time.cpp 	sc_ver.cpp 	sc_wait.cpp 	sc_wait_cthread.cpp
+CXX_FILES =  	sc_attribute.cpp 	sc_cor_fiber.cpp 	sc_cor_qt.cpp 	sc_event.cpp 	sc_kernel_ids.cpp 	sc_lambda.cpp 	sc_main.cpp 	sc_module.cpp 	sc_module_name.cpp 	sc_module_registry.cpp 	sc_name_gen.cpp 	sc_object.cpp 	sc_object_manager.cpp 	sc_process_int.cpp 	sc_runnable.cpp 	sc_sensitive.cpp 	sc_simcontext.cpp 	sc_time.cpp 	sc_ver.cpp 	sc_wait.cpp 	sc_wait_cthread.cpp
 
 
 NO_CXX_FILES = 
@@ -104,11 +104,11 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libkernel_a_LIBADD = 
-libkernel_a_OBJECTS =  sc_attribute.o sc_context_switch.o sc_event.o \
-sc_lambda.o sc_main.o sc_measure.o sc_module.o sc_module_name.o \
-sc_module_registry.o sc_name_gen.o sc_object.o sc_object_manager.o \
-sc_process_int.o sc_runnable.o sc_sensitive.o sc_simcontext.o sc_time.o \
-sc_ver.o sc_wait.o sc_wait_cthread.o
+libkernel_a_OBJECTS =  sc_attribute.o sc_cor_fiber.o sc_cor_qt.o \
+sc_event.o sc_kernel_ids.o sc_lambda.o sc_main.o sc_module.o \
+sc_module_name.o sc_module_registry.o sc_name_gen.o sc_object.o \
+sc_object_manager.o sc_process_int.o sc_runnable.o sc_sensitive.o \
+sc_simcontext.o sc_time.o sc_ver.o sc_wait.o sc_wait_cthread.o
 AR = ar
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -67,11 +67,11 @@
 #include "systemc/kernel/sc_ver.h"
 #include "systemc/datatypes/bit/sc_bit.h"
 #include "systemc/datatypes/bit/sc_logic.h"
-#include "systemc/datatypes/bit/sc_lv.h"
+#include "systemc/datatypes/bit/sc_lv_base.h"
 #include "systemc/datatypes/int/sc_signed.h"
 #include "systemc/datatypes/int/sc_unsigned.h"
-#include "systemc/datatypes/int/sc_int.h"
-#include "systemc/datatypes/int/sc_uint.h"
+#include "systemc/datatypes/int/sc_int_base.h"
+#include "systemc/datatypes/int/sc_uint_base.h"
 #include "systemc/datatypes/fx/fx.h"
 #include "systemc/tracing/sc_wif_trace.h"
 #include "systemc/utils/sc_string.h"
@@ -408,7 +408,7 @@ protected:
 wif_sc_uint_base_trace::wif_sc_uint_base_trace(const sc_uint_base& object_,
 					       const sc_string& name_,
 					       const sc_string& wif_name_) 
-: wif_trace(name_, wif_name_), object(object_), old_value(object_.bitwidth())
+: wif_trace(name_, wif_name_), object(object_), old_value(object_.length())
 {
     old_value = object;
     wif_type = "BIT";
@@ -424,7 +424,7 @@ void wif_sc_uint_base_trace::write(FILE* f)
     char buf[1000], *buf_ptr = buf;
 
     int bitindex;
-    for(bitindex = object.bitwidth() - 1; bitindex >= 0; --bitindex) {
+    for(bitindex = object.length() - 1; bitindex >= 0; --bitindex) {
         *buf_ptr++ = "01"[(object)[bitindex]];
     }
     *buf_ptr = '\0';
@@ -434,7 +434,7 @@ void wif_sc_uint_base_trace::write(FILE* f)
 
 void wif_sc_uint_base_trace::set_width()
 {
-    bit_width = object.bitwidth();
+    bit_width = object.length();
 }
 
 
@@ -458,7 +458,7 @@ protected:
 wif_sc_int_base_trace::wif_sc_int_base_trace(const sc_int_base& object_,
 					     const sc_string& name_,
 					     const sc_string& wif_name_) 
-: wif_trace(name_, wif_name_), object(object_), old_value(object_.bitwidth())
+: wif_trace(name_, wif_name_), object(object_), old_value(object_.length())
 {
     old_value = object;
     wif_type = "BIT";
@@ -474,7 +474,7 @@ void wif_sc_int_base_trace::write(FILE* f)
     char buf[1000], *buf_ptr = buf;
 
     int bitindex;
-    for(bitindex = object.bitwidth() - 1; bitindex >= 0; --bitindex) {
+    for(bitindex = object.length() - 1; bitindex >= 0; --bitindex) {
         *buf_ptr++ = "01"[(object)[bitindex]];
     }
     *buf_ptr = '\0';
@@ -485,7 +485,7 @@ void wif_sc_int_base_trace::write(FILE* f)
 
 void wif_sc_int_base_trace::set_width()
 {
-    bit_width = object.bitwidth();
+    bit_width = object.length();
 }
 
 
@@ -1492,7 +1492,7 @@ void wif_trace_file::initialize()
     running_regression = ( getenv( "SYSTEMC_REGRESSION" ) != NULL );
     // Don't print message if running regression
     if( ! timescale_set_by_user && ! running_regression ) {
-	cout << "WARNING: Default time step is used for WIF tracing.\n";
+	cout << "WARNING: Default time step is used for WIF tracing." << endl;
     }
 
     // Define the two types we need to represent bool and sc_logic
@@ -1569,7 +1569,7 @@ void wif_trace_file::sc_set_wif_time_unit(int exponent10_seconds)
     sprintf(buf,
 	    "Note: WIF trace timescale unit is set by user to 1e%d sec.\n",
 	    exponent10_seconds);
-    cout << buf;
+    cout << buf << flush;
     timescale_set_by_user = true;
 }
 
@@ -1836,10 +1836,10 @@ void
 wif_put_error_message(const char* msg, bool just_warning)
 {
     if(just_warning){
-	cout << "WIF Trace Warning:\n" << msg << "\n\n";
+	cout << "WIF Trace Warning:\n" << msg << "\n" << endl;
     }
     else{
-	cout << "WIF Trace ERROR:\n" << msg << "\n\n";
+	cout << "WIF Trace ERROR:\n" << msg << "\n" << endl;
     }
 }
 

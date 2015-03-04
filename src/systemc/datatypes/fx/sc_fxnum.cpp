@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -39,6 +39,9 @@
 #include "systemc/datatypes/fx/sc_fxnum.h"
 
 
+namespace sc_dt
+{
+
 // ----------------------------------------------------------------------------
 //  CLASS : sc_fxnum_bitref
 //
@@ -63,10 +66,15 @@ sc_fxnum_bitref::set( bool high )
 void
 sc_fxnum_bitref::print( ostream& os ) const
 {
-    if( get() )
-	os << "1";
-    else
-	os << "0";
+    os << get();
+}
+
+void
+sc_fxnum_bitref::scan( istream& is )
+{
+    bool b;
+    is >> b;
+    *this = b;
 }
 
 void
@@ -105,10 +113,15 @@ sc_fxnum_fast_bitref::set( bool high )
 void
 sc_fxnum_fast_bitref::print( ostream& os ) const
 {
-    if( get() )
-	os << "1";
-    else
-	os << "0";
+    os << get();
+}
+
+void
+sc_fxnum_fast_bitref::scan( istream& is )
+{
+    bool b;
+    is >> b;
+    *this = b;
 }
 
 void
@@ -150,6 +163,13 @@ sc_fxnum_subref::print( ostream& os ) const
 {
     get();
     m_bv.print( os );
+}
+
+void
+sc_fxnum_subref::scan( istream& is )
+{
+    m_bv.scan( is );
+    set();
 }
 
 void
@@ -195,6 +215,13 @@ sc_fxnum_fast_subref::print( ostream& os ) const
 }
 
 void
+sc_fxnum_fast_subref::scan( istream& is )
+{
+    m_bv.scan( is );
+    set();
+}
+
+void
 sc_fxnum_fast_subref::dump( ostream& os ) const
 {
     os << "sc_fxnum_fast_subref" << endl;
@@ -218,50 +245,64 @@ sc_fxnum_fast_subref::dump( ostream& os ) const
 const sc_string
 sc_fxnum::to_string() const
 {
-    return sc_string( m_rep->to_string( SC_DEC, SC_F, &m_params ) );
+    return sc_string( m_rep->to_string( SC_DEC, -1, SC_F, &m_params ) );
 }
 
 const sc_string
 sc_fxnum::to_string( sc_numrep numrep ) const
 {
-    return sc_string( m_rep->to_string( numrep, SC_F, &m_params ) );
+    return sc_string( m_rep->to_string( numrep, -1, SC_F, &m_params ) );
+}
+
+const sc_string
+sc_fxnum::to_string( sc_numrep numrep, bool w_prefix ) const
+{
+    return sc_string( m_rep->to_string( numrep, (w_prefix ? 1 : 0),
+					SC_F, &m_params ) );
 }
 
 const sc_string
 sc_fxnum::to_string( sc_fmt fmt ) const
 {
-    return sc_string( m_rep->to_string( SC_DEC, fmt, &m_params ) );
+    return sc_string( m_rep->to_string( SC_DEC, -1, fmt, &m_params ) );
 }
 
 const sc_string
 sc_fxnum::to_string( sc_numrep numrep, sc_fmt fmt ) const
 {
-    return sc_string( m_rep->to_string( numrep, fmt, &m_params ) );
+    return sc_string( m_rep->to_string( numrep, -1, fmt, &m_params ) );
+}
+
+const sc_string
+sc_fxnum::to_string( sc_numrep numrep, bool w_prefix, sc_fmt fmt ) const
+{
+    return sc_string( m_rep->to_string( numrep, (w_prefix ? 1 : 0),
+					fmt, &m_params ) );
 }
 
 
 const sc_string
 sc_fxnum::to_dec() const
 {
-    return sc_string( m_rep->to_string( SC_DEC, SC_F, &m_params ) );
+    return sc_string( m_rep->to_string( SC_DEC, -1, SC_F, &m_params ) );
 }
 
 const sc_string
 sc_fxnum::to_bin() const
 {
-    return sc_string( m_rep->to_string( SC_BIN, SC_F, &m_params ) );
+    return sc_string( m_rep->to_string( SC_BIN, -1, SC_F, &m_params ) );
 }
 
 const sc_string
 sc_fxnum::to_oct() const
 {
-    return sc_string( m_rep->to_string( SC_OCT, SC_F, &m_params ) );
+    return sc_string( m_rep->to_string( SC_OCT, -1, SC_F, &m_params ) );
 }
 
 const sc_string
 sc_fxnum::to_hex() const
 {
-    return sc_string( m_rep->to_string( SC_HEX, SC_F, &m_params ) );
+    return sc_string( m_rep->to_string( SC_HEX, -1, SC_F, &m_params ) );
 }
 
 
@@ -270,7 +311,15 @@ sc_fxnum::to_hex() const
 void
 sc_fxnum::print( ostream& os ) const
 {
-    os << m_rep->to_string( SC_DEC, SC_F, &m_params );
+    os << m_rep->to_string( SC_DEC, -1, SC_F, &m_params );
+}
+
+void
+sc_fxnum::scan( istream& is )
+{
+    sc_string s;
+    is >> s;
+    *this = s.c_str();
 }
 
 void
@@ -488,7 +537,7 @@ overflow( double& c, const scfx_params& params, bool& o_flag )
             case SC_WRAP_SM:			// sign magnitude wrap-around
 	    {
 		SC_ERROR_IF_( params.enc() == SC_US_,
-			      "SC_WRAP_SM not defined for unsigned numbers" );
+			      SC_ID_WRAP_SM_NOT_DEFINED_ );
 	
 		int n_bits = params.n_bits();
 
@@ -554,7 +603,7 @@ void
 sc_fxnum_fast::cast()
 {
     scfx_ieee_double id( m_val );
-    SC_ERROR_IF_( id.is_nan() || id.is_inf(), SC_ID_INVALID_VALUE_ );
+    SC_ERROR_IF_( id.is_nan() || id.is_inf(), SC_ID_INVALID_FX_VALUE_ );
 
     if( m_params.cast_switch() == SC_ON )
     {
@@ -572,8 +621,8 @@ sc_fxnum_fast::cast()
 
 	// perform casting
 
-	::quantization( m_val, m_params, m_q_flag );
-	::overflow( m_val, m_params, m_o_flag );
+	sc_dt::quantization( m_val, m_params, m_q_flag );
+	sc_dt::overflow( m_val, m_params, m_o_flag );
 
 	// check for special case: -0
 
@@ -596,6 +645,7 @@ extern
 const char*
 to_string( const scfx_ieee_double&,
 	   sc_numrep,
+	   int,
 	   sc_fmt,
 	   const scfx_params* = 0 );
 
@@ -605,50 +655,64 @@ to_string( const scfx_ieee_double&,
 const sc_string
 sc_fxnum_fast::to_string() const
 {
-    return sc_string( ::to_string( m_val, SC_DEC, SC_F, &m_params ) );
+    return sc_string( sc_dt::to_string( m_val, SC_DEC, -1, SC_F, &m_params ) );
 }
 
 const sc_string
 sc_fxnum_fast::to_string( sc_numrep numrep ) const
 {
-    return sc_string( ::to_string( m_val, numrep, SC_F, &m_params ) );
+    return sc_string( sc_dt::to_string( m_val, numrep, -1, SC_F, &m_params ) );
+}
+
+const sc_string
+sc_fxnum_fast::to_string( sc_numrep numrep, bool w_prefix ) const
+{
+    return sc_string( sc_dt::to_string( m_val, numrep, (w_prefix ? 1 : 0),
+					SC_F, &m_params ) );
 }
 
 const sc_string
 sc_fxnum_fast::to_string( sc_fmt fmt ) const
 {
-    return sc_string( ::to_string( m_val, SC_DEC, fmt, &m_params ) );
+    return sc_string( sc_dt::to_string( m_val, SC_DEC, -1, fmt, &m_params ) );
 }
 
 const sc_string
 sc_fxnum_fast::to_string( sc_numrep numrep, sc_fmt fmt ) const
 {
-    return sc_string( ::to_string( m_val, numrep, fmt, &m_params ) );
+    return sc_string( sc_dt::to_string( m_val, numrep, -1, fmt, &m_params ) );
+}
+
+const sc_string
+sc_fxnum_fast::to_string( sc_numrep numrep, bool w_prefix, sc_fmt fmt ) const
+{
+    return sc_string( sc_dt::to_string( m_val, numrep, (w_prefix ? 1 : 0),
+					fmt, &m_params ) );
 }
 
 
 const sc_string
 sc_fxnum_fast::to_dec() const
 {
-    return sc_string( ::to_string( m_val, SC_DEC, SC_F, &m_params ) );
+    return sc_string( sc_dt::to_string( m_val, SC_DEC, -1, SC_F, &m_params ) );
 }
 
 const sc_string
 sc_fxnum_fast::to_bin() const
 {
-    return sc_string( ::to_string( m_val, SC_BIN, SC_F, &m_params ) );
+    return sc_string( sc_dt::to_string( m_val, SC_BIN, -1, SC_F, &m_params ) );
 }
 
 const sc_string
 sc_fxnum_fast::to_oct() const
 {
-    return sc_string( ::to_string( m_val, SC_OCT, SC_F, &m_params ) );
+    return sc_string( sc_dt::to_string( m_val, SC_OCT, -1, SC_F, &m_params ) );
 }
 
 const sc_string
 sc_fxnum_fast::to_hex() const
 {
-    return sc_string( ::to_string( m_val, SC_HEX, SC_F, &m_params ) );
+    return sc_string( sc_dt::to_string( m_val, SC_HEX, -1, SC_F, &m_params ) );
 }
 
 
@@ -657,7 +721,15 @@ sc_fxnum_fast::to_hex() const
 void
 sc_fxnum_fast::print( ostream& os ) const
 {
-    os << ::to_string( m_val, SC_DEC, SC_F, &m_params );
+    os << sc_dt::to_string( m_val, SC_DEC, -1, SC_F, &m_params );
+}
+
+void
+sc_fxnum_fast::scan( istream& is )
+{
+    sc_string s;
+    is >> s;
+    *this = s.c_str();
 }
 
 void
@@ -815,7 +887,7 @@ sc_fxnum_fast::set_slice( int i, int j, const sc_bv_base& bv )
     int l = j;
     for( int k = 0; k < bv.length(); ++ k )
     {
-	if( bv[k] )
+	if( bv[k].to_bool() )
 	{
 	    if( ! get_bit( l ) )
 	    {
@@ -862,6 +934,8 @@ sc_fxnum_fast::unlock_observer( sc_fxnum_fast_observer* observer_ ) const
     SC_ASSERT_( observer_ != 0, "unlock observer failed" );
     m_observer = observer_;
 }
+
+} // namespace sc_dt
 
 
 // Taf!

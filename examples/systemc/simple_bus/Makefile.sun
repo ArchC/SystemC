@@ -1,0 +1,19 @@
+TARGET_ARCH = sparcOS5
+
+CC     = CC
+OPT    = -O3
+DEBUG  = -g
+OTHER  =
+CFLAGS = $(OPT) $(OTHER)
+# CFLAGS = $(DEBUG) $(OTHER)
+
+MODULE = simple_bus
+
+include Makefile.srcs
+
+OBJS = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs
+
+clean::
+	rm -rf SunWS_cache

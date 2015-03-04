@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -626,13 +626,11 @@ default_str_hash_fn(const void* p)
     return h;
 }
 
-#ifdef __EDG__
-static char*				// non standard
-strdup( const char *old )
+int
+sc_strhash_cmp( const void* a, const void* b )
 {
-    return strcpy((char *)malloc( strlen(old) + 1), old );
+    return strcmp( (const char*) a, (const char*) b );
 }
-#endif
 
 void*
 sc_strhash_kdup(const void* k)

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -39,7 +39,8 @@
 #include "systemc/communication/sc_signal.h"
 #include "systemc/datatypes/bit/sc_lv.h"
 
-using sc_bv_ns::sc_lv;
+using sc_dt::sc_logic_value_t;
+using sc_dt::sc_lv;
 
 class sc_process_b;
 
@@ -50,7 +51,7 @@ class sc_process_b;
 //  Resolution function for sc_lv<W>.
 // ----------------------------------------------------------------------------
 
-extern const sc_logic::Log_enum sc_logic_resolution_tbl[4][4];
+extern const sc_logic_value_t sc_logic_resolution_tbl[4][4];
 
 
 template <int W>
@@ -71,7 +72,7 @@ template <int W>
 inline
 void
 sc_lv_resolve<W>::resolve( sc_lv<W>& result_,
-			    const sc_pvector<sc_lv<W>*>& values_ )
+			   const sc_pvector<sc_lv<W>*>& values_ )
 {
     int sz = values_.size();
 
@@ -83,11 +84,11 @@ sc_lv_resolve<W>::resolve( sc_lv<W>& result_,
     }
 
     for( int j = result_.length() - 1; j >= 0; -- j ) {
-	long res = (*values_[0])[j].to_long();
+	sc_logic_value_t res = (*values_[0])[j].value();
 	for( int i = sz - 1; i > 0 && res != 3; -- i ) {
-	    res = sc_logic_resolution_tbl[res][(*values_[i])[j].to_long()];
+	    res = sc_logic_resolution_tbl[res][(*values_[i])[j].value()];
 	}
-	result_[j] = static_cast<sc_logic::Log_enum>( res );
+	result_[j] = res;
     }
 }
 

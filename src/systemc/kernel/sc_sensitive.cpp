@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -36,6 +36,7 @@
 
 
 #include "systemc/kernel/sc_event.h"
+#include "systemc/kernel/sc_kernel_ids.h"
 #include "systemc/kernel/sc_module.h"
 #include "systemc/kernel/sc_process_int.h"
 #include "systemc/kernel/sc_sensitive.h"
@@ -104,7 +105,7 @@ sc_sensitive::operator () ( const sc_event& event_ )
 {
     // check
     if( m_module->simcontext()->is_running() ) {
-	REPORT_ERROR( 6021, "simulation running" );
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_, "simulation running" );
     }
 
     // make sensitive
@@ -127,7 +128,7 @@ sc_sensitive::operator () ( const sc_interface& interface_ )
 {
     // check
     if( m_module->simcontext()->is_running() ) {
-	REPORT_ERROR( 6021, "simulation running" );
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_, "simulation running" );
     }
 
     // make sensitive
@@ -150,7 +151,7 @@ sc_sensitive::operator () ( const sc_port_base& port_ )
 {
     // check
     if( m_module->simcontext()->is_running() ) {
-	REPORT_ERROR( 6021, "simulation running" );
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_, "simulation running" );
     }
 
     // make sensitive
@@ -176,7 +177,7 @@ sc_sensitive::operator () ( sc_event_finder& event_finder_ )
 {
     // check
     if( m_module->simcontext()->is_running() ) {
-	REPORT_ERROR( 6021, "simulation running" );
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_, "simulation running" );
     }
 
     // make sensitive
@@ -235,7 +236,7 @@ sc_sensitive::operator () ( sc_cthread_handle handle_,
 
 sc_sensitive&
 sc_sensitive::operator () ( sc_cthread_handle handle_,
-			    const in_if_type& interface_ )
+			    const in_if_b_type& interface_ )
 {
     handle_->add_static_event( interface_.posedge_event() );
     return *this;
@@ -243,7 +244,15 @@ sc_sensitive::operator () ( sc_cthread_handle handle_,
 
 sc_sensitive&
 sc_sensitive::operator () ( sc_cthread_handle handle_,
-			    const in_port_type& port_ )
+			    const in_if_l_type& interface_ )
+{
+    handle_->add_static_event( interface_.posedge_event() );
+    return *this;
+}
+
+sc_sensitive&
+sc_sensitive::operator () ( sc_cthread_handle handle_,
+			    const in_port_b_type& port_ )
 {
     port_.make_sensitive( handle_, &port_.pos() );
     return *this;
@@ -251,7 +260,23 @@ sc_sensitive::operator () ( sc_cthread_handle handle_,
 
 sc_sensitive&
 sc_sensitive::operator () ( sc_cthread_handle handle_,
-			    const inout_port_type& port_ )
+			    const in_port_l_type& port_ )
+{
+    port_.make_sensitive( handle_, &port_.pos() );
+    return *this;
+}
+
+sc_sensitive&
+sc_sensitive::operator () ( sc_cthread_handle handle_,
+			    const inout_port_b_type& port_ )
+{
+    port_.make_sensitive( handle_, &port_.pos() );
+    return *this;
+}
+
+sc_sensitive&
+sc_sensitive::operator () ( sc_cthread_handle handle_,
+			    const inout_port_l_type& port_ )
 {
     port_.make_sensitive( handle_, &port_.pos() );
     return *this;
@@ -299,11 +324,11 @@ sc_sensitive_pos::operator << ( sc_thread_handle handle_ )
 
 
 sc_sensitive_pos&
-sc_sensitive_pos::operator () ( const in_if_type& interface_ )
+sc_sensitive_pos::operator () ( const in_if_b_type& interface_ )
 {
     // check
     if( m_module->simcontext()->is_running() ) {
-	REPORT_ERROR( 6022, "simulation running" );
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_POS_, "simulation running" );
     }
 
     // make sensitive
@@ -322,11 +347,34 @@ sc_sensitive_pos::operator () ( const in_if_type& interface_ )
 }
 
 sc_sensitive_pos&
-sc_sensitive_pos::operator () ( const in_port_type& port_ )
+sc_sensitive_pos::operator () ( const in_if_l_type& interface_ )
 {
     // check
     if( m_module->simcontext()->is_running() ) {
-	REPORT_ERROR( 6022, "simulation running" );
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_POS_, "simulation running" );
+    }
+
+    // make sensitive
+    switch( m_mode ) {
+    case SC_METHOD_:
+    case SC_THREAD_: {
+	m_handle->add_static_event( interface_.posedge_event() );
+	break;
+    }
+    case SC_NONE_:
+        /* do nothing */
+        break;
+    }
+
+    return *this;
+}
+
+sc_sensitive_pos&
+sc_sensitive_pos::operator () ( const in_port_b_type& port_ )
+{
+    // check
+    if( m_module->simcontext()->is_running() ) {
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_POS_, "simulation running" );
     }
 
     // make sensitive
@@ -348,11 +396,63 @@ sc_sensitive_pos::operator () ( const in_port_type& port_ )
 }
 
 sc_sensitive_pos&
-sc_sensitive_pos::operator () ( const inout_port_type& port_ )
+sc_sensitive_pos::operator () ( const in_port_l_type& port_ )
 {
     // check
     if( m_module->simcontext()->is_running() ) {
-	REPORT_ERROR( 6022, "simulation running" );
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_POS_, "simulation running" );
+    }
+
+    // make sensitive
+    switch( m_mode ) {
+    case SC_METHOD_: {
+	port_.make_sensitive( as_method_handle( m_handle ), &port_.pos() );
+	break;
+    }
+    case SC_THREAD_: {
+	port_.make_sensitive( as_thread_handle( m_handle ), &port_.pos() );
+	break;
+    }
+    case SC_NONE_:
+        /* do nothing */
+        break;
+    }
+
+    return *this;
+}
+
+sc_sensitive_pos&
+sc_sensitive_pos::operator () ( const inout_port_b_type& port_ )
+{
+    // check
+    if( m_module->simcontext()->is_running() ) {
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_POS_, "simulation running" );
+    }
+
+    // make sensitive
+    switch( m_mode ) {
+    case SC_METHOD_: {
+	port_.make_sensitive( as_method_handle( m_handle ), &port_.pos() );
+	break;
+    }
+    case SC_THREAD_: {
+	port_.make_sensitive( as_thread_handle( m_handle ), &port_.pos() );
+	break;
+    }
+    case SC_NONE_:
+        /* do nothing */
+        break;
+    }
+
+    return *this;
+}
+
+sc_sensitive_pos&
+sc_sensitive_pos::operator () ( const inout_port_l_type& port_ )
+{
+    // check
+    if( m_module->simcontext()->is_running() ) {
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_POS_, "simulation running" );
     }
 
     // make sensitive
@@ -375,19 +475,37 @@ sc_sensitive_pos::operator () ( const inout_port_type& port_ )
 
 
 sc_sensitive_pos&
-sc_sensitive_pos::operator << ( const in_if_type& interface_ )
+sc_sensitive_pos::operator << ( const in_if_b_type& interface_ )
 {
     return operator () ( interface_ );
 }
 
 sc_sensitive_pos&
-sc_sensitive_pos::operator << ( const in_port_type& port_ )
+sc_sensitive_pos::operator << ( const in_if_l_type& interface_ )
+{
+    return operator () ( interface_ );
+}
+
+sc_sensitive_pos&
+sc_sensitive_pos::operator << ( const in_port_b_type& port_ )
 {
     return operator () ( port_ );
 }
 
 sc_sensitive_pos&
-sc_sensitive_pos::operator << ( const inout_port_type& port_ )
+sc_sensitive_pos::operator << ( const in_port_l_type& port_ )
+{
+    return operator () ( port_ );
+}
+
+sc_sensitive_pos&
+sc_sensitive_pos::operator << ( const inout_port_b_type& port_ )
+{
+    return operator () ( port_ );
+}
+
+sc_sensitive_pos&
+sc_sensitive_pos::operator << ( const inout_port_l_type& port_ )
 {
     return operator () ( port_ );
 }
@@ -434,11 +552,11 @@ sc_sensitive_neg::operator << ( sc_thread_handle handle_ )
 
 
 sc_sensitive_neg&
-sc_sensitive_neg::operator () ( const in_if_type& interface_ )
+sc_sensitive_neg::operator () ( const in_if_b_type& interface_ )
 {
     // check
     if( m_module->simcontext()->is_running() ) {
-	REPORT_ERROR( 6023, "simulation running" );
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_NEG_, "simulation running" );
     }
 
     // make sensitive
@@ -457,11 +575,34 @@ sc_sensitive_neg::operator () ( const in_if_type& interface_ )
 }
 
 sc_sensitive_neg&
-sc_sensitive_neg::operator () ( const in_port_type& port_ )
+sc_sensitive_neg::operator () ( const in_if_l_type& interface_ )
 {
     // check
     if( m_module->simcontext()->is_running() ) {
-	REPORT_ERROR( 6023, "simulation running" );
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_NEG_, "simulation running" );
+    }
+
+    // make sensitive
+    switch( m_mode ) {
+    case SC_METHOD_:
+    case SC_THREAD_: {
+	m_handle->add_static_event( interface_.negedge_event() );
+	break;
+    }
+    case SC_NONE_:
+        /* do nothing */
+        break;
+    }
+
+    return *this;
+}
+
+sc_sensitive_neg&
+sc_sensitive_neg::operator () ( const in_port_b_type& port_ )
+{
+    // check
+    if( m_module->simcontext()->is_running() ) {
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_NEG_, "simulation running" );
     }
 
     // make sensitive
@@ -483,11 +624,63 @@ sc_sensitive_neg::operator () ( const in_port_type& port_ )
 }
 
 sc_sensitive_neg&
-sc_sensitive_neg::operator () ( const inout_port_type& port_ )
+sc_sensitive_neg::operator () ( const in_port_l_type& port_ )
 {
     // check
     if( m_module->simcontext()->is_running() ) {
-	REPORT_ERROR( 6023, "simulation running" );
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_NEG_, "simulation running" );
+    }
+
+    // make sensitive
+    switch( m_mode ) {
+    case SC_METHOD_: {
+	port_.make_sensitive( as_method_handle( m_handle ), &port_.neg() );
+	break;
+    }
+    case SC_THREAD_: {
+	port_.make_sensitive( as_thread_handle( m_handle ), &port_.neg() );
+	break;
+    }
+    case SC_NONE_:
+        /* do nothing */
+        break;
+    }
+
+    return *this;
+}
+
+sc_sensitive_neg&
+sc_sensitive_neg::operator () ( const inout_port_b_type& port_ )
+{
+    // check
+    if( m_module->simcontext()->is_running() ) {
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_NEG_, "simulation running" );
+    }
+
+    // make sensitive
+    switch( m_mode ) {
+    case SC_METHOD_: {
+	port_.make_sensitive( as_method_handle( m_handle ), &port_.neg() );
+	break;
+    }
+    case SC_THREAD_: {
+	port_.make_sensitive( as_thread_handle( m_handle ), &port_.neg() );
+	break;
+    }
+    case SC_NONE_:
+        /* do nothing */
+        break;
+    }
+
+    return *this;
+}
+
+sc_sensitive_neg&
+sc_sensitive_neg::operator () ( const inout_port_l_type& port_ )
+{
+    // check
+    if( m_module->simcontext()->is_running() ) {
+	SC_REPORT_ERROR( SC_ID_MAKE_SENSITIVE_NEG_, "simulation running" );
     }
 
     // make sensitive
@@ -510,19 +703,37 @@ sc_sensitive_neg::operator () ( const inout_port_type& port_ )
 
 
 sc_sensitive_neg&
-sc_sensitive_neg::operator << ( const in_if_type& interface_ )
+sc_sensitive_neg::operator << ( const in_if_b_type& interface_ )
 {
     return operator () ( interface_ );
 }
 
 sc_sensitive_neg&
-sc_sensitive_neg::operator << ( const in_port_type& port_ )
+sc_sensitive_neg::operator << ( const in_if_l_type& interface_ )
+{
+    return operator () ( interface_ );
+}
+
+sc_sensitive_neg&
+sc_sensitive_neg::operator << ( const in_port_b_type& port_ )
 {
     return operator () ( port_ );
 }
 
 sc_sensitive_neg&
-sc_sensitive_neg::operator << ( const inout_port_type& port_ )
+sc_sensitive_neg::operator << ( const in_port_l_type& port_ )
+{
+    return operator () ( port_ );
+}
+
+sc_sensitive_neg&
+sc_sensitive_neg::operator << ( const inout_port_b_type& port_ )
+{
+    return operator () ( port_ );
+}
+
+sc_sensitive_neg&
+sc_sensitive_neg::operator << ( const inout_port_l_type& port_ )
 {
     return operator () ( port_ );
 }

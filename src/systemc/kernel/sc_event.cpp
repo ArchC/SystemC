@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -35,6 +35,7 @@
 
 
 #include "systemc/kernel/sc_event.h"
+#include "systemc/kernel/sc_kernel_ids.h"
 #include "systemc/kernel/sc_process_int.h"
 #include "systemc/kernel/sc_simcontext_int.h"
 
@@ -75,7 +76,7 @@ sc_event::notify()
 {
     // immediate notification
     if( m_simc->update_phase() ) {
-	REPORT_ERROR( 6015, "" );
+	SC_REPORT_ERROR( SC_ID_IMMEDIATE_NOTIFICATION_, "" );
     }
     cancel();
     trigger();

@@ -1,56 +1,32 @@
-		SystemC Class Library (Rel. 2.0)
-                ================================
+		SystemC Class Library (Rel. 2.0.1)
+                ==================================
 
-This is the production release of the SystemC 2.0 Class Library.
+This is the production release of the SystemC 2.0.1 Class Library.
 
 -------------------------------------------------------------------------------
 				IMPORTANT
 
-1. This is the production release of SystemC 2.0. This release
-   contains all functionality of SystemC 1.0.2, and the new SystemC
-   2.0 core language features. It does not contain methodology-specific
-   channels, as were available in SystemC 1.2.1 beta.
+1. This is the production release of SystemC 2.0.1. This release contains bug
+   fixes for SystemC 2.0 Production as well as several other code changes,
+   and it includes the simple bus example, an example of modeling a bus
+   at the transaction level.
 
 2. This release is supported on the following platforms for which it has
    been well tested:
-    o Sun Solaris 2.7 and 2.8 with GNU C++ compiler version 2.95.2
-    o Sun Solaris 2.7 and 2.8 with SC6.1 and SC6.2
-    o Linux (Redhat 6.2) with GNU C++ compiler version 2.95.2
-    o HP-UX 11.00 with aCC C++ compiler versions A.03.31 and A.03.15
+    o Sun Solaris 2.7 and 2.8 with GNU C++ compiler versions gcc-2.95.2 and
+      gcc-2.95.3
+    o Sun Solaris 2.7 and 2.8 with SUN C++ compiler versions SC6.1 and SC6.2
+    o Linux (Redhat 6.2) with GNU C++ compiler versions gcc-2.95.2 and
+      gcc-2.95.3
+    o Linux (Redhat 7.2) with GNU C++ compiler version gcc-2.95.3
+    o HP-UX 11.00 with HP C++ compiler versions A.03.15 and A.03.33
       (Note: +O1 is the highest safe optimization level)
-    o Windows NT 4.0 (SP3 and higher) with VC++ 6.0
+    o Windows NT 4.0 (SP6a) with VC++ 6.0 (SP5)
 
-3. From this release onwards, the SystemC 2.0 core language features
-   (as defined in the 2.0 Functional Specification) will be released
-   separately from the methodology-specific libraries, like the 
-   Master-Slave library. This is being done to ensure that core language
-   developers and library developers can work independently to bring the
-   latest features to the user community, without having to depend on one
-   another. This will allow features and bug fixes to appear quicker. 
-
-   As a result of this separation, all methodology-specific libraries 
-   have to be downloaded separately. You will receive separate tar files
-   for the core language and the methodology-specific libraries. You will
-   have to untar them and build them separately. However, you can install
-   the core language and the the methodology-specific libraries in one
-   location so that all users at your site can have access to an 
-   integrated SystemC library. Please see the INSTALL file of the 
-   methodology-specific library for details on how to do this.
-
-   The methodology-specific Master-Slave Library will be available
-   shortly from the SystemC website.
-
-4. From this release onwards, SystemC releases will not include
-   precompiled libraries anymore. For instructions on how to build
-   and install the SystemC library, see the separate INSTALL file.
-   As an exception, the separate Windows release of SystemC will
-   still include a precompiled library.
+3. From this release onwards, a SystemC regression test suite is also
+   released. The SystemC regression test suite is released separately.
 
 -------------------------------------------------------------------------------
-
-This release does not support SystemC 0.9 specific features anymore.
-In addition, the directory structure has changed and the build process
-has been improved.
 
 For details, see the separate RELEASENOTES file.
 

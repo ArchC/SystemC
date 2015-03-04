@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -28,9 +28,15 @@
   MODIFICATION LOG - modifiers, enter your name, affiliation, date and
   changes you are making here.
 
-      Name, Affiliation, Date:
-  Description of Modification:
-    
+      Name, Affiliation, Date:  Jason Elbaum, Motorola, Inc., 2001-11-12
+  Description of Modification:  Added a static, private, otherwise
+                                unused data member to the sc_in
+                                and sc_inout classes to address
+                                a bug in the GNU compiler *only*.
+                                This works around a bug in g++ 2.95.2
+                                regarding implicit casting from a
+                                templated class to a C++ intrinsic type.
+
  *****************************************************************************/
 
 #ifndef SC_SIGNAL_PORTS_H
@@ -42,6 +48,8 @@
 #include "systemc/communication/sc_signal_ifs.h"
 #include "systemc/datatypes/bit/sc_logic.h"
 #include "systemc/tracing/sc_trace.h"
+
+using sc_dt::sc_logic;
 
 
 // ----------------------------------------------------------------------------
@@ -170,6 +178,18 @@ public:
 
     // interface access shortcut methods
 
+    // get the default event
+
+    const sc_event& default_event() const
+	{ return (*this)->default_event(); }
+
+
+    // get the value changed event
+
+    const sc_event& value_changed_event() const
+	{ return (*this)->value_changed_event(); }
+
+
     // read the current value
 
     const data_type& read() const
@@ -227,6 +247,14 @@ private:
     // disabled
     sc_in( const this_type& );
     this_type& operator = ( const this_type& );
+
+#ifdef __GNUC__
+    // Needed to circumvent a problem in the g++-2.95.2 compiler:
+    // This unused variable forces the compiler to instantiate
+    // an object of T template so an implicit conversion from
+    // read() to a C++ intrinsic data type will work.
+    static data_type dummy;
+#endif
 };
 
 
@@ -419,6 +447,28 @@ public:
 
     // interface access shortcut methods
 
+    // get the default event
+
+    const sc_event& default_event() const
+	{ return (*this)->default_event(); }
+
+
+    // get the value changed event
+
+    const sc_event& value_changed_event() const
+	{ return (*this)->value_changed_event(); }
+
+    // get the positive edge event
+
+    const sc_event& posedge_event() const
+	{ return (*this)->posedge_event(); }
+
+    // get the negative edge event
+
+    const sc_event& negedge_event() const
+	{ return (*this)->negedge_event(); }
+
+
     // read the current value
 
     const data_type& read() const
@@ -507,6 +557,14 @@ private:
     // disabled
     sc_in( const this_type& );
     this_type& operator = ( const this_type& );
+
+#ifdef __GNUC__
+    // Needed to circumvent a problem in the g++-2.95.2 compiler:
+    // This unused variable forces the compiler to instantiate
+    // an object of T template so an implicit conversion from
+    // read() to a C++ intrinsic data type will work.
+    static data_type dummy;
+#endif
 };
 
 
@@ -634,6 +692,28 @@ public:
 
     // interface access shortcut methods
 
+    // get the default event
+
+    const sc_event& default_event() const
+	{ return (*this)->default_event(); }
+
+
+    // get the value changed event
+
+    const sc_event& value_changed_event() const
+	{ return (*this)->value_changed_event(); }
+
+    // get the positive edge event
+
+    const sc_event& posedge_event() const
+	{ return (*this)->posedge_event(); }
+
+    // get the negative edge event
+
+    const sc_event& negedge_event() const
+	{ return (*this)->negedge_event(); }
+
+
     // read the current value
 
     const data_type& read() const
@@ -643,10 +723,37 @@ public:
 	{ return (*this)->read(); }
 
 
+    // use for positive edge sensitivity
+
+    sc_event_finder& pos() const
+    {
+	return *new sc_event_finder_t<in_if_type>(
+	    *this, &in_if_type::posedge_event );
+    }
+
+    // use for negative edge sensitivity
+
+    sc_event_finder& neg() const
+    {
+	return *new sc_event_finder_t<in_if_type>(
+	    *this, &in_if_type::negedge_event );
+    }
+
+
     // was there a value changed event?
 
     bool event() const
 	{ return (*this)->event(); }
+
+    // was there a positive edge event?
+
+    bool posedge() const
+        { return (*this)->posedge(); }
+
+    // was there a negative edge event?
+
+    bool negedge() const
+        { return (*this)->negedge(); }
 
 
     // delayed evaluation
@@ -695,6 +802,14 @@ private:
     // disabled
     sc_in( const this_type& );
     this_type& operator = ( const this_type& );
+
+#ifdef __GNUC__
+    // Needed to circumvent a problem in the g++-2.95.2 compiler:
+    // This unused variable forces the compiler to instantiate
+    // an object of T template so an implicit conversion from
+    // read() to a C++ intrinsic data type will work.
+    static data_type dummy;
+#endif
 };
 
 
@@ -786,6 +901,18 @@ public:
 
     // interface access shortcut methods
 
+    // get the default event
+
+    const sc_event& default_event() const
+	{ return (*this)->default_event(); }
+
+
+    // get the value changed event
+
+    const sc_event& value_changed_event() const
+	{ return (*this)->value_changed_event(); }
+
+
     // read the current value
 
     const data_type& read() const
@@ -870,6 +997,14 @@ private:
 
     // disabled
     sc_inout( const this_type& );
+
+#ifdef __GNUC__
+    // Needed to circumvent a problem in the g++-2.95.2 compiler:
+    // This unused variable forces the compiler to instantiate
+    // an object of T template so an implicit conversion from
+    // read() to a C++ intrinsic data type will work.
+    static data_type dummy;
+#endif
 };
 
 
@@ -1033,6 +1168,28 @@ public:
 
     // interface access shortcut methods
 
+    // get the default event
+
+    const sc_event& default_event() const
+	{ return (*this)->default_event(); }
+
+
+    // get the value changed event
+
+    const sc_event& value_changed_event() const
+	{ return (*this)->value_changed_event(); }
+
+    // get the positive edge event
+
+    const sc_event& posedge_event() const
+	{ return (*this)->posedge_event(); }
+
+    // get the negative edge event
+
+    const sc_event& negedge_event() const
+	{ return (*this)->negedge_event(); }
+
+
     // read the current value
 
     const data_type& read() const
@@ -1148,6 +1305,14 @@ private:
 
     // disabled
     sc_inout( const this_type& );
+
+#ifdef __GNUC__
+    // Needed to circumvent a problem in the g++-2.95.2 compiler:
+    // This unused variable forces the compiler to instantiate
+    // an object of T template so an implicit conversion from
+    // read() to a C++ intrinsic data type will work.
+    static data_type dummy;
+#endif
 };
 
 
@@ -1239,6 +1404,28 @@ public:
 
     // interface access shortcut methods
 
+    // get the default event
+
+    const sc_event& default_event() const
+	{ return (*this)->default_event(); }
+
+
+    // get the value changed event
+
+    const sc_event& value_changed_event() const
+	{ return (*this)->value_changed_event(); }
+
+    // get the positive edge event
+
+    const sc_event& posedge_event() const
+	{ return (*this)->posedge_event(); }
+
+    // get the negative edge event
+
+    const sc_event& negedge_event() const
+	{ return (*this)->negedge_event(); }
+
+
     // read the current value
 
     const data_type& read() const
@@ -1248,10 +1435,37 @@ public:
 	{ return (*this)->read(); }
 
 
+    // use for positive edge sensitivity
+
+    sc_event_finder& pos() const
+    {
+	return *new sc_event_finder_t<in_if_type>(
+	    *this, &in_if_type::posedge_event );
+    }
+
+    // use for negative edge sensitivity
+
+    sc_event_finder& neg() const
+    {
+	return *new sc_event_finder_t<in_if_type>(
+	    *this, &in_if_type::negedge_event );
+    }
+
+
     // was there a value changed event?
 
     bool event() const
 	{ return (*this)->event(); }
+
+    // was there a positive edge event?
+
+    bool posedge() const
+        { return (*this)->posedge(); }
+
+    // was there a negative edge event?
+
+    bool negedge() const
+        { return (*this)->negedge(); }
 
 
     // delayed evaluation
@@ -1327,6 +1541,14 @@ private:
 
     // disabled
     sc_inout( const this_type& );
+
+#ifdef __GNUC__
+    // Needed to circumvent a problem in the g++-2.95.2 compiler:
+    // This unused variable forces the compiler to instantiate
+    // an object of T template so an implicit conversion from
+    // read() to a C++ intrinsic data type will work.
+    static data_type dummy;
+#endif
 };
 
 

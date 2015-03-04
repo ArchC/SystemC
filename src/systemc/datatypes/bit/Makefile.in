@@ -78,12 +78,12 @@ VERSION = @VERSION@
 
 noinst_LIBRARIES = libbit.a
 
-H_FILES =  	sc_bit.h 	sc_bit_proxies.h 	sc_bv.h 	sc_logic.h 	sc_lv.h 	sc_proxy.h
+H_FILES =  	sc_bit.h 	sc_bit_ids.h 	sc_bit_proxies.h 	sc_bv.h 	sc_bv_base.h 	sc_logic.h 	sc_lv.h 	sc_lv_base.h 	sc_proxy.h
 
 
 noinst_HEADERS = $(H_FILES)
 
-CXX_FILES =  	sc_bit.cpp 	sc_bv.cpp 	sc_logic.cpp 	sc_lv.cpp
+CXX_FILES =  	sc_bit.cpp 	sc_bit_ids.cpp 	sc_bv_base.cpp 	sc_logic.cpp 	sc_lv_base.cpp
 
 
 NO_CXX_FILES = 
@@ -101,7 +101,8 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 libbit_a_LIBADD = 
-libbit_a_OBJECTS =  sc_bit.o sc_bv.o sc_logic.o sc_lv.o
+libbit_a_OBJECTS =  sc_bit.o sc_bit_ids.o sc_bv_base.o sc_logic.o \
+sc_lv_base.o
 AR = ar
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)

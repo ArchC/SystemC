@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -46,17 +46,9 @@
 #include "systemc/utils/sc_pq.h"
 
 
-#ifndef WIN32
-
-struct qt_t;
-extern "C" {
-    void* sc_simcontext_yieldhelp( qt_t* sp, void* simc, void* );
-}
-
-#endif
-
-
 // forward declarations
+class sc_cor;
+class sc_cor_pkg;
 class sc_event;
 class sc_event_timed;
 class sc_lambda_ptr;
@@ -176,12 +168,9 @@ public:
     bool get_error();
     void set_error();
 
-#ifndef WIN32
-    qt_t* next_thread_qt();
-    friend void* sc_simcontext_yieldhelp( qt_t* sp, void* simc, void* );
-#else
-    PVOID next_thread_fiber();
-#endif
+    sc_cor_pkg* cor_pkg()
+        { return m_cor_pkg; }
+    sc_cor* next_cor();
 
     const sc_pvector<sc_object*>& get_child_objects() const;
 
@@ -242,11 +231,10 @@ private:
     bool                       m_update_phase;
     bool                       m_error;
 
-#ifndef WIN32
-    qt_t*                      m_sp;     // the simcontext's stack pointer
-#else
-    PVOID                      m_fiber;  // the simcontext's fiber
-#endif
+    sc_event*                  m_until_event;
+
+    sc_cor_pkg*                m_cor_pkg; // the simcontext's coroutine package
+    sc_cor*                    m_cor;     // the simcontext's coroutine
 
     void (*m_watching_fn)( const sc_lambda_ptr&, sc_simcontext* );
 
@@ -459,28 +447,6 @@ sc_cycle( double duration )  // in default time units
 {
     sc_cycle( sc_time( duration, true ) );
 }
-
-
-// ----------------------------------------------------------------------------
-//  MACRO : sc_assert(expr)
-//
-//  Like assert(), but additionally prints the current process name
-//  and simulation time, if the simulation is running.
-// ----------------------------------------------------------------------------
-
-extern void sc_assert_fail( const char*, const char*, int );
-
-#ifdef NDEBUG
-
-#define sc_assert(expr)                                                       \
-    ((void) 0)
-
-#else
-
-#define sc_assert(expr)                                                       \
-    ((void) ((expr) ? 0 : (sc_assert_fail( #expr, __FILE__, __LINE__ ), 0)))
-
-#endif
 
 
 #endif

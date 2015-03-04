@@ -1,11 +1,11 @@
 ## ****************************************************************************
 ##
 ##  The following code is derived, directly or indirectly, from the SystemC
-##  source code Copyright (c) 1996-2001 by all Contributors.
+##  source code Copyright (c) 1996-2002 by all Contributors.
 ##  All Rights reserved.
 ##
 ##  The contents of this file are subject to the restrictions and limitations
-##  set forth in the SystemC Open Source License Version 2.2 (the "License");
+##  set forth in the SystemC Open Source License Version 2.3 (the "License");
 ##  You may not use this file except in compliance with such restrictions and
 ##  limitations. You may obtain instructions on how to receive a copy of the
 ##  License at http://www.systemc.org/. Software distributed by Contributors
@@ -38,6 +38,7 @@ H_FILES = \
 	sc_buffer.h \
 	sc_clock.h \
 	sc_clock_ports.h \
+	sc_communication_ids.h \
 	sc_event_finder.h \
 	sc_fifo.h \
 	sc_fifo_ifs.h \
@@ -61,6 +62,7 @@ noinst_HEADERS = $(H_FILES)
 
 CXX_FILES = \
 	sc_clock.cpp \
+	sc_communication_ids.cpp \
 	sc_event_finder.cpp \
 	sc_interface.cpp \
 	sc_mutex.cpp \

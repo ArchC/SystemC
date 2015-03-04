@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -33,31 +33,27 @@
     
  *****************************************************************************/
 
+
 #include "systemc/communication/sc_signal_resolved.h"
+
+using sc_dt::Log_0;
+using sc_dt::Log_1;
+using sc_dt::Log_Z;
+using sc_dt::Log_X;
 
 
 // Note that we assume that two drivers driving the resolved signal to a 1 or
 // 0 is O.K. This might not be true for all technologies, but is certainly
 // true for CMOS, the predominant technology in use today.
 
-#define LOG_0 sc_logic::Log_0
-#define LOG_1 sc_logic::Log_1
-#define LOG_Z sc_logic::Log_Z
-#define LOG_X sc_logic::Log_X
-
-const sc_logic::Log_enum
+const sc_logic_value_t
 sc_logic_resolution_tbl[4][4] =
 {   //    0      1      Z      X
-    { LOG_0, LOG_X, LOG_0, LOG_X }, // 0
-    { LOG_X, LOG_1, LOG_1, LOG_X }, // 1
-    { LOG_0, LOG_1, LOG_Z, LOG_X }, // Z
-    { LOG_X, LOG_X, LOG_X, LOG_X }  // X
+    { Log_0, Log_X, Log_0, Log_X }, // 0
+    { Log_X, Log_1, Log_1, Log_X }, // 1
+    { Log_0, Log_1, Log_Z, Log_X }, // Z
+    { Log_X, Log_X, Log_X, Log_X }  // X
 };
-
-#undef LOG_0
-#undef LOG_1
-#undef LOG_Z
-#undef LOG_X
 
 
 // ----------------------------------------------------------------------------
@@ -70,7 +66,7 @@ sc_logic_resolution_tbl[4][4] =
 
 void
 sc_logic_resolve::resolve( sc_logic& result_,
-			    const sc_pvector<sc_logic*>& values_ )
+			   const sc_pvector<sc_logic*>& values_ )
 {
     int sz = values_.size();
 
@@ -81,11 +77,11 @@ sc_logic_resolve::resolve( sc_logic& result_,
 	return;
     }
 
-    long res = values_[0]->to_long();
+    sc_dt::sc_logic_value_t res = values_[0]->value();
     for( int i = sz - 1; i > 0 && res != 3; -- i ) {
-	res = sc_logic_resolution_tbl[res][values_[i]->to_long()];
+	res = sc_logic_resolution_tbl[res][values_[i]->value()];
     }
-    result_ = static_cast<sc_logic::Log_enum>( res );
+    result_ = res;
 }
 
 

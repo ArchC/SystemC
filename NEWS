@@ -1,4 +1,19 @@
-* SystemC 2.0 (this release)
+* SystemC 2.0.1 (this release)
+  Production release of SystemC 2.0.1
+  - Bug fixes.
+  - Code cleanup.
+  - Simple bus example included.
+  - Platforms supported (changed from 2.0 Production):
+    o Sun Solaris 2.7 and 2.8 with GNU C++ compiler version gcc-2.95.3
+    o Linux (Redhat 6.2) with GNU C++ compiler version gcc-2.95.3
+    o Linux (Redhat 7.2) with GNU C++ compiler version gcc-2.95.3
+    o HP-UX 11.00 with HP C++ compiler version A.03.33
+      (Note: +O1 is the highest safe optimization level)
+    o Windows NT 4.0 (SP6a) with VC++ 6.0 (SP5)
+  - First release of a regression test suite for SystemC.
+    The SystemC regression test suite is released separately.
+
+* SystemC 2.0
   Production release of SystemC 2.0.
   - All new SystemC 2.0 core language features.
   - All SystemC 1.0.2 functionality (except obsoleted SystemC 0.9 features).

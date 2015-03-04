@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -37,11 +37,11 @@
 #define SC_PORT_H
 
 
+#include "systemc/communication/sc_communication_ids.h"
 #include "systemc/communication/sc_interface.h"
 #include "systemc/kernel/sc_event.h"
 #include "systemc/kernel/sc_object.h"
 #include "systemc/kernel/sc_process.h"
-#include "systemc/utils/sc_exception.h"
 #include "systemc/utils/sc_vector.h"
 #include <typeinfo>
 
@@ -115,6 +115,9 @@ protected:
 
     // called by elaboration_done (does nothing)
     virtual void end_of_elaboration();
+
+    // error reporting
+    void report_error( int id, const char* add_msg = 0 ) const;
 
 private:
 
@@ -243,12 +246,8 @@ public:
 
 
     // allow to call methods provided by the first interface
-
-    IF* operator -> ()
-        { assert( m_interface != 0 ); return m_interface; }
-
-    const IF* operator -> () const
-        { assert( m_interface != 0 ); return m_interface; }
+    IF* operator -> ();
+    const IF* operator -> () const;
 
 
     // allow to call methods provided by interface at index
@@ -364,6 +363,12 @@ public:
     virtual ~sc_port()
 	{}
 
+
+    static const char* const kind_string;
+
+    virtual const char* kind() const
+        { return kind_string; }
+
 private:
 
     // disabled
@@ -380,6 +385,31 @@ private:
 //  Abstract base class for class sc_port.
 // ----------------------------------------------------------------------------
 
+// allow to call methods provided by the first interface
+
+template <class IF>
+inline
+IF*
+sc_port_b<IF>::operator -> ()
+{
+    if( m_interface == 0 ) {
+	report_error( SC_ID_GET_IF_, "port is not bound" );
+    }
+    return m_interface;
+}
+
+template <class IF>
+inline
+const IF*
+sc_port_b<IF>::operator -> () const
+{
+    if( m_interface == 0 ) {
+	report_error( SC_ID_GET_IF_, "port is not bound" );
+    }
+    return m_interface;
+}
+
+
 // allow to call methods provided by interface at index
 
 template <class IF>
@@ -388,7 +418,7 @@ IF*
 sc_port_b<IF>::operator [] ( int index_ )
 {
     if( index_ < 0 || index_ >= size() ) {
-	REPORT_ERROR( 7026, "index out of range" );
+	report_error( SC_ID_GET_IF_, "index out of range" );
     }
     return m_interface_vec[index_];
 }
@@ -399,7 +429,7 @@ const IF*
 sc_port_b<IF>::operator [] ( int index_ ) const
 {
     if( index_ < 0 || index_ >= size() ) {
-	REPORT_ERROR( 7026, "index out of range" );
+	report_error( SC_ID_GET_IF_, "index out of range" );
     }
     return m_interface_vec[index_];
 }
@@ -457,6 +487,18 @@ sc_port_b<IF>::if_typename() const
 {
     return typeid( IF ).name();
 }
+
+
+// ----------------------------------------------------------------------------
+//  CLASS : sc_port
+//
+//  Generic port class and base class for other port classes.
+//  N is the maximum number of channels (with interface IF) that can be bound
+//  to this port. N <= 0 means no maximum.
+// ----------------------------------------------------------------------------
+
+template <class IF, int N>
+const char* const sc_port<IF,N>::kind_string = "sc_port";
 
 
 #endif

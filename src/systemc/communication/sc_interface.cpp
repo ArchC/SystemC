@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -33,10 +33,10 @@
     
  *****************************************************************************/
 
-#include "systemc/communication/sc_interface.h"
 
+#include "systemc/communication/sc_interface.h"
+#include "systemc/communication/sc_communication_ids.h"
 #include "systemc/kernel/sc_event.h"
-#include "systemc/utils/sc_exception.h"
 
 
 // ----------------------------------------------------------------------------
@@ -58,7 +58,7 @@ sc_interface::register_port( sc_port_base&, const char* )
 const sc_event&
 sc_interface::default_event() const
 {
-    REPORT_WARNING( 7051, "" );
+    SC_REPORT_WARNING( SC_ID_NO_DEFAULT_EVENT_, 0 );
     return m_never_notified;
 }
 

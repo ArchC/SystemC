@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -42,6 +42,12 @@
 #include "systemc/kernel/sc_process.h"
 
 
+namespace sc_dt
+{
+    class sc_logic;
+}
+using sc_dt::sc_logic;
+
 class sc_event;
 class sc_event_finder;
 class sc_interface;
@@ -49,7 +55,6 @@ class sc_port_base;
 template <class T> class sc_in;
 template <class T> class sc_inout;
 template <class T> class sc_signal_in_if;
-template <class T> class sc_signal_inout_if;
 
 
 // ----------------------------------------------------------------------------
@@ -65,10 +70,12 @@ class sc_sensitive
 public:
 
     // typedefs
-    typedef sc_signal_in_if<bool>    in_if_type;
-    typedef sc_signal_inout_if<bool> inout_if_type;
-    typedef sc_in<bool>              in_port_type;
-    typedef sc_inout<bool>           inout_port_type;
+    typedef sc_signal_in_if<bool>     in_if_b_type;
+    typedef sc_signal_in_if<sc_logic> in_if_l_type;
+    typedef sc_in<bool>               in_port_b_type;
+    typedef sc_in<sc_logic>           in_port_l_type;
+    typedef sc_inout<bool>            inout_port_b_type;
+    typedef sc_inout<sc_logic>        inout_port_l_type;
 
 private:
 
@@ -95,9 +102,12 @@ public:
     sc_sensitive& operator << ( sc_event_finder& );
 
     sc_sensitive& operator () ( sc_cthread_handle, sc_event_finder& );
-    sc_sensitive& operator () ( sc_cthread_handle, const in_if_type& );
-    sc_sensitive& operator () ( sc_cthread_handle, const in_port_type& );
-    sc_sensitive& operator () ( sc_cthread_handle, const inout_port_type& );
+    sc_sensitive& operator () ( sc_cthread_handle, const in_if_b_type& );
+    sc_sensitive& operator () ( sc_cthread_handle, const in_if_l_type& );
+    sc_sensitive& operator () ( sc_cthread_handle, const in_port_b_type& );
+    sc_sensitive& operator () ( sc_cthread_handle, const in_port_l_type& );
+    sc_sensitive& operator () ( sc_cthread_handle, const inout_port_b_type& );
+    sc_sensitive& operator () ( sc_cthread_handle, const inout_port_l_type& );
 
 private:
 
@@ -128,10 +138,12 @@ class sc_sensitive_pos
 public:
 
     // typedefs
-    typedef sc_signal_in_if<bool>    in_if_type;
-    typedef sc_signal_inout_if<bool> inout_if_type;
-    typedef sc_in<bool>              in_port_type;
-    typedef sc_inout<bool>           inout_port_type;
+    typedef sc_signal_in_if<bool>     in_if_b_type;
+    typedef sc_signal_in_if<sc_logic> in_if_l_type;
+    typedef sc_in<bool>               in_port_b_type;
+    typedef sc_in<sc_logic>           in_port_l_type;
+    typedef sc_inout<bool>            inout_port_b_type;
+    typedef sc_inout<sc_logic>        inout_port_l_type;
 
 private:
 
@@ -147,13 +159,19 @@ public:
     sc_sensitive_pos& operator << ( sc_method_handle );
     sc_sensitive_pos& operator << ( sc_thread_handle );
 
-    sc_sensitive_pos& operator () ( const in_if_type& );
-    sc_sensitive_pos& operator () ( const in_port_type& );
-    sc_sensitive_pos& operator () ( const inout_port_type& );
+    sc_sensitive_pos& operator () ( const in_if_b_type& );
+    sc_sensitive_pos& operator () ( const in_if_l_type& );
+    sc_sensitive_pos& operator () ( const in_port_b_type& );
+    sc_sensitive_pos& operator () ( const in_port_l_type& );
+    sc_sensitive_pos& operator () ( const inout_port_b_type& );
+    sc_sensitive_pos& operator () ( const inout_port_l_type& );
 
-    sc_sensitive_pos& operator << ( const in_if_type& );
-    sc_sensitive_pos& operator << ( const in_port_type& );
-    sc_sensitive_pos& operator << ( const inout_port_type& );
+    sc_sensitive_pos& operator << ( const in_if_b_type& );
+    sc_sensitive_pos& operator << ( const in_if_l_type& );
+    sc_sensitive_pos& operator << ( const in_port_b_type& );
+    sc_sensitive_pos& operator << ( const in_port_l_type& );
+    sc_sensitive_pos& operator << ( const inout_port_b_type& );
+    sc_sensitive_pos& operator << ( const inout_port_l_type& );
 
 private:
 
@@ -183,10 +201,12 @@ class sc_sensitive_neg
 public:
 
     // typedefs
-    typedef sc_signal_in_if<bool>    in_if_type;
-    typedef sc_signal_inout_if<bool> inout_if_type;
-    typedef sc_in<bool>              in_port_type;
-    typedef sc_inout<bool>           inout_port_type;
+    typedef sc_signal_in_if<bool>     in_if_b_type;
+    typedef sc_signal_in_if<sc_logic> in_if_l_type;
+    typedef sc_in<bool>               in_port_b_type;
+    typedef sc_in<sc_logic>           in_port_l_type;
+    typedef sc_inout<bool>            inout_port_b_type;
+    typedef sc_inout<sc_logic>        inout_port_l_type;
 
 private:
 
@@ -202,13 +222,19 @@ public:
     sc_sensitive_neg& operator << ( sc_method_handle );
     sc_sensitive_neg& operator << ( sc_thread_handle );
 
-    sc_sensitive_neg& operator () ( const in_if_type& );
-    sc_sensitive_neg& operator () ( const in_port_type& );
-    sc_sensitive_neg& operator () ( const inout_port_type& );
+    sc_sensitive_neg& operator () ( const in_if_b_type& );
+    sc_sensitive_neg& operator () ( const in_if_l_type& );
+    sc_sensitive_neg& operator () ( const in_port_b_type& );
+    sc_sensitive_neg& operator () ( const in_port_l_type& );
+    sc_sensitive_neg& operator () ( const inout_port_b_type& );
+    sc_sensitive_neg& operator () ( const inout_port_l_type& );
 
-    sc_sensitive_neg& operator << ( const in_if_type& );
-    sc_sensitive_neg& operator << ( const in_port_type& );
-    sc_sensitive_neg& operator << ( const inout_port_type& );
+    sc_sensitive_neg& operator << ( const in_if_b_type& );
+    sc_sensitive_neg& operator << ( const in_if_l_type& );
+    sc_sensitive_neg& operator << ( const in_port_b_type& );
+    sc_sensitive_neg& operator << ( const in_port_l_type& );
+    sc_sensitive_neg& operator << ( const inout_port_b_type& );
+    sc_sensitive_neg& operator << ( const inout_port_l_type& );
 
 private:
 

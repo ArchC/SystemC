@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -35,6 +35,7 @@
 
 
 #include "systemc/communication/sc_clock.h"
+#include "systemc/communication/sc_communication_ids.h"
 #include "systemc/kernel/sc_simcontext.h"
 
 
@@ -246,14 +247,30 @@ sc_clock::dump( ostream& os ) const
 }
 
 
+// error reporting
+
+void
+sc_clock::report_error( int id, const char* add_msg ) const
+{
+    char msg[BUFSIZ];
+    if( add_msg != 0 ) {
+	sprintf( msg, "%s: clock '%s'", add_msg, name() );
+    } else {
+	sprintf( msg, "clock '%s'", name() );
+    }
+    SC_REPORT_ERROR( id, msg );
+}
+
+
 void
 sc_clock::init( const sc_time& period_,
 		double         duty_cycle_,
 		const sc_time& start_time_,
 		bool           posedge_first_ )
 {
-    if( period_ <= SC_ZERO_TIME ) {
-	REPORT_ERROR( 7001, "" );
+    if( period_ == SC_ZERO_TIME ) {
+	report_error( SC_ID_CLOCK_PERIOD_ZERO_,
+		      "increase the period" );
     }
     m_period = period_;
 	
@@ -266,21 +283,24 @@ sc_clock::init( const sc_time& period_,
     m_negedge_time = m_period * m_duty_cycle;
     m_posedge_time = m_period - m_negedge_time;
 
-    assert( m_negedge_time != SC_ZERO_TIME );
-    assert( m_posedge_time != SC_ZERO_TIME );
-	
+    if( m_negedge_time == SC_ZERO_TIME ) {
+	report_error( SC_ID_CLOCK_HIGH_TIME_ZERO_,
+		      "increase the period or increase the duty cycle" );
+    }
+    if( m_posedge_time == SC_ZERO_TIME ) {
+	report_error( SC_ID_CLOCK_LOW_TIME_ZERO_,
+		      "increase the period or decrease the duty cycle" );
+    }
+
     if( posedge_first_ ) {
 	m_cur_val = false;
     } else {
 	m_cur_val = true;
     }
-    
-    if( start_time_ < SC_ZERO_TIME ) {
-	REPORT_ERROR( 7002, "" );
-    }
+
     m_start_time = start_time_;
 
-    m_delta = ~const_one_ull;
+    m_delta = ~sc_dt::UINT64_ONE;
 }
 
 

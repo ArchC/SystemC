@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -16,47 +16,59 @@
  *****************************************************************************/
 
 /*****************************************************************************
-
-  sc_context_switch.h -- Manage context switching.
-
-  Original Author: Stan Y. Liao, Synopsys, Inc.
-
+ 
+  simple_bus_request.h : The bus interface request form.
+ 
+  Original Author: Ric Hilderink, Synopsys, Inc., 2001-10-11
+ 
  *****************************************************************************/
-
+ 
 /*****************************************************************************
-
+ 
   MODIFICATION LOG - modifiers, enter your name, affiliation, date and
   changes you are making here.
-
+ 
       Name, Affiliation, Date:
   Description of Modification:
-
+ 
  *****************************************************************************/
 
-#ifndef SC_CONTEXT_SWITCH
-#define SC_CONTEXT_SWITCH
+#ifndef __simple_bus_request_h
+#define __simple_bus_request_h
 
+enum simple_bus_lock_status { SIMPLE_BUS_LOCK_NO = 0
+			      , SIMPLE_BUS_LOCK_SET
+			      , SIMPLE_BUS_LOCK_GRANTED 
+};
 
-#include "systemc/kernel/sc_cmnhdr.h"
+struct simple_bus_request
+{
+  // parameters
+  unsigned int priority;
 
-class sc_simcontext;
+  // request parameters
+  bool do_write;
+  unsigned int address;
+  unsigned int end_address;
+  int *data;
+  simple_bus_lock_status lock;
 
+  // request status
+  sc_event transfer_done;
+  simple_bus_status status;
 
-#ifndef WIN32
+  // default constructor
+  simple_bus_request();
+};
 
-struct qt_t;
-
-extern "C" {
-    typedef void* (*AFT)( qt_t*, void*, void* );
-}
-
-extern void context_switch( AFT yieldhelper, void* data, void*, qt_t* qt );
-
-#else
-
-extern void context_switch( LPVOID data );
-
-#endif
-
+inline simple_bus_request::simple_bus_request()
+  : priority(0)
+  , do_write(false)
+  , address(0)
+  , end_address(0)
+  , data((int *)0)
+  , lock(SIMPLE_BUS_LOCK_NO)
+  , status(SIMPLE_BUS_OK)
+{}
 
 #endif

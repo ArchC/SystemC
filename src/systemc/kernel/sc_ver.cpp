@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2001 by all Contributors.
+  source code Copyright (c) 1996-2002 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.2 (the "License");
+  set forth in the SystemC Open Source License Version 2.3 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -40,12 +40,12 @@
 
 static
 const char copyright[] =
-    "        Copyright (c) 1996-2001 by all Contributors\n"
+    "        Copyright (c) 1996-2002 by all Contributors\n"
     "                    ALL RIGHTS RESERVED";
 
 static
 const char systemc_version[] =
-    "               SystemC 2.0 --- " __DATE__ " " __TIME__;
+    "             SystemC 2.0.1 --- " __DATE__ " " __TIME__;
 
 const char*
 sc_copyright()

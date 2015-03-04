@@ -1,11 +1,11 @@
 ## ****************************************************************************
 ##
 ##  The following code is derived, directly or indirectly, from the SystemC
-##  source code Copyright (c) 1996-2001 by all Contributors.
+##  source code Copyright (c) 1996-2002 by all Contributors.
 ##  All Rights reserved.
 ##
 ##  The contents of this file are subject to the restrictions and limitations
-##  set forth in the SystemC Open Source License Version 2.2 (the "License");
+##  set forth in the SystemC Open Source License Version 2.3 (the "License");
 ##  You may not use this file except in compliance with such restrictions and
 ##  limitations. You may obtain instructions on how to receive a copy of the
 ##  License at http://www.systemc.org/. Software distributed by Contributors
@@ -38,25 +38,31 @@ H_FILES = \
 	sc_bigint.h \
 	sc_biguint.h \
 	sc_int.h \
+	sc_int_base.h \
+	sc_int_ids.h \
+	sc_length_param.h \
 	sc_nbdefs.h \
 	sc_nbexterns.h \
 	sc_nbutils.h \
 	sc_signed.h \
 	sc_uint.h \
+	sc_uint_base.h \
 	sc_unsigned.h
 
 noinst_HEADERS = $(H_FILES)
 
 CXX_FILES = \
-	sc_int.cpp \
+	sc_int_base.cpp \
 	sc_int32_mask.cpp \
         sc_int64_io.cpp \
 	sc_int64_mask.cpp \
+	sc_int_ids.cpp \
+	sc_length_param.cpp \
 	sc_nbdefs.cpp \
 	sc_nbexterns.cpp \
 	sc_nbutils.cpp \
 	sc_signed.cpp \
-	sc_uint.cpp \
+	sc_uint_base.cpp \
 	sc_unsigned.cpp
 
 libint_a_SOURCES = $(H_FILES) $(CXX_FILES) 

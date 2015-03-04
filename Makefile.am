@@ -1,11 +1,11 @@
 ## ****************************************************************************
 ##
 ##  The following code is derived, directly or indirectly, from the SystemC
-##  source code Copyright (c) 1996-2002 by all Contributors.
+##  source code Copyright (c) 1996-2004 by all Contributors.
 ##  All Rights reserved.
 ##
 ##  The contents of this file are subject to the restrictions and limitations
-##  set forth in the SystemC Open Source License Version 2.3 (the "License");
+##  set forth in the SystemC Open Source License Version 2.4 (the "License");
 ##  You may not use this file except in compliance with such restrictions and
 ##  limitations. You may obtain instructions on how to receive a copy of the
 ##  License at http://www.systemc.org/. Software distributed by Contributors
@@ -52,6 +52,15 @@ debug:
 opt:
 	$(MAKE) all CXXFLAGS="$(EXTRA_CXXFLAGS) $(OPT_CXXFLAGS)"
 
+pthreads:
+	$(MAKE) all CXXFLAGS="$(EXTRA_CXXFLAGS) $(OPT_CXXFLAGS) -DSC_USE_PTHREADS=1"
+
+pthreads_debug:
+	$(MAKE) all CXXFLAGS="$(EXTRA_CXXFLAGS) $(DEBUG_CXXFLAGS) -DSC_USE_PTHREADS"
+
+pthreads_check:
+	$(MAKE) check CXXFLAGS="$(EXTRA_CXXFLAGS) -DSC_USE_PTHREADS" LDFLAGS="-lpthread"
+
 install-data-local:
 	@$(NORMAL_INSTALL)
 	for file in $(INST_FILES); do \
@@ -64,6 +73,7 @@ install-data-local:
 	    || cp -p $$d/$$file $(prefix)/$$file || :; \
 	  fi; \
 	done
+#@(cd ./examples; $(MAKE) install;)
 
 uninstall-local:
 	@$(NORMAL_UNINSTALL)
@@ -78,5 +88,6 @@ uninstall-local:
 	    fi; \
 	  done; \
 	fi
+	@(cd ./examples; $(MAKE) uninstall;)
 
 ## Taf!

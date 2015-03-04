@@ -57,6 +57,34 @@ CXX_COMP=`basename $CXX`
 AR_TOOL="ar cru"
 
 case "$target" in
+    powerpc-apple-macosx*)
+        case "$CXX_COMP" in
+            CC)
+                EXTRA_CXXFLAGS=""
+                DEBUG_CXXFLAGS="-g"
+                OPT_CXXFLAGS="-O3"
+                TARGET_ARCH="macosx"
+		AR_TOOL="$CXX -xar -o"
+        	CC="$CXX"
+        	CFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
+                ;;
+            c++ | g++)
+                EXTRA_CXXFLAGS="-Wall"
+                DEBUG_CXXFLAGS="-g"
+                OPT_CXXFLAGS="-O3"
+                TARGET_ARCH="macosx"
+        	CC="$CXX"
+        	CFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
+                ;;
+            *)
+                { { echo "$as_me:2730: error: \"sorry...compiler not supported\"" >&5
+echo "$as_me: error: \"sorry...compiler not supported\"" >&2;}
+   { (exit 1); exit 1; }; }
+		;;
+        esac
+	AS=as
+        QT_ARCH="powerpc-apple-macosx"
+        ;;
     sparc-sun-solaris*) 
         case "$CXX_COMP" in
             CC)
@@ -80,6 +108,7 @@ case "$target" in
                 AC_MSG_ERROR("sorry...compiler not supported")
 		;;
         esac
+	AS=as
         QT_ARCH="sparc-os2"
         ;;
     *linux*)
@@ -96,6 +125,7 @@ case "$target" in
                 AC_MSG_ERROR("sorry...compiler not supported")
 		;;
         esac
+	AS=as
         QT_ARCH="iX86"
         ;;
     *cygwin*)
@@ -112,12 +142,13 @@ case "$target" in
                 AC_MSG_ERROR("sorry...compiler not supported")
 		;;
         esac
+	AS=as
         QT_ARCH="iX86"
         ;;
     *hpux11*)
         case "$CXX_COMP" in
             aCC)
-                EXTRA_CXXFLAGS="-Aa -ext +DA2.0 +DS2.0"
+                EXTRA_CXXFLAGS="-AA -ext +DA2.0 +DS2.0"
                 DEBUG_CXXFLAGS="-g"
                 OPT_CXXFLAGS="+O1"
                 TARGET_ARCH="hpux11"
@@ -136,6 +167,7 @@ case "$target" in
                 AC_MSG_ERROR("sorry...compiler not supported")
 		;;
         esac
+	AS=/usr/ccs/bin/as
         QT_ARCH="hppa"
         ;;
     *)
@@ -167,11 +199,56 @@ AC_SUBST(OPT_CXXFLAGS)
 AC_SUBST(TARGET_ARCH)
 AC_SUBST(QT_ARCH)
 AC_SUBST(AR_TOOL)
+AC_SUBST(AS)
 
 dnl
 dnl Create the Makefiles.
 dnl
 
-AC_OUTPUT(Makefile src/Makefile src/systemc/Makefile src/systemc/communication/Makefile src/systemc/datatypes/Makefile src/systemc/datatypes/bit/Makefile src/systemc/datatypes/fx/Makefile src/systemc/datatypes/int/Makefile src/systemc/kernel/Makefile src/systemc/tracing/Makefile src/systemc/qt/Makefile src/systemc/utils/Makefile examples/Makefile examples/systemc/Makefile) 
+AC_OUTPUT(
+ Makefile 
+ src/Makefile 
+ src/sysc/Makefile 
+ src/sysc/communication/Makefile 
+ src/sysc/datatypes/Makefile 
+ src/sysc/datatypes/bit/Makefile 
+ src/sysc/datatypes/fx/Makefile 
+ src/sysc/datatypes/int/Makefile 
+ src/sysc/datatypes/misc/Makefile 
+ src/sysc/kernel/Makefile 
+ src/sysc/tracing/Makefile 
+ src/sysc/qt/Makefile 
+ src/sysc/utils/Makefile 
+ src/sysc/packages/Makefile 
+ src/sysc/packages/boost/Makefile 
+ src/sysc/packages/boost/bind/Makefile 
+ src/sysc/packages/boost/config/Makefile 
+ src/sysc/packages/boost/config/compiler/Makefile 
+ src/sysc/packages/boost/config/platform/Makefile 
+ src/sysc/packages/boost/config/stdlib/Makefile 
+ src/sysc/packages/boost/detail/Makefile 
+ src/sysc/packages/boost/utility/Makefile 
+ examples/Makefile 
+ examples/sysc/Makefile 
+ examples/sysc/fir/Makefile 
+ examples/sysc/fft/Makefile 
+ examples/sysc/fft/fft_flpt/Makefile 
+ examples/sysc/fft/fft_fxpt/Makefile 
+ examples/sysc/pipe/Makefile 
+ examples/sysc/pkt_switch/Makefile 
+ examples/sysc/rsa/Makefile 
+ examples/sysc/simple_bus/Makefile 
+ examples/sysc/simple_fifo/Makefile 
+ examples/sysc/simple_perf/Makefile 
+ examples/sysc/2.1/Makefile 
+ examples/sysc/2.1/dpipe/Makefile 
+ examples/sysc/2.1/forkjoin/Makefile 
+ examples/sysc/2.1/reset_signal_is/Makefile 
+ examples/sysc/2.1/sc_export/Makefile 
+ examples/sysc/2.1/sc_report/Makefile 
+ examples/sysc/2.1/scx_barrier/Makefile 
+ examples/sysc/2.1/scx_mutex_w_policy/Makefile 
+ examples/sysc/2.1/specialized_signals/Makefile 
+)
 
 dnl Taf!

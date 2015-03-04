@@ -1,11 +1,11 @@
 ## ****************************************************************************
 ##
 ##  The following code is derived, directly or indirectly, from the SystemC
-##  source code Copyright (c) 1996-2002 by all Contributors.
+##  source code Copyright (c) 1996-2005 by all Contributors.
 ##  All Rights reserved.
 ##
 ##  The contents of this file are subject to the restrictions and limitations
-##  set forth in the SystemC Open Source License Version 2.3 (the "License");
+##  set forth in the SystemC Open Source License Version 2.4 (the "License");
 ##  You may not use this file except in compliance with such restrictions and
 ##  limitations. You may obtain instructions on how to receive a copy of the
 ##  License at http://www.systemc.org/. Software distributed by Contributors
@@ -32,9 +32,8 @@
 
 include $(top_srcdir)/config/Make-rules
 
-noinst_LIBRARIES = libsystemc.a
-
 H_FILES = \
+    systemc \
 	systemc.h
 
 noinst_HEADERS = $(H_FILES)
@@ -43,10 +42,8 @@ CXX_FILES =
 
 NO_CXX_FILES =
 
-libsystemc_a_SOURCES = $(H_FILES) $(CXX_FILES)
-
 SUBDIRS = \
-	systemc \
+	sysc \
 	.
 
 INCLUDE_DIR = $(prefix)/include
@@ -60,6 +57,7 @@ install-data-local:
 	$(mkinstalldirs) $(prefix)/lib-$(TARGET_ARCH)
 	$(INSTALL_DATA) $(MAIN_LIBRARY) \
 	  $(prefix)/lib-$(TARGET_ARCH)/$(MAIN_LIBRARY)
+	$(RANLIB) $(prefix)/lib-$(TARGET_ARCH)/$(MAIN_LIBRARY)
 
 uninstall-local:
 	@$(NORMAL_UNINSTALL)

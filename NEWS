@@ -1,4 +1,22 @@
-* SystemC 2.0.1 (this release)
+* SystemC 2.1 (this release)
+  1 May 2005 release of SystemC 2.1
+  - Bug fixes.
+  - Code cleanup.
+  - Major new functionality
+    o Dynamic process support, including synchronization primitives.
+    o Mixed concatenation and concatenation of long types.
+    o Event queue support.
+    o Exported interfaces: sc_export.
+    o New error reporting API.
+    o Namespace support for core SystemC classes and functions.
+  - Platforms and compilers supported (added since 2.0.1 Production):
+    o Solaris 2.8 with Sun CC compiler version Forte 8 and gcc-3.2.3
+    o Linux (Redhat 9.0) with GNU C++ compiler version gcc-3.2.2
+    o Linux (Redhat 8.0) with GNU C++ compiler version gcc-2.95.3 and gcc-3.2.3
+    o MacOS X with GNU C++ compiler version gcc-3.1 and gcc-3.3.
+    o Windows NT 4.0 (SP6a) with VC++ 7.0 
+
+* SystemC 2.0.1 
   Production release of SystemC 2.0.1
   - Bug fixes.
   - Code cleanup.

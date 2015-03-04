@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,35 +21,8 @@
 
   Original Author: Martin Janssen, Synopsys, Inc., 2001-05-21
 
+ CHANGE LOG AT THE END OF THE FILE
  *****************************************************************************/
-
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date: Andy Goodrich, Forte,
-                               Bishnupriya Bhattacharya, Cadence Design Systems,
-                               25 August, 2003
-  Description of Modification: phase callbacks
-    
- *****************************************************************************/
-//$Log: sc_prim_channel.h,v $
-//Revision 1.1.1.1  2006/12/15 20:31:35  acg
-//SystemC 2.2
-//
-//Revision 1.2  2006/01/03 23:18:26  acg
-//Changed copyright to include 2006.
-//
-//Revision 1.1.1.1  2005/12/19 23:16:43  acg
-//First check in of SystemC 2.1 into its own archive.
-//
-//Revision 1.10  2005/07/30 03:44:11  acg
-//Changes from 2.1.
-//
-//Revision 1.9  2005/06/10 22:43:55  acg
-//Added CVS change log annotation.
-//
 
 #ifndef SC_PRIM_CHANNEL_H
 #define SC_PRIM_CHANNEL_H
@@ -83,6 +56,9 @@ public:
     // request the update method to be executed during the update phase
     inline void request_update();
 
+    // request the update method to be executed during the update phase
+    // from a process external to the simulator.
+    void async_request_update();
 
 protected:
 
@@ -123,10 +99,10 @@ protected:
     void wait( const sc_event& e )
         { sc_core::wait( e, simcontext() ); }
 
-    void wait( sc_event_or_list& el )
+    void wait( const sc_event_or_list& el )
 	{ sc_core::wait( el, simcontext() ); }
 
-    void wait( sc_event_and_list& el )
+    void wait( const sc_event_and_list& el )
 	{ sc_core::wait( el, simcontext() ); }
 
     void wait( const sc_time& t )
@@ -141,16 +117,16 @@ protected:
     void wait( double v, sc_time_unit tu, const sc_event& e )
         { sc_core::wait( sc_time( v, tu, simcontext() ), e, simcontext() ); }
 
-    void wait( const sc_time& t, sc_event_or_list& el )
+    void wait( const sc_time& t, const sc_event_or_list& el )
         { sc_core::wait( t, el, simcontext() ); }
 
-    void wait( double v, sc_time_unit tu, sc_event_or_list& el )
+    void wait( double v, sc_time_unit tu, const sc_event_or_list& el )
         { sc_core::wait( sc_time( v, tu, simcontext() ), el, simcontext() ); }
 
-    void wait( const sc_time& t, sc_event_and_list& el )
+    void wait( const sc_time& t, const sc_event_and_list& el )
         { sc_core::wait( t, el, simcontext() ); }
 
-    void wait( double v, sc_time_unit tu, sc_event_and_list& el )
+    void wait( double v, sc_time_unit tu, const sc_event_and_list& el )
         { sc_core::wait( sc_time( v, tu, simcontext() ), el, simcontext() ); }
 
     void wait( int n )
@@ -168,10 +144,10 @@ protected:
     void next_trigger( const sc_event& e )
         { sc_core::next_trigger( e, simcontext() ); }
 
-    void next_trigger( sc_event_or_list& el )
+    void next_trigger( const sc_event_or_list& el )
         { sc_core::next_trigger( el, simcontext() ); }
 
-    void next_trigger( sc_event_and_list& el )
+    void next_trigger( const sc_event_and_list& el )
         { sc_core::next_trigger( el, simcontext() ); }
 
     void next_trigger( const sc_time& t )
@@ -187,17 +163,17 @@ protected:
         { sc_core::next_trigger( 
 	    sc_time( v, tu, simcontext() ), e, simcontext() ); }
 
-    void next_trigger( const sc_time& t, sc_event_or_list& el )
+    void next_trigger( const sc_time& t, const sc_event_or_list& el )
         { sc_core::next_trigger( t, el, simcontext() ); }
 
-    void next_trigger( double v, sc_time_unit tu, sc_event_or_list& el )
+    void next_trigger( double v, sc_time_unit tu, const sc_event_or_list& el )
         { sc_core::next_trigger( 
 	    sc_time( v, tu, simcontext() ), el, simcontext() ); }
 
-    void next_trigger( const sc_time& t, sc_event_and_list& el )
+    void next_trigger( const sc_time& t, const sc_event_and_list& el )
         { sc_core::next_trigger( t, el, simcontext() ); }
 
-    void next_trigger( double v, sc_time_unit tu, sc_event_and_list& el )
+    void next_trigger( double v, sc_time_unit tu, const sc_event_and_list& el )
         { sc_core::next_trigger( 
 	    sc_time( v, tu, simcontext() ), el, simcontext() ); }
 
@@ -208,10 +184,11 @@ protected:
 	{ return sc_core::timed_out( simcontext() ); }
 
 
+#if 0 // @@@@####
     // delta count maintenance
-
     sc_dt::uint64 delta_count()
 	{ return simcontext()->m_delta_count; }
+#endif
 
 private:
 
@@ -236,8 +213,8 @@ private:
 
 private:
 
-    sc_prim_channel_registry* m_registry;      // Update list manager.
-    sc_prim_channel*          m_update_next_p; // Next entry in update list.
+    sc_prim_channel_registry* m_registry;          // Update list manager.
+    sc_prim_channel*          m_update_next_p;     // Next entry in update list.
 };
 
 
@@ -262,11 +239,15 @@ public:
         { return m_prim_channel_vec.size(); }
 
     inline void request_update( sc_prim_channel& );
+    void async_request_update( sc_prim_channel& );
 
-    bool pending_updates() const 
-        { return m_update_list_p != 
-		(sc_prim_channel*)sc_prim_channel::list_end; 
-	}
+    bool pending_updates() const
+    { 
+        return m_update_list_p != (sc_prim_channel*)sc_prim_channel::list_end 
+               || pending_async_updates();
+    }   
+
+    bool pending_async_updates() const;
 
 private:
 
@@ -277,10 +258,10 @@ private:
     ~sc_prim_channel_registry();
 
     // called during the update phase of a delta cycle
-    inline void perform_update();
+    void perform_update();
 
     // called when construction is done
-    void construction_done();
+    bool construction_done();
 
     // called when elaboration is done
     void elaboration_done();
@@ -297,11 +278,13 @@ private:
     sc_prim_channel_registry& operator = ( const sc_prim_channel_registry& );
 
 private:
+    class async_update_list;   
 
-    sc_simcontext*                m_simc;
-    std::vector<sc_prim_channel*> m_prim_channel_vec;
-
-    sc_prim_channel*              m_update_list_p;
+    async_update_list*            m_async_update_list_p; // external updates.
+    int                           m_construction_done;   // # of constructs.
+    std::vector<sc_prim_channel*> m_prim_channel_vec;    // existing channels.
+    sc_simcontext*                m_simc;                // simulator context.
+    sc_prim_channel*              m_update_list_p;       // internal updates.
 };
 
 
@@ -322,26 +305,6 @@ sc_prim_channel_registry::request_update( sc_prim_channel& prim_channel_ )
     m_update_list_p = &prim_channel_;
 }
 
-
-// called during the update phase of a delta cycle
-
-inline
-void
-sc_prim_channel_registry::perform_update()
-{
-    sc_prim_channel* next_p; // Next update to perform.
-    sc_prim_channel* now_p;  // Update now performing.
-
-    now_p = m_update_list_p;
-    m_update_list_p = (sc_prim_channel*)sc_prim_channel::list_end;
-    for ( ; now_p != (sc_prim_channel*)sc_prim_channel::list_end; 
-    	now_p = next_p )
-    {
-        next_p = now_p->m_update_next_p;
-	now_p->perform_update();
-    }
-}
-
 // ----------------------------------------------------------------------------
 //  CLASS : sc_prim_channel
 //
@@ -359,6 +322,16 @@ sc_prim_channel::request_update()
     }
 }
 
+// request the update method from external to the simulator (to be executed 
+// during the update phase)
+
+inline
+void
+sc_prim_channel::async_request_update()
+{
+    m_registry->async_request_update(*this);
+}
+
 
 // called during the update phase of a delta cycle (if requested)
 
@@ -372,6 +345,73 @@ sc_prim_channel::perform_update()
 
 
 } // namespace sc_core
+
+
+/*****************************************************************************
+
+  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
+  changes you are making here.
+
+      Name, Affiliation, Date: Andy Goodrich, Forte,
+                               Bishnupriya Bhattacharya, Cadence Design Systems,
+                               25 August, 2003
+  Description of Modification: phase callbacks
+    
+ *****************************************************************************/
+//$Log: sc_prim_channel.h,v $
+//Revision 1.10  2011/08/26 21:38:32  acg
+// Philipp A. Hartmann: removed unused switch m_construction_done.
+//
+//Revision 1.9  2011/08/07 19:08:01  acg
+// Andy Goodrich: moved logs to end of file so line number synching works
+// better between versions.
+//
+//Revision 1.8  2011/05/09 04:07:37  acg
+// Philipp A. Hartmann:
+//   (1) Restore hierarchy in all phase callbacks.
+//   (2) Ensure calls to before_end_of_elaboration.
+//
+//Revision 1.7  2011/05/05 17:44:01  acg
+// Philip A. Hartmann: change in the name of pending_async_updates.
+//
+//Revision 1.6  2011/04/19 15:03:48  acg
+// Philipp A. Hartmann: remove ASYNC_UPDATE preprocessor check from header.
+//
+//Revision 1.5  2011/04/19 02:36:26  acg
+// Philipp A. Hartmann: new aysnc_update and mutex support.
+//
+//Revision 1.4  2011/04/05 20:48:09  acg
+// Andy Goodrich: changes to make sure that event(), posedge() and negedge()
+// only return true if the clock has not moved.
+//
+//Revision 1.3  2011/02/18 20:23:45  acg
+// Andy Goodrich: Copyright update.
+//
+//Revision 1.2  2011/01/20 16:52:15  acg
+// Andy Goodrich: changes for IEEE 1666 2011.
+//
+//Revision 1.1.1.1  2006/12/15 20:20:04  acg
+//SystemC 2.3
+//
+//Revision 1.3  2006/05/08 17:52:47  acg
+// Andy Goodrich:
+//   (1) added David Long's forward declarations for friend functions,
+//       methods, and operators to keep the Microsoft compiler happy.
+//   (2) Added delta_count() method to sc_prim_channel for use by
+//       sc_signal so that the friend declaration in sc_simcontext.h
+//	   can be for a non-templated class (i.e., sc_prim_channel.)
+//
+//Revision 1.2  2006/01/03 23:18:26  acg
+//Changed copyright to include 2006.
+//
+//Revision 1.1.1.1  2005/12/19 23:16:43  acg
+//First check in of SystemC 2.1 into its own archive.
+//
+//Revision 1.10  2005/07/30 03:44:11  acg
+//Changes from 2.1.
+//
+//Revision 1.9  2005/06/10 22:43:55  acg
+//Added CVS change log annotation.
 
 #endif
 

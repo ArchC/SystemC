@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -22,20 +22,135 @@
 
   Original Author: Martin Janssen, Synopsys, Inc., 2001-05-21
 
+  CHANGE LOG IS AT THE END OF THE FILE
  *****************************************************************************/
 
-/*****************************************************************************
+#ifndef SC_BUFFER_H
+#define SC_BUFFER_H
 
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
 
-      Name, Affiliation, Date:
-  Description of Modification:
-    
- *****************************************************************************/
+#include "sysc/communication/sc_signal.h"
+
+namespace sc_core {
+
+// ----------------------------------------------------------------------------
+//  CLASS : sc_buffer<T>
+//
+//  The sc_buffer<T> primitive channel class.
+// ----------------------------------------------------------------------------
+
+template< typename T, sc_writer_policy POL = SC_ONE_WRITER >
+class sc_buffer
+: public sc_signal<T,POL>
+{
+public:
+
+    // typedefs
+
+    typedef sc_buffer<T,POL> this_type;
+    typedef sc_signal<T,POL> base_type;
+
+public:
+
+    // constructors
+
+    sc_buffer()
+	: base_type( sc_gen_unique_name( "buffer" ) )
+	{}
+
+    explicit sc_buffer( const char* name_ )
+	: base_type( name_ )
+	{}
+
+
+    // interface methods
+
+    // write the new value
+    virtual void write( const T& );
+
+
+    // other methods
+
+    this_type& operator = ( const T& a )
+	{ write( a ); return *this; }
+
+    this_type& operator = ( const sc_signal_in_if<T>& a )
+	{ write( a.read() ); return *this; }
+
+    this_type& operator = ( const this_type& a )
+	{ write( a.read() ); return *this; }
+
+    virtual const char* kind() const
+        { return "sc_buffer"; }
+
+protected:
+
+    virtual void update();
+
+private:
+
+    // disabled
+    sc_buffer( const this_type& );
+};
+
+
+// IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+
+// write the new value
+
+template< typename T, sc_writer_policy POL >
+inline
+void
+sc_buffer<T,POL>::write( const T& value_ )
+{
+    if( !base_type::policy_type::check_write(this,true) )
+      return;
+
+    this->m_new_val = value_;
+    this->request_update();
+}
+
+
+template< typename T, sc_writer_policy POL >
+inline
+void
+sc_buffer<T,POL>::update()
+{
+    base_type::policy_type::update();
+    this->m_cur_val = this->m_new_val;
+    if ( base_type::m_change_event_p )
+        base_type::m_change_event_p->notify(SC_ZERO_TIME);
+    this->m_change_stamp = base_type::simcontext()->change_stamp();
+}
+
+} // namespace sc_core
+
+#endif
+
 //$Log: sc_buffer.h,v $
-//Revision 1.1.1.1  2006/12/15 20:31:35  acg
-//SystemC 2.2
+//Revision 1.7  2011/08/26 20:45:39  acg
+// Andy Goodrich: moved the modification log to the end of the file to
+// eliminate source line number skew when check-ins are done.
+//
+//Revision 1.6  2011/04/08 18:22:45  acg
+// Philipp A. Hartmann: use the context of the primitive channel to get
+// the change stamp value.
+//
+//Revision 1.5  2011/04/05 20:48:09  acg
+// Andy Goodrich: changes to make sure that event(), posedge() and negedge()
+// only return true if the clock has not moved.
+//
+//Revision 1.4  2011/04/05 06:15:18  acg
+// Philipp A. Hartmann: sc_writer_policy: ignore no-ops in delta check.
+//
+//Revision 1.3  2011/02/18 20:23:45  acg
+// Andy Goodrich: Copyright update.
+//
+//Revision 1.2  2010/12/07 19:50:36  acg
+// Andy Goodrich: addition of writer policies, courtesy of Philipp Hartmann.
+//
+//Revision 1.1.1.1  2006/12/15 20:20:04  acg
+//SystemC 2.3
 //
 //Revision 1.8  2006/03/13 20:19:43  acg
 // Andy Goodrich: changed sc_event instances into pointers to sc_event instances
@@ -73,110 +188,5 @@
 //Revision 1.9  2005/06/10 22:43:55  acg
 //Added CVS change log annotation.
 //
-
-#ifndef SC_BUFFER_H
-#define SC_BUFFER_H
-
-
-#include "sysc/communication/sc_signal.h"
-
-namespace sc_core {
-
-// ----------------------------------------------------------------------------
-//  CLASS : sc_buffer<T>
-//
-//  The sc_buffer<T> primitive channel class.
-// ----------------------------------------------------------------------------
-
-template <class T>
-class sc_buffer
-: public sc_signal<T>
-{
-public:
-
-    // typedefs
-
-    typedef sc_buffer<T> this_type;
-    typedef sc_signal<T> base_type;
-
-public:
-
-    // constructors
-
-    sc_buffer()
-	: base_type( sc_gen_unique_name( "buffer" ) )
-	{}
-
-    explicit sc_buffer( const char* name_ )
-	: base_type( name_ )
-	{}
-
-
-    // interface methods
-
-    // write the new value
-    virtual void write( const T& );
-
-
-    // other methods
-
-    sc_buffer<T>& operator = ( const T& a )
-	{ write( a ); return *this; }
-
-    sc_buffer<T>& operator = ( const base_type& a )
-	{ write( a.read() ); return *this; }
-
-    sc_buffer<T>& operator = ( const this_type& a )
-	{ write( a.read() ); return *this; }
-
-    virtual const char* kind() const
-        { return "sc_buffer"; }
-
-protected:
-
-    virtual void update();
-
-private:
-
-    // disabled
-    sc_buffer( const sc_buffer<T>& );
-};
-
-
-// IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
-
-// write the new value
-
-template <class T>
-inline
-void
-sc_buffer<T>::write( const T& value_ )
-{
-    sc_object* writer = sc_get_curr_simcontext()->get_current_writer();
-    if( sc_signal<T>::m_writer == 0 ) {
-	sc_signal<T>::m_writer = writer;
-    } else if( sc_signal<T>::m_writer != writer ) {
-	sc_signal_invalid_writer( this, sc_signal<T>::m_writer, writer );
-    }
-
-    this->m_new_val = value_;
-    this->request_update();
-}
-
-
-template <class T>
-inline
-void
-sc_buffer<T>::update()
-{
-    this->m_cur_val = this->m_new_val;
-    if ( sc_signal<T>::m_change_event_p )
-	    sc_signal<T>::m_change_event_p->notify(SC_ZERO_TIME);
-    this->m_delta = sc_delta_count();
-}
-
-} // namespace sc_core
-
-#endif
 
 // Taf!

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -24,30 +24,9 @@
                     Bishnupriya Bhattacharya, Cadence Design Systems,
                     25 August, 2003
 
+  CHANGE LOG AT THE END OF THE FILE
  *****************************************************************************/
 
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-
- *****************************************************************************/
-
-// $Log: sc_spawn.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:37  acg
-// SystemC 2.2
-//
-// Revision 1.4  2006/04/11 23:13:21  acg
-//   Andy Goodrich: Changes for reduced reset support that only includes
-//   sc_cthread, but has preliminary hooks for expanding to method and thread
-//   processes also.
-//
-// Revision 1.3  2006/01/13 18:44:30  acg
-// Added $Log to record CVS changes into the source.
-//
 
 #if !defined(sc_spawn_h_INCLUDED)
 #define sc_spawn_h_INCLUDED
@@ -70,8 +49,8 @@ class sc_process_b;
 // semantics for a process via its () operator. An instance of the supplied 
 // execution object will be kept to provide the semantics when the process is 
 // scheduled for execution. The () operator does not return a value. An example 
-// of an object that might be used for this helper function would be void BOOST 
-// bound function or method. 
+// of an object that might be used for this helper function would be void 
+// SC_BOOST bound function or method. 
 //
 // This class is derived from sc_process_host and overloads 
 // sc_process_host::semantics to provide the actual semantic content. 
@@ -112,7 +91,7 @@ class sc_spawn_object : public sc_process_host {
 //
 // This inline function spawns a process for execution. The execution semantics 
 // for the process being spawned will be provided by the supplied object 
-// instance via its () operator. (E.g., a BOOST bound function) 
+// instance via its () operator. (E.g., a SC_BOOST bound function) 
 // After creating the process it is registered with the simulator.
 //     object   =   object instance providing the execution semantics via its 
 //                  () operator.
@@ -125,28 +104,28 @@ inline sc_process_handle sc_spawn(
     const char* name_p = 0,
     const sc_spawn_options* opt_p = 0)
 {
-	sc_simcontext*      context_p;
-	sc_spawn_object<T>* spawn_p;
-	
-	context_p = sc_get_curr_simcontext();
-	spawn_p = new sc_spawn_object<T>(object);
-	if ( !opt_p || !opt_p->is_method() )
-	{
+    sc_simcontext*      context_p;
+    sc_spawn_object<T>* spawn_p;
+    
+    context_p = sc_get_curr_simcontext();
+    spawn_p = new sc_spawn_object<T>(object);
+    if ( !opt_p || !opt_p->is_method() )
+    {
             sc_process_handle thread_handle = context_p->create_thread_process( 
-		    name_p, true,
-		    SC_MAKE_FUNC_PTR(sc_spawn_object<T>,semantics), 
-		    spawn_p, opt_p 
-	    );
-	    return thread_handle;
+            name_p, true,
+            SC_MAKE_FUNC_PTR(sc_spawn_object<T>,semantics), 
+            spawn_p, opt_p 
+        );
+        return thread_handle;
     }
-	else
-	{
+    else
+    {
             sc_process_handle method_handle = context_p->create_method_process( 
-		    name_p, true,
-		    SC_MAKE_FUNC_PTR(sc_spawn_object<T>,semantics), 
-		    spawn_p, opt_p 
-	    );
-	    return method_handle;
+            name_p, true,
+            SC_MAKE_FUNC_PTR(sc_spawn_object<T>,semantics), 
+            spawn_p, opt_p 
+        );
+        return method_handle;
     }
 }
 
@@ -162,8 +141,8 @@ inline sc_process_handle sc_spawn(
 // object will be kept to provide the semantics when the process is scheduled 
 // for execution. The () operator returns a value, which will be stored at the 
 // location specified by the supplied pointer. An example of an object that 
-// might be used for this helper function would be valued BOOST bound function 
-// or method. 
+// might be used for this helper function would be valued SC_BOOST bound 
+// function or method. 
 //
 //   sc_spawn_object_v( typename F::result_type* r_p, T f, const char* name_p,
 //                      const sc_spawn_options* opt_p )
@@ -189,8 +168,9 @@ inline sc_process_handle sc_spawn(
 //
 // This inline function spawns a process for execution. The execution semantics 
 // for the process being spawned will be provided by the supplied object 
-// instance via its () operator. (E.g., a BOOST bound function) That operator 
-// returns a value, which will be placed in the supplied return location. 
+// instance via its () operator. (E.g., a SC_BOOST bound function) That 
+// operator returns a value, which will be placed in the supplied return 
+// location. 
 // After creating the process it is registered with the simulator.
 //     object   =  object instance providing the execution semantics via its () 
 //                 operator.
@@ -226,29 +206,29 @@ inline sc_process_handle sc_spawn(
     const char* name_p = 0,
     const sc_spawn_options* opt_p = 0)
 {
-	sc_simcontext*      context_p;
-	sc_spawn_object_v<T>* spawn_p;
-	
-	context_p = sc_get_curr_simcontext();
-	
-	spawn_p = new sc_spawn_object_v<T>(r_p, object);
-	if ( !opt_p || !opt_p->is_method() )
-	{
+    sc_simcontext*      context_p;
+    sc_spawn_object_v<T>* spawn_p;
+    
+    context_p = sc_get_curr_simcontext();
+    
+    spawn_p = new sc_spawn_object_v<T>(r_p, object);
+    if ( !opt_p || !opt_p->is_method() )
+    {
             sc_process_handle thread_handle = context_p->create_thread_process( 
-		    name_p, true,
-		    SC_MAKE_FUNC_PTR(sc_spawn_object_v<T>,semantics), 
-		    spawn_p, opt_p 
-	    );
-	    return thread_handle;
-	}
-	else
-	{
+            name_p, true,
+            SC_MAKE_FUNC_PTR(sc_spawn_object_v<T>,semantics), 
+            spawn_p, opt_p 
+        );
+        return thread_handle;
+    }
+    else
+    {
             sc_process_handle method_handle = context_p->create_method_process( 
-		    name_p, true,
-		    SC_MAKE_FUNC_PTR(sc_spawn_object_v<T>,semantics), 
-		    spawn_p, opt_p 
-	    );
-	    return method_handle;
+            name_p, true,
+            SC_MAKE_FUNC_PTR(sc_spawn_object_v<T>,semantics), 
+            spawn_p, opt_p 
+        );
+        return method_handle;
     }
 }
 
@@ -279,36 +259,77 @@ inline sc_process_handle sc_spawn(
     const char* name_p = 0,
     const sc_spawn_options* opt_p = 0)
 {
-	sc_simcontext*      context_p;
-	sc_spawn_object_v<T,R>* spawn_p;
-	
-	context_p = sc_get_curr_simcontext();
-	
-	spawn_p = new sc_spawn_object_v<T,R>(r_p, object);
-	if ( !opt_p || !opt_p->is_method() )
-	{
+    sc_simcontext*      context_p;
+    sc_spawn_object_v<T,R>* spawn_p;
+    
+    context_p = sc_get_curr_simcontext();
+    
+    spawn_p = new sc_spawn_object_v<T,R>(r_p, object);
+    if ( !opt_p || !opt_p->is_method() )
+    {
             sc_process_handle thread_handle = context_p->create_thread_process( 
-		    name_p, true,
-			static_cast<sc_core::SC_ENTRY_FUNC>(
-			    &sc_spawn_object_v<T,R>::semantics),
-		    spawn_p, opt_p 
-	    );
-	    return thread_handle;
+            name_p, true,
+            static_cast<sc_core::SC_ENTRY_FUNC>(
+                &sc_spawn_object_v<T,R>::semantics),
+            spawn_p, opt_p 
+        );
+        return thread_handle;
     }
-	else
-	{
+    else
+    {
             sc_process_handle method_handle = context_p->create_method_process( 
-		    name_p, true,
-			static_cast<sc_core::SC_ENTRY_FUNC>(
-		        &sc_spawn_object_v<T,R>::semantics), 
-		    spawn_p, opt_p 
-	    );
-	    return method_handle;
+            name_p, true,
+            static_cast<sc_core::SC_ENTRY_FUNC>(
+                &sc_spawn_object_v<T,R>::semantics), 
+            spawn_p, opt_p 
+        );
+        return method_handle;
     }
 }
 
 #endif // HP
 
 } // namespace sc_core
+
+// $Log: sc_spawn.h,v $
+// Revision 1.7  2011/08/26 20:46:11  acg
+//  Andy Goodrich: moved the modification log to the end of the file to
+//  eliminate source line number skew when check-ins are done.
+//
+// Revision 1.6  2011/02/18 20:27:14  acg
+//  Andy Goodrich: Updated Copyrights.
+//
+// Revision 1.5  2011/02/13 21:47:38  acg
+//  Andy Goodrich: update copyright notice.
+//
+// Revision 1.4  2011/02/01 21:14:02  acg
+//  Andy Goodrich: formatting.
+//
+// Revision 1.3  2009/07/28 01:10:53  acg
+//  Andy Goodrich: updates for 2.3 release candidate.
+//
+// Revision 1.2  2008/05/22 17:06:26  acg
+//  Andy Goodrich: updated copyright notice to include 2008.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:05  acg
+// SystemC 2.3
+//
+// Revision 1.6  2006/05/26 20:33:16  acg
+//   Andy Goodrich: changes required by additional platform compilers (i.e.,
+//   Microsoft VC++, Sun Forte, HP aCC).
+//
+// Revision 1.5  2006/05/08 18:01:44  acg
+//  Andy Goodrich: changed the HP-specific implementations of sc_spawn() to
+//  use a static_cast to create their entry functions rather than the
+//  SC_MAKE_FUNC_PTR macro. The HP preprocessor does not parse template
+//  arguments that contain a comma properly.
+//
+// Revision 1.4  2006/04/11 23:13:21  acg
+//   Andy Goodrich: Changes for reduced reset support that only includes
+//   sc_cthread, but has preliminary hooks for expanding to method and thread
+//   processes also.
+//
+// Revision 1.3  2006/01/13 18:44:30  acg
+// Added $Log to record CVS changes into the source.
 
 #endif // !defined(sc_spawn_h_INCLUDED)

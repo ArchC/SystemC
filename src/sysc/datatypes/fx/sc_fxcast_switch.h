@@ -34,8 +34,11 @@
  *****************************************************************************/
 
 // $Log: sc_fxcast_switch.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.2  2011/08/24 22:05:43  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:04  acg
+// SystemC 2.3
 //
 // Revision 1.3  2006/01/13 18:53:57  acg
 // Andy Goodrich: added $Log command so that CVS comments are reproduced in
@@ -103,7 +106,8 @@ typedef sc_context<sc_fxcast_switch> sc_fxcast_context;
 // IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
 inline
-sc_fxcast_switch::sc_fxcast_switch()
+sc_fxcast_switch::sc_fxcast_switch() 
+: m_sw()
 {
     *this = sc_fxcast_context::default_value();
 }

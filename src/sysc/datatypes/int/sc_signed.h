@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -65,8 +65,18 @@
  *****************************************************************************/
 
 // $Log: sc_signed.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.3  2011/08/24 22:05:46  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.2  2011/02/18 20:19:15  acg
+//  Andy Goodrich: updating Copyright notice.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:05  acg
+// SystemC 2.3
+//
+// Revision 1.5  2006/05/08 17:50:01  acg
+//   Andy Goodrich: Added David Long's declarations for friend operators,
+//   functions, and methods, to keep the Microsoft compiler happy.
 //
 // Revision 1.4  2006/03/13 20:25:27  acg
 //  Andy Goodrich: Addition of function declarations, e.g., xor_signed_friend()
@@ -713,7 +723,7 @@ protected:
 
     // constructor
 
-    sc_signed_bitref_r()
+    sc_signed_bitref_r() : sc_value_base(), m_index(0), m_obj_p(0)
         {}
 
     void initialize( const sc_signed* obj_p, int index_ )
@@ -732,7 +742,7 @@ public:
     // copy constructor
 
     sc_signed_bitref_r( const sc_signed_bitref_r& a )
-	: m_index( a.m_index ), m_obj_p( a.m_obj_p )
+	: sc_value_base(a), m_index( a.m_index ), m_obj_p( a.m_obj_p )
 	{}
 
     // capacity
@@ -828,7 +838,7 @@ class sc_signed_bitref
 
 protected:
 
-    sc_signed_bitref()
+    sc_signed_bitref() : sc_signed_bitref_r()
 	{}
 
 public:
@@ -888,7 +898,7 @@ protected:
 
     // constructor
 
-    sc_signed_subref_r()
+    sc_signed_subref_r() : sc_value_base(), m_left(0), m_obj_p(0), m_right(0)
 	{}
 
     void initialize( const sc_signed* obj_p, int left_, int right_ )
@@ -909,7 +919,8 @@ public:
     // copy constructor
 
     sc_signed_subref_r( const sc_signed_subref_r& a )
-	: m_left( a.m_left ), m_obj_p( a.m_obj_p ), m_right( a.m_right )
+	: sc_value_base(a), m_left( a.m_left ), m_obj_p( a.m_obj_p ), 
+	  m_right( a.m_right )
 	{}
 
 
@@ -999,7 +1010,7 @@ class sc_signed_subref
 
     // constructor
 
-    sc_signed_subref()
+    sc_signed_subref() : sc_signed_subref_r()
         {}
 
 public:

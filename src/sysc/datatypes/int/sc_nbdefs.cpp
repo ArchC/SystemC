@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -36,8 +36,14 @@
 
 
 // $Log: sc_nbdefs.cpp,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.3  2011/02/18 20:19:15  acg
+//  Andy Goodrich: updating Copyright notice.
+//
+// Revision 1.2  2009/05/22 16:06:29  acg
+//  Andy Goodrich: process control updates.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:05  acg
+// SystemC 2.3
 //
 // Revision 1.3  2006/01/13 18:49:32  acg
 // Added $Log command so that CVS check in comments are reproduced in the
@@ -62,7 +68,7 @@ const int MAX_NDIGITS      = DIV_CEIL(SC_MAX_NBITS) + 2;
 
 // Support for the long long type. This type is not in the standard
 // but is usually supported by compilers.
-#ifndef WIN32
+#if !defined(WIN32) || defined(__MINGW32__)
 const uint64 UINT64_ZERO   = 0ULL;
 const uint64 UINT64_ONE    = 1ULL;
 const uint64 UINT64_32ONES = 0x00000000ffffffffULL;

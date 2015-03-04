@@ -32,7 +32,9 @@
 ##
 ## ****************************************************************************
 
-include $(top_srcdir)/config/Make-rules
+include $(top_srcdir)/config/Make-rules.sysc
+
+noinst_LTLIBRARIES =
 
 H_FILES = \
 	apply.hpp \

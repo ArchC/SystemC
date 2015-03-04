@@ -71,7 +71,6 @@ namespace sc_dt
 
 namespace sc_core {
 
-class sc_logic_resolve;
 class sc_time;
 
 template <class T> class sc_signal_in_if;
@@ -157,8 +156,7 @@ public:
     virtual void delta_cycles( bool flag );
 
     // Set time unit.
-    virtual void set_time_unit( int exponent10_seconds ); // deprecated.
-    virtual void set_time_unit( double v, sc_time_unit tu );
+    virtual void set_time_unit( double v, sc_time_unit tu )=0;
 
 protected:
 
@@ -167,12 +165,7 @@ protected:
 
     // Flush results and close file
     virtual ~sc_trace_file()
-	{ /* Intentionally blank */ };
-
-protected:
-    bool   initialized;           // = true means initialized
-    double timescale_unit;        // in seconds
-    bool   timescale_set_by_user; // = true means set by user
+	{ /* Intentionally blank */ }
 };
 
 /*****************************************************************************/
@@ -386,12 +379,7 @@ sc_write_comment( sc_trace_file* tf, const std::string& comment )
 
 // Equivalent of std::fprintf for trace files!
 
-#ifdef __GNUC__
-void tprintf( sc_trace_file* tf,  const char* format, ... )
-    __attribute__ ((format (printf,2,3)));
-#else
 void tprintf( sc_trace_file* tf,  const char* format, ... );
-#endif    
 
 
 // Convert double time to 64-bit integer

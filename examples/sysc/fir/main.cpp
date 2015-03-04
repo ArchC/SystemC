@@ -38,7 +38,7 @@
 #include "display.h"
 #include "fir.h"
 
-int sc_main (int argc , char *argv[]) {
+int sc_main (int, char *[]) {
   sc_clock         clock;
   sc_signal<bool>  reset;
   sc_signal<bool>  input_valid;        
@@ -50,7 +50,7 @@ int sc_main (int argc , char *argv[]) {
   stimulus1.reset(reset); 
   stimulus1.input_valid(input_valid); 
   stimulus1.sample(sample); 
-  stimulus1.CLK(clock.signal());
+  stimulus1.CLK(clock);
 
   fir fir1( "process_body");
   fir1.reset(reset); 

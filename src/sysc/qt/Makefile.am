@@ -30,13 +30,23 @@
 ##
 ## ****************************************************************************
 
-include $(top_srcdir)/config/Make-rules
+include $(top_srcdir)/config/Make-rules.sysc
 
-noinst_LIBRARIES = libqt.a
 
 H_FILES = \
 	qt.h \
-	qtmd.h
+	qtmd.h \
+	md/axp.h \
+	md/hppa.h \
+	md/i386.h \
+	md/iX86_64.h \
+	md/ksr1.h \
+	md/m88k.h \
+	md/mips.h \
+	md/powerpc_mach.h \
+	md/powerpc_sys5.h \
+	md/sparc.h \
+	md/vax.h
 
 noinst_HEADERS = $(H_FILES)
 
@@ -44,49 +54,55 @@ C_FILES = \
 	qt.c \
 	qtmdc.c
 
-libqt_a_SOURCES = $(H_FILES) $(C_FILES)
+S_FILES = \
+       qtmds.s
 
-libqt_a_LIBADD = qtmds.o
+if !WANT_PTHREADS_THREADS
+
+noinst_LTLIBRARIES = libqt.la
+
+libqt_la_SOURCES = $(H_FILES) $(C_FILES) $(S_FILES)
+
+libqt_la_LIBTOOLFLAGS = --tag=CC
+
+qtmds_o_CCASFLAGS = $(AM_CCASFLAGS) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES)
 
 INCLUDE_DIR = $(prefix)/include/sysc/qt
 
 qt.o qtmdc.c qtmds.s: configuration
-qtmds.o: qtmds.s
-	$(AS) -o qtmds.o qtmds.s $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES)
 
-configuration:
+if QT_ARCH_X86
+configuration: md/i386.s md/null.c
+endif
+if QT_ARCH_X86_64
+configuration: md/iX86_64.s md/null.c
+endif
+if QT_ARCH_POWERPC_MACOSX
+configuration: md/powerpc_mach.s md/powerpc.c
+endif
+if QT_ARCH_SPARC
+configuration: md/sparc.s md/null.c
+endif
+if QT_ARCH_HPPA
+configuration: md/hppa.s md/null.c
+endif
+if QT_ARCH_PTHREADS
+configuration: md/null.s md/null.c
+endif
 	@test -d md || ln -s $(srcdir)/md .
 	@$(srcdir)/config $(QT_ARCH)
 
-clean:
+endif !WANT_PTHREADS_THREADS
+
+clean-local:
 	-rm -f configuration qtmdc.c qtmds.s
 	-test -h md && rm -f md || true
 
 install-data-local:
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(INCLUDE_DIR)
-	for file in $(noinst_HEADERS); do \
-	  $(INSTALL_DATA) $(srcdir)/$$file $(INCLUDE_DIR)/$$file; \
-	done
-	$(mkinstalldirs) $(INCLUDE_DIR)/md
-	list=`echo md/*`; \
-	  for file in $$list; do \
-	    $(INSTALL_DATA) $(srcdir)/$$file $(INCLUDE_DIR)/$$file; \
-	  done
-	$(AR_TOOL) $(top_builddir)/src/$(MAIN_LIBRARY) \
-	  $(libqt_a_OBJECTS) $(libqt_a_LIBADD)
 
 
 uninstall-local:
 	@$(NORMAL_UNINSTALL)
-	for file in $(noinst_HEADERS); do \
-	  rm -f $(INCLUDE_DIR)/$$file; \
-	done
-	list=`echo md/*`; \
-	  for file in $$list; do \
-	    rm -f $(INCLUDE_DIR)/$$file; \
-	  done
-	-rmdir $(INCLUDE_DIR)/md
-	-rmdir $(INCLUDE_DIR)
 
 ## Taf!

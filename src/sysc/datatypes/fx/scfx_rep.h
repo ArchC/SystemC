@@ -35,8 +35,24 @@
  *****************************************************************************/
 
 // $Log: scfx_rep.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.6  2011/08/24 22:05:43  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.5  2011/07/25 10:20:29  acg
+//  Andy Goodrich: check in aftermath of call to automake.
+//
+// Revision 1.4  2010/12/07 20:09:08  acg
+// Andy Goodrich: Philipp Hartmann's constructor disambiguation fix
+//
+// Revision 1.3  2010/08/03 15:54:52  acg
+//  Andy Goodrich: formatting.
+//
+// Revision 1.2  2010/03/15 18:29:01  acg
+//  Andy Goodrich: Moved default argument specifications from friend
+//  declarations to the actual function signatures.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:04  acg
+// SystemC 2.3
 //
 // Revision 1.4  2006/03/13 20:24:27  acg
 //  Andy Goodrich: Addition of function declarations, e.g., neg_scfx_rep(),
@@ -71,12 +87,17 @@ class sc_signed;
 class sc_unsigned;
 
 // function declarations
-void multiply( scfx_rep&, const scfx_rep&, const scfx_rep&, int );
+void multiply( scfx_rep&, const scfx_rep&, const scfx_rep&, 
+	       int max_wl = SC_DEFAULT_MAX_WL_ );
 scfx_rep*  neg_scfx_rep( const scfx_rep& );
-scfx_rep* mult_scfx_rep( const scfx_rep&, const scfx_rep&, int );
-scfx_rep*  div_scfx_rep( const scfx_rep&, const scfx_rep&, int );
-scfx_rep*  add_scfx_rep( const scfx_rep&, const scfx_rep&, int );
-scfx_rep*  sub_scfx_rep( const scfx_rep&, const scfx_rep&, int );
+scfx_rep*  mult_scfx_rep( const scfx_rep&, const scfx_rep&, 
+	                  int max_wl = SC_DEFAULT_MAX_WL_ );
+scfx_rep*  div_scfx_rep( const scfx_rep&, const scfx_rep&, 
+	                 int max_wl = SC_DEFAULT_DIV_WL_ );
+scfx_rep*  add_scfx_rep( const scfx_rep&, const scfx_rep&, 
+	                 int max_wl = SC_DEFAULT_MAX_WL_ );
+scfx_rep*  sub_scfx_rep( const scfx_rep&, const scfx_rep&, 
+	                 int max_wl = SC_DEFAULT_MAX_WL_ );
 scfx_rep*  lsh_scfx_rep( const scfx_rep&, int );
 scfx_rep*  rsh_scfx_rep( const scfx_rep&, int );
 int        cmp_scfx_rep( const scfx_rep&, const scfx_rep& );
@@ -172,20 +193,15 @@ public:
 
     void operator = ( const scfx_rep& );
 
-    friend void multiply( scfx_rep&, const scfx_rep&, const scfx_rep&,
-			  int = SC_DEFAULT_MAX_WL_ );
+    friend void multiply( scfx_rep&, const scfx_rep&, const scfx_rep&, int );
 
-    friend scfx_rep*  neg_scfx_rep( const scfx_rep& );
-    friend scfx_rep* mult_scfx_rep( const scfx_rep&, const scfx_rep&,
-				     int = SC_DEFAULT_MAX_WL_ );
-    friend scfx_rep*  div_scfx_rep( const scfx_rep&, const scfx_rep&,
-				     int = SC_DEFAULT_DIV_WL_ );
-    friend scfx_rep*  add_scfx_rep( const scfx_rep&, const scfx_rep&,
-				     int = SC_DEFAULT_MAX_WL_ );
-    friend scfx_rep*  sub_scfx_rep( const scfx_rep&, const scfx_rep&,
-				     int = SC_DEFAULT_MAX_WL_ );
-    friend scfx_rep*  lsh_scfx_rep( const scfx_rep&, int );
-    friend scfx_rep*  rsh_scfx_rep( const scfx_rep&, int );
+    friend scfx_rep* neg_scfx_rep( const scfx_rep& );
+    friend scfx_rep* mult_scfx_rep( const scfx_rep&, const scfx_rep&, int );
+    friend scfx_rep* div_scfx_rep( const scfx_rep&, const scfx_rep&, int );
+    friend scfx_rep* add_scfx_rep( const scfx_rep&, const scfx_rep&, int );
+    friend scfx_rep* sub_scfx_rep( const scfx_rep&, const scfx_rep&, int );
+    friend scfx_rep* lsh_scfx_rep( const scfx_rep&, int );
+    friend scfx_rep* rsh_scfx_rep( const scfx_rep&, int );
 
     void lshift( int );
     void rshift( int );
@@ -277,13 +293,13 @@ private:
 
 private:
 
-    scfx_mant m_mant;
-    int       m_wp;
-    int       m_sign;
-    state     m_state;
-    int       m_msw;
-    int       m_lsw;
-    bool      m_r_flag;
+    scfx_mant m_mant;     // mantissa (bits of the value).
+    int       m_wp;       // index of highest order word in value.
+    int       m_sign;     // sign of value.
+    state     m_state;    // value state, e.g., normal, inf, etc.
+    int       m_msw;      // index of most significant non-zero word.
+    int       m_lsw;      // index of least significant non-zero word.
+    bool      m_r_flag;   // true if founding occurred.
 
 };
 
@@ -323,7 +339,7 @@ scfx_rep::set_inf( int sign )
 inline
 scfx_rep::scfx_rep( const char* s )
 : m_mant( min_mant ), m_wp( 2 ), m_sign( 1 ), m_state( normal ),
-  m_r_flag( false )
+  m_msw(0), m_lsw(0), m_r_flag( false )
 {
     from_string( s, SC_DEFAULT_CTE_WL_ );
 }

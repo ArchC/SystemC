@@ -35,8 +35,11 @@
 
 
 // $Log: sc_bv_base.cpp,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.2  2011/08/24 22:05:40  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:04  acg
+// SystemC 2.3
 //
 // Revision 1.4  2006/04/11 23:12:26  acg
 //   Andy Goodrich: Fixed bug in parsing of extended string constants like
@@ -126,7 +129,8 @@ sc_bv_base::sc_bv_base( const char* a, int length_ )
 }
 
 sc_bv_base::sc_bv_base( const sc_bv_base& a )
-    : m_len( a.m_len ),
+    : sc_proxy<sc_bv_base>(),
+      m_len( a.m_len ),
       m_size( a.m_size ),
       m_data( new sc_digit[m_size] )
 {

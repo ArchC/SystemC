@@ -30,9 +30,9 @@
 ##
 ## ****************************************************************************
 
-include $(top_srcdir)/config/Make-rules
+include $(top_srcdir)/config/Make-rules.sysc
 
-noinst_LIBRARIES = libkernel.a
+noinst_LTLIBRARIES = libkernel.la
 
 H_FILES = \
 	sc_attribute.h \
@@ -86,6 +86,7 @@ CXX_FILES = \
 	sc_cor_qt.cpp \
 	sc_cthread_process.cpp \
 	sc_event.cpp \
+	sc_except.cpp \
 	sc_join.cpp \
 	sc_main.cpp \
 	sc_main_main.cpp \
@@ -108,7 +109,7 @@ CXX_FILES = \
 
 NO_CXX_FILES =
 
-libkernel_a_SOURCES = $(H_FILES) $(CXX_FILES)
+libkernel_la_SOURCES = $(H_FILES) $(CXX_FILES)
 
 INCLUDE_DIR = $(prefix)/include/sysc/kernel
 
@@ -118,8 +119,6 @@ install-data-local:
 	for file in $(noinst_HEADERS); do \
 	  $(INSTALL_DATA) $(srcdir)/$$file $(INCLUDE_DIR)/$$file; \
 	done
-	$(AR_TOOL) $(top_builddir)/src/$(MAIN_LIBRARY) \
-	  $(libkernel_a_OBJECTS)
 
 uninstall-local:
 	@$(NORMAL_UNINSTALL)

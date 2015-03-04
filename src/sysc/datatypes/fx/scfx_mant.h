@@ -35,8 +35,11 @@
  *****************************************************************************/
 
 // $Log: scfx_mant.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.2  2011/08/24 22:05:43  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:04  acg
+// SystemC 2.3
 //
 // Revision 1.3  2006/01/13 18:53:58  acg
 // Andy Goodrich: added $Log command so that CVS comments are reproduced in
@@ -168,14 +171,16 @@ scfx_mant::operator[]( int i )
 
 inline
 scfx_mant::scfx_mant( std::size_t size )
+: m_array(0), m_size(size)
 {
-    m_array = alloc( m_size = size );
+    m_array = alloc( size );
 }
 
 inline
 scfx_mant::scfx_mant( const scfx_mant& rhs )
+: m_array(0), m_size(rhs.m_size)
 {
-    m_array = alloc( m_size = rhs.m_size );
+    m_array = alloc( m_size );
     for( int i = 0; i < m_size; i ++ )
     {
         (*this)[i] = rhs[i];

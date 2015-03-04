@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -42,11 +42,32 @@
 
 
 // $Log: sc_unsigned.cpp,v $
-// Revision 1.2  2007/02/22 21:34:49  acg
+// Revision 1.7  2011/02/18 20:19:15  acg
+//  Andy Goodrich: updating Copyright notice.
+//
+// Revision 1.6  2008/12/10 20:38:45  acg
+//  Andy Goodrich: fixed conversion of double values to the digits vector.
+//  The bits above the radix were not being masked off.
+//
+// Revision 1.5  2008/06/19 17:47:57  acg
+//  Andy Goodrich: fixes for bugs. See 2.2.1 RELEASENOTES.
+//
+// Revision 1.4  2008/06/19 16:57:57  acg
+//  Andy Goodrich: added case for negative unsigned values to the support in
+//  concate_get_data().
+//
+// Revision 1.3  2007/11/04 21:27:00  acg
+//  Andy Goodrich: changes to make sure the proper value is returned from
+//  concat_get_data().
+//
+// Revision 1.2  2007/02/22 21:35:05  acg
 //  Andy Goodrich: cleaned up comments in concat_get_ctrl and concat_get_data.
 //
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.1.1.1  2006/12/15 20:20:05  acg
+// SystemC 2.3
+//
+// Revision 1.4  2006/08/29 23:36:54  acg
+//  Andy Goodrich: fixed and_reduce and optimized or_reduce.
 //
 // Revision 1.3  2006/01/13 18:49:32  acg
 // Added $Log command so that CVS check in comments are reproduced in the
@@ -101,7 +122,7 @@ sc_unsigned::invalid_range( int l, int r ) const
     char msg[BUFSIZ];
     std::sprintf( msg,
          "sc_biguint part selection: left = %d, right = %d \n"
-         "  violates either (0 <= left <= %d) or (0 <= right <= %d)",
+	 "  violates either (%d >= left >= 0) or (%d >= right >= 0)",
          l, r, nbits-2, nbits-2 );
     SC_REPORT_ERROR( sc_core::SC_ID_OUT_OF_BOUNDS_, msg );
 }
@@ -150,6 +171,7 @@ bool sc_unsigned::concat_get_ctrl( sc_digit* dst_p, int low_i ) const
 
 bool sc_unsigned::concat_get_data( sc_digit* dst_p, int low_i ) const
 {
+    sc_digit carry;        // Carry for negating value.
     int      dst_i;        // Index to next word to set in dst_p.
     int      end_i;        // Index of high order word to set.
     int      high_i;       // Index w/in word of high order bit.
@@ -184,10 +206,9 @@ bool sc_unsigned::concat_get_data( sc_digit* dst_p, int low_i ) const
 
 	if ( dst_i == end_i )
 	{
-	    mask = ~(-1 << real_bits) << left_shift;
-	    dst_p[dst_i] = ( dst_p[dst_i] & ~mask ) | 
-		((digit[0] << left_shift) & mask);
-		    // #### We really want zero propogation on the top!
+	    mask = ~(-1 << left_shift);
+	    dst_p[dst_i] = ( ( dst_p[dst_i] & mask ) | 
+		(digit[0] << left_shift) ) & DIGIT_MASK;
 	}
 
 
@@ -222,11 +243,76 @@ bool sc_unsigned::concat_get_data( sc_digit* dst_p, int low_i ) const
 		    (right_word >> right_shift);
 		right_word = left_word;
 	    }
-	    left_word = digit[src_i];
+	    left_word = (src_i < ndigits) ? digit[src_i] : 0;
 	    mask = ~(-2 << high_i) & DIGIT_MASK;
 	    dst_p[dst_i] = ((left_word << left_shift) |
 		(right_word >> right_shift)) & mask;
 	}
+	break;
+
+      // SOURCE VALUE IS NEGATIVE:
+
+      case SC_NEG:
+
+        // ALL DATA TO BE MOVED IS IN A SINGLE WORD:
+
+	result = true;
+        if ( dst_i == end_i )
+        {
+            mask = ~(-1 << nbits);
+            right_word = ((digit[0] ^ DIGIT_MASK) + 1) & mask;
+            mask = ~(-1 << left_shift);
+            dst_p[dst_i] = ( ( dst_p[dst_i] & mask ) |
+                (right_word << left_shift) ) & DIGIT_MASK;
+        }
+
+
+        // DATA IS IN MORE THAN ONE WORD, BUT IS WORD ALIGNED:
+
+        else if ( left_shift == 0 )
+        {
+            carry = 1;
+            for ( src_i = 0; dst_i < end_i; dst_i++, src_i++ )
+            {
+                right_word = (digit[src_i] ^ DIGIT_MASK) + carry;
+                dst_p[dst_i] = right_word &  DIGIT_MASK;
+                carry = right_word >> BITS_PER_DIGIT;
+            }
+            high_i = high_i % BITS_PER_DIGIT;
+            mask = (~(-2 << high_i)) & DIGIT_MASK;
+            right_word = (src_i < ndigits) ? 
+		(digit[src_i] ^ DIGIT_MASK) + carry : DIGIT_MASK + carry;
+            dst_p[dst_i] = right_word & mask;
+        }
+
+
+        // DATA IS IN MORE THAN ONE WORD, AND NOT WORD ALIGNED:
+
+        else
+        {
+            high_i = high_i % BITS_PER_DIGIT;
+            right_shift = BITS_PER_DIGIT - left_shift;
+            mask = ~(-1 << left_shift);
+            carry = 1;
+            right_word = (digit[0] ^ DIGIT_MASK) + carry;
+            dst_p[dst_i] = (dst_p[dst_i] & mask) | 
+                ((right_word << left_shift) & DIGIT_MASK);
+	    carry = right_word >> BITS_PER_DIGIT;
+	    right_word &= DIGIT_MASK;
+            for ( src_i = 1, dst_i++; dst_i < end_i; dst_i++, src_i++ )
+            {
+                left_word = (digit[src_i] ^ DIGIT_MASK) + carry;
+                dst_p[dst_i] = ((left_word << left_shift)&DIGIT_MASK) |
+                    (right_word >> right_shift);
+                carry = left_word >> BITS_PER_DIGIT;
+                right_word = left_word & DIGIT_MASK;
+            }
+            left_word = (src_i < ndigits) ? 
+		(digit[src_i] ^ DIGIT_MASK) + carry : carry;
+            mask = ~(-2 << high_i) & DIGIT_MASK;
+            dst_p[dst_i] = ((left_word << left_shift) |
+                (right_word >> right_shift)) & mask;
+        }
 	break;
 
 
@@ -239,7 +325,7 @@ bool sc_unsigned::concat_get_data( sc_digit* dst_p, int low_i ) const
 
         if ( dst_i == end_i )
         {
-            mask = ~(-1 << nbits) << left_shift;
+            mask = ~(-1 << real_bits) << left_shift;
             dst_p[dst_i] = dst_p[dst_i] & ~mask;
         }
 
@@ -457,9 +543,9 @@ sc_unsigned::operator=(double v)
   register int i = 0;
   while (floor(v) && (i < ndigits)) {
 #ifndef WIN32
-    digit[i++] = (sc_digit) floor(remainder(v, DIGIT_RADIX));
+    digit[i++] = ((sc_digit)floor(remainder(v, DIGIT_RADIX))) & DIGIT_MASK;
 #else
-    digit[i++] = (sc_digit) floor(fmod(v, DIGIT_RADIX));
+    digit[i++] = ((sc_digit)floor(fmod(v, DIGIT_RADIX))) & DIGIT_MASK;
 #endif
     v /= DIGIT_RADIX;
   }

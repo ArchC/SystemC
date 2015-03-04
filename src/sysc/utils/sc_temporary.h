@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,27 +21,8 @@
 
   Original Author: Andy Goodrich, Forte Design Systems, Inc.
 
+  CHANGE LOG AT END OF FILE
  *****************************************************************************/
-
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-
- *****************************************************************************/
-
-
-// $Log: sc_temporary.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:39  acg
-// SystemC 2.2
-//
-// Revision 1.3  2006/01/13 18:53:11  acg
-// Andy Goodrich: Added $Log command so that CVS comments are reproduced in
-// the source.
-//
 
 #ifndef SC_TEMPORARY_H
 #define SC_TEMPORARY_H
@@ -79,7 +60,7 @@ namespace sc_core {
 //   This is the non-initialized object instance constructor. It does not 
 //   allocate the heap storage, that is done by the initialize() method.
 //
-// sc_byte_heap()
+// sc_byte_heap(int)
 //   This is the initializing object instance constructor. It does allocates
 //   a heap of the specified number of bytes.
 //       heap_size = number of bytes to allocate for the heap.
@@ -106,7 +87,7 @@ class sc_byte_heap {
 
     inline void initialize( int heap_size=0x100000 )
     {
-		if ( m_bgn_p ) delete [] m_bgn_p;
+        delete [] m_bgn_p;
         m_bgn_p = new char[heap_size];
         m_end_p = &m_bgn_p[heap_size];
         m_next_p = m_bgn_p;
@@ -117,20 +98,20 @@ class sc_byte_heap {
 		return (unsigned int)(m_end_p - m_bgn_p);
 	}
 
-	inline sc_byte_heap()
+	inline sc_byte_heap() : 
+	    m_bgn_p(0), m_end_p(0), m_next_p(0)
 	{
-		m_bgn_p = 0;
 	}
 
-	inline sc_byte_heap( int heap_size )
+	inline sc_byte_heap( int heap_size ) :
+	    m_bgn_p(0), m_end_p(0), m_next_p(0)
 	{
-		m_bgn_p = 0;
 		initialize( heap_size );
 	}
 
 	inline ~sc_byte_heap()
 	{
-		if ( m_bgn_p ) delete [] m_bgn_p;
+		delete [] m_bgn_p;
 	}
 
 };
@@ -187,12 +168,11 @@ class sc_vpool {
 	inline int size();
 };
 
-template<class T> sc_vpool<T>::sc_vpool( int log2, T* pool_p )
+template<class T> sc_vpool<T>::sc_vpool( int log2, T* pool_p ) :
+    m_pool_i( 0 ), m_pool_p( pool_p ? pool_p : new T[1 << log2] ), 
+    m_wrap( ~(-1 << log2) )
 {
 	// if ( log2 > 32 ) SC_REPORT_ERROR(SC_ID_POOL_SIZE_, "");
-	m_pool_i = 0;
-	m_pool_p = pool_p ? pool_p : new T[1 << log2];
-	m_wrap = ~(-1 << log2);
 }
 
 template<class T> sc_vpool<T>::~sc_vpool()
@@ -221,7 +201,23 @@ template<class T> int sc_vpool<T>::size()
 
 } // namespace sc_core
 
+// $Log: sc_temporary.h,v $
+// Revision 1.4  2011/08/26 20:46:19  acg
+//  Andy Goodrich: moved the modification log to the end of the file to
+//  eliminate source line number skew when check-ins are done.
+//
+// Revision 1.3  2011/08/24 22:05:56  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.2  2011/02/18 20:38:44  acg
+//  Andy Goodrich: Updated Copyright notice.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:06  acg
+// SystemC 2.3
+//
+// Revision 1.3  2006/01/13 18:53:11  acg
+// Andy Goodrich: Added $Log command so that CVS comments are reproduced in
+// the source.
+//
+
 #endif // SC_TEMPORARY_H
-
-
-

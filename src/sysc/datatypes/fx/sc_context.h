@@ -34,8 +34,15 @@
  *****************************************************************************/
 
 // $Log: sc_context.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.2  2011/08/24 22:05:43  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:04  acg
+// SystemC 2.3
+//
+// Revision 1.5  2006/05/26 20:36:52  acg
+//  Andy Goodrich: added a using for sc_core::default_ptr_hash_fn to keep HP
+//  aCC happy.
 //
 // Revision 1.4  2006/03/21 00:00:31  acg
 //   Andy Goodrich: changed name of sc_get_current_process_base() to be
@@ -54,11 +61,12 @@
 #include "sysc/kernel/sc_simcontext.h"
 #include "sysc/utils/sc_hash.h"
 
+
 namespace sc_core {
 	class sc_process_b;
 }
 
-using sc_core::default_ptr_hash_fn;
+using sc_core::default_ptr_hash_fn; // To keep HP aCC happy.
 
 namespace sc_dt
 {
@@ -131,6 +139,7 @@ enum sc_context_begin
 template <class T>
 class sc_context
 {
+    // disabled
     sc_context( const sc_context<T>& );
     void* operator new( std::size_t );
 
@@ -168,7 +177,8 @@ sc_global<T>* sc_global<T>::m_instance = 0;
 template <class T>
 inline
 sc_global<T>::sc_global()
-: m_proc( 
+: m_map(),
+  m_proc( 
 	reinterpret_cast<const sc_core::sc_process_b*>( -1 ) ), 
 	m_value_ptr( 0 )
 {}
@@ -222,28 +232,6 @@ sc_global<T>::value_ptr()
 //
 //  Template context class; co-routine safe.
 // ----------------------------------------------------------------------------
-
-template <class T>
-inline
-sc_context<T>::sc_context( const sc_context<T>& )
-: m_value(),
-  m_def_value_ptr( sc_global<T>::instance()->value_ptr() ),
-  m_old_value_ptr( 0 )
-{
-    // this constructor should never be called
-    SC_REPORT_FATAL( sc_core::SC_ID_INTERNAL_ERROR_, "should never be called" );
-}
-
-template <class T>
-inline
-void*
-sc_context<T>::operator new( std::size_t )
-{
-    // this method should never be called
-    SC_REPORT_FATAL( sc_core::SC_ID_INTERNAL_ERROR_, "should never be called" );
-    return (void*)0;
-}
-
 
 template <class T>
 inline

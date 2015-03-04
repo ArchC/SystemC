@@ -30,6 +30,8 @@
 ##
 ## ****************************************************************************
 
+DOXYGEN=doxygen
+
 SUBDIRS = \
 	src \
 	examples \
@@ -46,20 +48,8 @@ INST_FILES = \
 	RELEASENOTES \
 	docs
 
-debug:
-	$(MAKE) all CXXFLAGS="$(EXTRA_CXXFLAGS) $(DEBUG_CXXFLAGS)"
-
-opt:
-	$(MAKE) all CXXFLAGS="$(EXTRA_CXXFLAGS) $(OPT_CXXFLAGS)"
-
-pthreads:
-	$(MAKE) all CXXFLAGS="$(EXTRA_CXXFLAGS) $(OPT_CXXFLAGS) -DSC_USE_PTHREADS"
-
-pthreads_debug:
-	$(MAKE) all CXXFLAGS="$(EXTRA_CXXFLAGS) $(DEBUG_CXXFLAGS) -DSC_USE_PTHREADS"
-
-pthreads_check:
-	$(MAKE) check CXXFLAGS="$(EXTRA_CXXFLAGS) -DSC_USE_PTHREADS" LDFLAGS="-lpthread"
+# support local addition of automake macros
+ACLOCAL_AMFLAGS= -I config
 
 install-data-local:
 	@$(NORMAL_INSTALL)
@@ -89,5 +79,9 @@ uninstall-local:
 	  done; \
 	fi
 	@(cd ./examples; $(MAKE) uninstall;)
+
+doxygen:
+	@(cd docs/sysc/doxygen && $(DOXYGEN))
+	@(cd docs/tlm/doxygen && $(DOXYGEN))
 
 ## Taf!

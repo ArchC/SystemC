@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,28 +21,8 @@
 
   Original Author: Martin Janssen, Synopsys, Inc., 2001-05-21
 
+ CHANGE LOG APPEARS AT THE END OF THE FILE
  *****************************************************************************/
-
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-    
- *****************************************************************************/
-
-// $Log: sc_attribute.cpp,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
-//
-// Revision 1.4  2006/01/16 22:27:08  acg
-// Test of $Log comment.
-//
-// Revision 1.3  2006/01/13 18:44:29  acg
-// Added $Log to record CVS changes into the source.
-
 
 #include "sysc/kernel/sc_attribute.h"
 
@@ -88,7 +68,7 @@ sc_attr_base::name() const
 
 // constructors
 
-sc_attr_cltn::sc_attr_cltn()
+sc_attr_cltn::sc_attr_cltn() : m_cltn()
 {}
 
 sc_attr_cltn::sc_attr_cltn( const sc_attr_cltn& a )
@@ -158,8 +138,8 @@ sc_attr_cltn::remove( const std::string& name_ )
     for( int i = m_cltn.size() - 1; i >= 0; -- i ) {
 	if( name_ == m_cltn[i]->name() ) {
 	    sc_attr_base* attribute = m_cltn[i];
-	    m_cltn[i] = m_cltn[m_cltn.size() - 1];
-	    m_cltn.decr_count();
+	    std::swap( m_cltn[i], m_cltn.back() );
+	    m_cltn.pop_back();
 	    return attribute;
 	}
     }
@@ -172,8 +152,38 @@ sc_attr_cltn::remove( const std::string& name_ )
 void
 sc_attr_cltn::remove_all()
 {
-    m_cltn.erase_all();
+    m_cltn.clear();
 }
 
 } // namespace sc_core
+
+// $Log: sc_attribute.cpp,v $
+// Revision 1.7  2011/08/26 20:46:08  acg
+//  Andy Goodrich: moved the modification log to the end of the file to
+//  eliminate source line number skew when check-ins are done.
+//
+// Revision 1.6  2011/08/24 22:05:50  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.5  2011/02/18 20:27:14  acg
+//  Andy Goodrich: Updated Copyrights.
+//
+// Revision 1.4  2011/02/13 21:47:37  acg
+//  Andy Goodrich: update copyright notice.
+//
+// Revision 1.3  2010/07/22 20:02:33  acg
+//  Andy Goodrich: bug fixes.
+//
+// Revision 1.2  2008/05/22 17:06:24  acg
+//  Andy Goodrich: updated copyright notice to include 2008.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:05  acg
+// SystemC 2.3
+//
+// Revision 1.4  2006/01/16 22:27:08  acg
+// Test of $Log comment.
+//
+// Revision 1.3  2006/01/13 18:44:29  acg
+// Added $Log to record CVS changes into the source.
+
 // Taf!

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,55 +21,8 @@
 
   Original Author: Martin Janssen, Synopsys, Inc., 2001-05-21
 
+ CHANGE LOG AT THE END OF THE FILE
  *****************************************************************************/
-
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems
-                               Bishnupriya Bhattacharya, Cadence Design Systems,
-                               25 August, 2003
-  Description of Modification: phase callbacks
-
-      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems
-	  						   12 December, 2005
-  Description of Modification: multiport binding policy changes
-    
- *****************************************************************************/
-
-
-// $Log: sc_port.cpp,v $
-// Revision 1.1.1.1  2006/12/15 20:31:35  acg
-// SystemC 2.2
-//
-// Revision 1.9  2006/02/02 20:43:09  acg
-//  Andy Goodrich: Added an existence linked list to sc_event_finder so that
-//  the dynamically allocated instances can be freed after port binding
-//  completes. This replaces the individual deletions in ~sc_bind_ef, as these
-//  caused an exception if an sc_event_finder instance was used more than
-//  once, due to a double freeing of the instance.
-//
-// Revision 1.7  2006/01/26 21:00:50  acg
-//  Andy Goodrich: conversion to use sc_event::notify(SC_ZERO_TIME) instead of
-//  sc_event::notify_delayed()
-//
-// Revision 1.6  2006/01/25 00:31:11  acg
-//  Andy Goodrich: Changed over to use a standard message id of
-//  SC_ID_IEEE_1666_DEPRECATION for all deprecation messages.
-//
-// Revision 1.5  2006/01/24 20:46:31  acg
-// Andy Goodrich: changes to eliminate use of deprecated features. For instance,
-// using notify(SC_ZERO_TIME) in place of notify_delayed().
-//
-// Revision 1.4  2006/01/13 20:41:59  acg
-// Andy Goodrich: Changes to add port registration to the things that are
-// checked when SC_NO_WRITE_CHECK is not defined.
-//
-// Revision 1.3  2006/01/13 18:47:42  acg
-// Added $Log command so that CVS comments are reproduced in the source.
-//
 
 #include "sysc/kernel/sc_simcontext.h"
 #include "sysc/kernel/sc_module.h"
@@ -191,10 +144,13 @@ struct sc_bind_info
 sc_bind_info::sc_bind_info( int max_size_, sc_port_policy policy_ )
 : m_max_size( max_size_ ),
   m_policy( policy_ ),
+  vec(),
   has_parent( false ),
   last_add( -1 ),
   is_leaf( true ),
-  complete( false )
+  complete( false ),
+  thread_vec(),
+  method_vec()
 {}
 
 
@@ -211,7 +167,7 @@ sc_bind_info::~sc_bind_info()
 int
 sc_bind_info::max_size() const
 {
-    return m_max_size ? m_max_size : vec.size();
+    return m_max_size ? m_max_size : (int) vec.size();
 }
 
 sc_port_policy 
@@ -250,6 +206,15 @@ void sc_port_base::add_static_event(
     process_p->add_static_event( event );
 }
 
+// return number of interfaces that will be bound, or are bound:
+
+int sc_port_base::bind_count()
+{
+    if ( m_bind_info )
+	return m_bind_info->size();
+    else 
+	return interface_count();
+}
 
 // error reporting
 
@@ -272,18 +237,20 @@ sc_port_base::sc_port_base(
     int max_size_, sc_port_policy policy 
 ) : 
     sc_object( sc_gen_unique_name( "port" ) ),
-    m_bind_info( new sc_bind_info( max_size_, policy ) )
+    m_bind_info(NULL)
 {
     simcontext()->get_port_registry()->insert( this );
+    m_bind_info = new sc_bind_info( max_size_, policy );
 }
 
 sc_port_base::sc_port_base( 
     const char* name_, int max_size_, sc_port_policy policy 
 ) : 
     sc_object( name_ ),
-    m_bind_info( new sc_bind_info( max_size_, policy ) )
+    m_bind_info(NULL)
 {
     simcontext()->get_port_registry()->insert( this );
+    m_bind_info = new sc_bind_info( max_size_, policy );
 }
 
 
@@ -292,9 +259,7 @@ sc_port_base::sc_port_base(
 sc_port_base::~sc_port_base()
 {
     simcontext()->get_port_registry()->remove( this );
-    if( m_bind_info != 0 ) {
-	delete m_bind_info;
-    }
+    delete m_bind_info;
 }
 
 
@@ -346,7 +311,7 @@ sc_port_base::bind( this_type& parent_ )
     parent_.m_bind_info->is_leaf = false;
 }
 
-// called by sc_port_registry::construction_done (null by default)
+// called by construction_done (null by default)
 
 void sc_port_base::before_end_of_elaboration() 
 {}
@@ -585,10 +550,15 @@ sc_port_base::complete_binding()
 
     m_bind_info->complete = true;
 }
+
 void
 sc_port_base::construction_done()
 {
+    sc_module* parent = DCAST<sc_module*>( get_parent_object() );
+    sc_assert( parent );
+    simcontext()->hierarchy_push( parent );
     before_end_of_elaboration();
+    simcontext()->hierarchy_pop();
 }
 
 void
@@ -597,20 +567,31 @@ sc_port_base::elaboration_done()
     assert( m_bind_info != 0 && m_bind_info->complete );
     delete m_bind_info;
     m_bind_info = 0;
-
+    sc_module* parent = DCAST<sc_module*>( get_parent_object() );
+    sc_assert( parent );
+    simcontext()->hierarchy_push( parent );
     end_of_elaboration();
+    simcontext()->hierarchy_pop();
 }
 
 void
 sc_port_base::start_simulation()
 {
+    sc_module* parent = DCAST<sc_module*>( get_parent_object() );
+    sc_assert( parent );
+    simcontext()->hierarchy_push( parent );
     start_of_simulation();
+    simcontext()->hierarchy_pop();
 }
 
 void
 sc_port_base::simulation_done()
 {
+    sc_module* parent = DCAST<sc_module*>( get_parent_object() );
+    sc_assert( parent );
+    simcontext()->hierarchy_push( parent );
     end_of_simulation();
+    simcontext()->hierarchy_pop();
 }
 
 
@@ -626,6 +607,10 @@ sc_port_registry::insert( sc_port_base* port_ )
 {
     if( sc_is_running() ) {
 	port_->report_error( SC_ID_INSERT_PORT_, "simulation running" );
+    }
+
+    if( m_simc->elaboration_done()  ) {
+       port_->report_error( SC_ID_INSERT_PORT_, "elaboration done" );
     }
 
 #if defined(DEBUG_SYSTEMC)
@@ -670,7 +655,9 @@ sc_port_registry::remove( sc_port_base* port_ )
 // constructor
 
 sc_port_registry::sc_port_registry( sc_simcontext& simc_ )
-: m_simc( &simc_ )
+: m_construction_done(0),
+  m_port_vec(),
+  m_simc( &simc_ )
 {
 }
 
@@ -683,12 +670,19 @@ sc_port_registry::~sc_port_registry()
 
 // called when construction is done
 
-void
+bool
 sc_port_registry::construction_done()
 {
-    for( int i = size() - 1; i >= 0; -- i ) {
+    if( size() == m_construction_done )
+        // nothing has been updated
+        return true;
+
+    for( int i = size()-1; i >= m_construction_done; --i ) {
         m_port_vec[i]->construction_done();
     }
+
+    m_construction_done = size();
+    return false;
 }
 
 // called when when elaboration is done
@@ -737,7 +731,7 @@ sc_port_registry::simulation_done()
 // This is a static member function.
 
 void
-sc_port_registry::replace_port( sc_port_registry* registry )
+sc_port_registry::replace_port( sc_port_registry* /* registry */ )
 {
 }
 
@@ -754,5 +748,92 @@ void sc_warn_port_constructor()
 }
 
 } // namespace sc_core
+
+
+/*****************************************************************************
+
+  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
+  changes you are making here.
+
+      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems
+                               Bishnupriya Bhattacharya, Cadence Design Systems,
+                               25 August, 2003
+  Description of Modification: phase callbacks
+
+      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems
+	  						   12 December, 2005
+  Description of Modification: multiport binding policy changes
+    
+ *****************************************************************************/
+
+
+// $Log: sc_port.cpp,v $
+// Revision 1.8  2011/08/24 22:05:36  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.7  2011/08/15 16:43:24  acg
+//  Torsten Maehne: changes to remove unused argument warnings.
+//
+// Revision 1.6  2011/08/07 19:08:01  acg
+//  Andy Goodrich: moved logs to end of file so line number synching works
+//  better between versions.
+//
+// Revision 1.5  2011/08/07 18:53:09  acg
+//  Philipp A. Hartmann: add virtual instances of the bind function for
+//  base classes to eliminate warning messages for clang platforms.
+//
+// Revision 1.4  2011/05/09 04:07:37  acg
+//  Philipp A. Hartmann:
+//    (1) Restore hierarchy in all phase callbacks.
+//    (2) Ensure calls to before_end_of_elaboration.
+//
+// Revision 1.3  2011/02/18 20:23:45  acg
+//  Andy Goodrich: Copyright update.
+//
+// Revision 1.2  2011/02/14 17:50:16  acg
+//  Andy Goodrich: testing for sc_port and sc_export instantiations during
+//  end of elaboration and issuing appropriate error messages.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:04  acg
+// SystemC 2.3
+//
+// Revision 1.11  2006/08/29 23:34:59  acg
+//  Andy Goodrich: added bind_count() method to allow users to determine which
+//  ports are connected in before_end_of_elaboration().
+//
+// Revision 1.10  2006/05/08 17:52:47  acg
+//  Andy Goodrich:
+//    (1) added David Long's forward declarations for friend functions,
+//        methods, and operators to keep the Microsoft compiler happy.
+//    (2) Added delta_count() method to sc_prim_channel for use by
+//        sc_signal so that the friend declaration in sc_simcontext.h
+// 	   can be for a non-templated class (i.e., sc_prim_channel.)
+//
+// Revision 1.9  2006/02/02 20:43:09  acg
+//  Andy Goodrich: Added an existence linked list to sc_event_finder so that
+//  the dynamically allocated instances can be freed after port binding
+//  completes. This replaces the individual deletions in ~sc_bind_ef, as these
+//  caused an exception if an sc_event_finder instance was used more than
+//  once, due to a double freeing of the instance.
+//
+// Revision 1.7  2006/01/26 21:00:50  acg
+//  Andy Goodrich: conversion to use sc_event::notify(SC_ZERO_TIME) instead of
+//  sc_event::notify_delayed()
+//
+// Revision 1.6  2006/01/25 00:31:11  acg
+//  Andy Goodrich: Changed over to use a standard message id of
+//  SC_ID_IEEE_1666_DEPRECATION for all deprecation messages.
+//
+// Revision 1.5  2006/01/24 20:46:31  acg
+// Andy Goodrich: changes to eliminate use of deprecated features. For instance,
+// using notify(SC_ZERO_TIME) in place of notify_delayed().
+//
+// Revision 1.4  2006/01/13 20:41:59  acg
+// Andy Goodrich: Changes to add port registration to the things that are
+// checked when SC_NO_WRITE_CHECK is not defined.
+//
+// Revision 1.3  2006/01/13 18:47:42  acg
+// Added $Log command so that CVS comments are reproduced in the source.
+//
 
 // Taf!

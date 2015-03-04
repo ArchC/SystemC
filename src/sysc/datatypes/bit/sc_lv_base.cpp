@@ -35,8 +35,11 @@
 
 
 // $Log: sc_lv_base.cpp,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.2  2011/08/24 22:05:40  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:04  acg
+// SystemC 2.3
 //
 // Revision 1.3  2006/01/13 18:53:53  acg
 // Andy Goodrich: added $Log command so that CVS comments are reproduced in
@@ -126,7 +129,8 @@ sc_lv_base::sc_lv_base( const char* a, int length_ )
 }
 
 sc_lv_base::sc_lv_base( const sc_lv_base& a )
-    : m_len( a.m_len ),
+    : sc_proxy<sc_lv_base>(),
+      m_len( a.m_len ),
       m_size( a.m_size ),
       m_data( new sc_digit[m_size * 2] ),
       m_ctrl( m_data + m_size )

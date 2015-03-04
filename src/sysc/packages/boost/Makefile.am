@@ -30,7 +30,7 @@
 ##
 ## ****************************************************************************
 
-include $(top_srcdir)/config/Make-rules
+include $(top_srcdir)/config/Make-rules.sysc
 
 SUBDIRS = \
 	bind \
@@ -40,20 +40,16 @@ SUBDIRS = \
 	utility \
 	.
 
+noinst_LTLIBRARIES =
+
 H_FILES = \
-	assert.hpp \
 	bind.hpp \
-	checked_delete.hpp \
 	config.hpp \
-	current_function.hpp \
 	get_pointer.hpp \
 	mem_fn.hpp \
 	non_type.hpp \
 	ref.hpp \
-	shared_ptr.hpp \
-	throw_exception.hpp \
-	type.hpp \
-	weak_ptr.hpp
+	type.hpp
 
 noinst_HEADERS = $(H_FILES)
 

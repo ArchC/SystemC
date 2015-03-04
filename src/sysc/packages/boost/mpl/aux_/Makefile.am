@@ -32,7 +32,7 @@
 ##
 ## ****************************************************************************
 
-include $(top_srcdir)/config/Make-rules
+include $(top_srcdir)/config/Make-rules.sysc
 
 H_FILES = \
     adl_barrier.hpp
@@ -42,7 +42,8 @@ noinst_HEADERS = $(H_FILES)
 CXX_FILES = 
 
 SUBDIRS = \
-	config
+	config  \
+	.
 
 
 INCLUDE_DIR = $(prefix)/include/sysc/packages/boost/mpl/aux_

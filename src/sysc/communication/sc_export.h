@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -22,25 +22,8 @@
   Original Author: Andy Goodrich, Forte Design Systems
                    Bishnupriya Bhattacharya, Cadence Design Systems
 
+  CHANGE LOG IS AT THE END OF THE FILE
  *****************************************************************************/
-
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-    
- *****************************************************************************/
-
-// $Log: sc_export.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:35  acg
-// SystemC 2.2
-//
-// Revision 1.3  2006/01/13 18:47:42  acg
-// Added $Log command so that CVS comments are reproduced in the source.
-//
 
 #ifndef SC_EXPORT_H
 #define SC_EXPORT_H
@@ -49,6 +32,12 @@
 #include "sysc/communication/sc_communication_ids.h"
 #include "sysc/communication/sc_interface.h"
 #include "sysc/kernel/sc_object.h"
+
+#if ! defined( SC_DISABLE_VIRTUAL_BIND )
+#  define SC_VIRTUAL_ virtual
+#else
+#  define SC_VIRTUAL_ /* non-virtual */
+#endif
 
 namespace sc_core {
 
@@ -98,8 +87,16 @@ protected:
     virtual void end_of_simulation();
 
     virtual const char* if_typename() const = 0;
+ 
+    // error reporting
+    void report_error( const char* id, const char* add_msg = 0) const;
 
 private:
+
+    void construction_done();
+    void elaboration_done();
+    void start_simulation();
+    void simulation_done();
 
     // disabled
     sc_export_base(const this_type&);
@@ -170,9 +167,12 @@ public: // interface access:
 	}
 	return *m_interface_p;
     }
+    operator const IF&() const
+        { return *const_cast<this_type*>(this); }
+
 
 public: // binding:
-    void bind( IF& interface_ )
+    SC_VIRTUAL_ void bind( IF& interface_ )
     {
     	if ( m_interface_p )
 	{
@@ -186,14 +186,7 @@ public: // binding:
 
     void operator () ( IF& interface_ )
     {
-    	if ( m_interface_p )
-	{
-	    SC_REPORT_ERROR(SC_ID_SC_EXPORT_ALREADY_BOUND_,name());
-	}
-	else
-	{
-	    m_interface_p = &interface_;
-	}
+        this->bind(interface_);
     }
 
 public: // identification:
@@ -240,7 +233,7 @@ private:
     ~sc_export_registry();
 
     // called when construction is done
-    void construction_done();
+    bool construction_done();
 
     // called when elaboration is done
     void elaboration_done();
@@ -253,8 +246,9 @@ private:
 
 private:
 
-    sc_simcontext*               m_simc;
+    int                          m_construction_done;
     std::vector<sc_export_base*> m_export_vec;
+    sc_simcontext*               m_simc;
 
 private:
 
@@ -265,6 +259,38 @@ private:
 };
 
 } // namespace sc_core
+
+#undef SC_VIRTUAL_
+
+// $Log: sc_export.h,v $
+// Revision 1.7  2011/08/26 20:45:40  acg
+//  Andy Goodrich: moved the modification log to the end of the file to
+//  eliminate source line number skew when check-ins are done.
+//
+// Revision 1.6  2011/05/09 04:07:37  acg
+//  Philipp A. Hartmann:
+//    (1) Restore hierarchy in all phase callbacks.
+//    (2) Ensure calls to before_end_of_elaboration.
+//
+// Revision 1.5  2011/04/02 00:02:14  acg
+//  Philipp A. Hartmann: add const overload for sc_export::operator IF&
+//
+// Revision 1.4  2011/02/18 20:23:45  acg
+//  Andy Goodrich: Copyright update.
+//
+// Revision 1.3  2011/02/14 17:50:16  acg
+//  Andy Goodrich: testing for sc_port and sc_export instantiations during
+//  end of elaboration and issuing appropriate error messages.
+//
+// Revision 1.2  2011/01/20 16:52:15  acg
+//  Andy Goodrich: changes for IEEE 1666 2011.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:04  acg
+// SystemC 2.3
+//
+// Revision 1.3  2006/01/13 18:47:42  acg
+// Added $Log command so that CVS comments are reproduced in the source.
+//
 
 #endif
 

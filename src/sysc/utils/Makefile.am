@@ -30,9 +30,9 @@
 ##
 ## ****************************************************************************
 
-include $(top_srcdir)/config/Make-rules
+include $(top_srcdir)/config/Make-rules.sysc
 
-noinst_LIBRARIES = libutils.a
+noinst_LTLIBRARIES = libutils.la
 
 H_FILES = \
 	sc_hash.h \
@@ -41,6 +41,7 @@ H_FILES = \
 	sc_machine.h \
 	sc_mempool.h \
 	sc_pq.h \
+	sc_pvector.h \
 	sc_report.h \
 	sc_report_handler.h \
 	sc_string.h \
@@ -62,18 +63,14 @@ CXX_FILES = \
 	sc_report_handler.cpp \
 	sc_stop_here.cpp \
 	sc_string.cpp \
-	sc_utils_ids.cpp 
+	sc_utils_ids.cpp \
+	sc_vector.cpp
 
 NO_CXX_FILES =
 
-libutils_a_SOURCES = $(H_FILES) $(CXX_FILES)
+libutils_la_SOURCES = $(H_FILES) $(CXX_FILES)
 
 INCLUDE_DIR = $(prefix)/include/sysc/utils
-
-CXXCOMPILE_DEBUG = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(EXTRA_CXXFLAGS) $(DEBUG_CXXFLAGS)
-
-sc_stop_here.o: sc_stop_here.cpp
-	$(CXXCOMPILE_DEBUG) -c $<
 
 install-data-local:
 	@$(NORMAL_INSTALL)
@@ -81,8 +78,6 @@ install-data-local:
 	for file in $(noinst_HEADERS); do \
 	  $(INSTALL_DATA) $(srcdir)/$$file $(INCLUDE_DIR)/$$file; \
 	done
-	$(AR_TOOL) $(top_builddir)/src/$(MAIN_LIBRARY) \
-	  $(libutils_a_OBJECTS)
 
 uninstall-local:
 	@$(NORMAL_UNINSTALL)

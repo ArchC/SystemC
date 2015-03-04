@@ -1,11 +1,11 @@
 /****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -23,117 +23,9 @@
   Original Author: Stan Y. Liao, Synopsys, Inc.
                    Martin Janssen, Synopsys, Inc.
 
+  CHANGE LOG AT THE END OF THE FILE
  *****************************************************************************/
 
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date: Ali Dasdan, Synopsys, Inc.
-  Description of Modification: - Added sc_stop() detection into initial_crunch
-                                 and crunch. This makes it possible to exit out
-                                 of a combinational loop using sc_stop().
-
-      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems 20 May 2003
-  Description of Modification: - sc_stop mode
-                               - phase callbacks
-
-      Name, Affiliation, Date: Bishnupriya Bhattacharya, Cadence Design Systems,
-                               25 August 2003
-  Description of Modification: - support for dynamic process
-                               - support for sc export registry
-                               - new member methods elaborate(), 
-				 prepare_to_simulate(), and initial_crunch()
-				 that are invoked by initialize() in that order
-                               - implement sc_get_last_created_process_handle() for use
-                                 before simulation starts
-                               - remove "set_curr_proc(handle)" from 
-                                 register_method_process and 
-                                 register_thread_process - led to bugs
-                               
-      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems 04 Sep 2003
-  Description of Modification: - changed process existence structures to
-				 linked lists to eliminate exponential 
-				 execution problem with using sc_pvector.
- *****************************************************************************/
-// $Log: sc_simcontext.cpp,v $
-// Revision 1.1.1.1  2006/12/15 20:31:37  acg
-// SystemC 2.2
-//
-// Revision 1.17  2006/04/11 23:13:21  acg
-//   Andy Goodrich: Changes for reduced reset support that only includes
-//   sc_cthread, but has preliminary hooks for expanding to method and thread
-//   processes also.
-//
-// Revision 1.16  2006/03/21 00:00:34  acg
-//   Andy Goodrich: changed name of sc_get_current_process_base() to be
-//   sc_get_current_process_b() since its returning an sc_process_b instance.
-//
-// Revision 1.15  2006/03/13 20:26:50  acg
-//  Andy Goodrich: Addition of forward class declarations, e.g.,
-//  sc_reset, to keep gcc 4.x happy.
-//
-// Revision 1.14  2006/02/02 23:42:41  acg
-//  Andy Goodrich: implemented a much better fix to the sc_event_finder
-//  proliferation problem. This new version allocates only a single event
-//  finder for each port for each type of event, e.g., pos(), neg(), and
-//  value_change(). The event finder persists as long as the port does,
-//  which is what the LRM dictates. Because only a single instance is
-//  allocated for each event type per port there is not a potential
-//  explosion of storage as was true in the 2.0.1/2.1 versions.
-//
-// Revision 1.13  2006/02/02 21:29:10  acg
-//  Andy Goodrich: removed the call to sc_event_finder::free_instances() that
-//  was in end_of_elaboration(), leaving only the call in clean(). This is
-//  because the LRM states that sc_event_finder instances are persistent as
-//  long as the sc_module hierarchy is valid.
-//
-// Revision 1.12  2006/02/02 21:09:50  acg
-//  Andy Goodrich: added call to sc_event_finder::free_instances in the clean()
-//  method.
-//
-// Revision 1.11  2006/02/02 20:43:14  acg
-//  Andy Goodrich: Added an existence linked list to sc_event_finder so that
-//  the dynamically allocated instances can be freed after port binding
-//  completes. This replaces the individual deletions in ~sc_bind_ef, as these
-//  caused an exception if an sc_event_finder instance was used more than
-//  once, due to a double freeing of the instance.
-//
-// Revision 1.10  2006/01/31 21:43:26  acg
-//  Andy Goodrich: added comments in constructor to highlight environmental
-//  overrides section.
-//
-// Revision 1.9  2006/01/26 21:04:54  acg
-//  Andy Goodrich: deprecation message changes and additional messages.
-//
-// Revision 1.8  2006/01/25 00:31:19  acg
-//  Andy Goodrich: Changed over to use a standard message id of
-//  SC_ID_IEEE_1666_DEPRECATION for all deprecation messages.
-//
-// Revision 1.7  2006/01/24 20:49:05  acg
-// Andy Goodrich: changes to remove the use of deprecated features within the
-// simulator, and to issue warning messages when deprecated features are used.
-//
-// Revision 1.6  2006/01/19 00:29:52  acg
-// Andy Goodrich: Yet another implementation for signal write checking. This
-// one uses an environment variable SC_SIGNAL_WRITE_CHECK, that when set to
-// DISABLE will disable write checking on signals.
-//
-// Revision 1.5  2006/01/13 18:44:30  acg
-// Added $Log to record CVS changes into the source.
-//
-// Revision 1.4  2006/01/03 23:18:44  acg
-// Changed copyright to include 2006.
-//
-// Revision 1.3  2005/12/20 22:11:10  acg
-// Fixed $Log lines.
-//
-// Revision 1.2  2005/12/20 22:02:30  acg
-// Changed where delta cycles are incremented to match IEEE 1666. Added the
-// event_occurred() method to hide how delta cycle comparisions are done within
-// sc_simcontext. Changed the boolean update_phase to an enum that shows all
-// the phases.
 
 #include "sysc/kernel/sc_cor_fiber.h"
 #include "sysc/kernel/sc_cor_pthread.h"
@@ -153,12 +45,35 @@
 #include "sysc/kernel/sc_simcontext_int.h"
 #include "sysc/kernel/sc_reset.h"
 #include "sysc/kernel/sc_ver.h"
+#include "sysc/kernel/sc_boost.h"
+#include "sysc/kernel/sc_spawn.h"
 #include "sysc/communication/sc_port.h"
 #include "sysc/communication/sc_export.h"
 #include "sysc/communication/sc_prim_channel.h"
 #include "sysc/tracing/sc_trace.h"
 #include "sysc/utils/sc_mempool.h"
+#include "sysc/utils/sc_list.h"
 #include "sysc/utils/sc_utils_ids.h"
+
+// DEBUGGING MACROS:
+//
+// DEBUG_MSG(NAME,P,MSG)
+//     MSG  = message to print
+//     NAME = name that must match the process for the message to print, or
+//            null if the message should be printed unconditionally.
+//     P    = pointer to process message is for, or NULL in which case the
+//            message will not print.
+#if 0
+#   define DEBUG_NAME ""
+#   define DEBUG_MSG(NAME,P,MSG) \
+    { \
+        if ( P && ( (strlen(NAME)==0) || !strcmp(NAME,P->name())) ) \
+          std::cout << sc_time_stamp() << ": " << P->name() << " ******** " \
+                    << MSG << std::endl; \
+    }
+#else
+#   define DEBUG_MSG(NAME,P,MSG) 
+#endif
 
 namespace sc_core {
 
@@ -168,7 +83,7 @@ sc_stop_mode stop_mode = SC_STOP_FINISH_DELTA;
 //  CLASS : sc_process_table
 //
 //  Container class that keeps track of all method processes,
-//  thread processes, and cthread processes.
+//  (c)thread processes.
 // ----------------------------------------------------------------------------
 
 class sc_process_table
@@ -179,18 +94,14 @@ class sc_process_table
     ~sc_process_table();
     void push_front( sc_method_handle );
     void push_front( sc_thread_handle );
-    void push_front( sc_cthread_handle );
-    sc_cthread_handle cthread_q_head();
     sc_method_handle method_q_head();
-    sc_cthread_handle remove( sc_cthread_handle );
     sc_method_handle remove( sc_method_handle );
-    sc_thread_handle remove( sc_thread_handle );
     sc_thread_handle thread_q_head();
+    sc_thread_handle remove( sc_thread_handle );
 
 
   private:
 
-    sc_cthread_handle m_cthread_q; // Queue of existing cthread processes.
     sc_method_handle  m_method_q;  // Queue of existing method processes.
     sc_thread_handle  m_thread_q;  // Queue of existing thread processes.
 };
@@ -198,8 +109,7 @@ class sc_process_table
 
 // IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
-sc_process_table::sc_process_table() :
-    m_cthread_q(0), m_method_q(0), m_thread_q(0)
+sc_process_table::sc_process_table() : m_method_q(0), m_thread_q(0)
 {}
 
 sc_process_table::~sc_process_table()
@@ -214,7 +124,7 @@ sc_process_table::~sc_process_table()
 	delete method_now_p;
     }
 
-    if ( m_thread_q || m_cthread_q )
+    if ( m_thread_q )
     {
         ::std::cout << ::std::endl 
              << "WATCH OUT!! In sc_process_table destructor. "
@@ -235,16 +145,8 @@ sc_process_table::~sc_process_table()
     // process_table. 
 
 #if 0
-    sc_cthread_handle cthread_next_p;	// Next cthread to delete.
-    sc_cthread_handle cthread_now_p;	// Cthread now deleting.
     sc_thread_handle  thread_next_p;	// Next thread to delete.
     sc_thread_handle  thread_now_p;	// Thread now deleting.
-
-    for(cthread_now_p=m_cthread_q; cthread_now_p; cthread_now_p=cthread_next_p)
-    {
-	cthread_next_p = cthread_now_p->next_exist();
-	delete cthread_now_p;
-    }
 
     for( thread_now_p=m_thread_q; thread_now_p; thread_now_p=thread_next_p )
     {
@@ -252,13 +154,6 @@ sc_process_table::~sc_process_table()
 	delete thread_now_p;
     }
 #endif // 0
-}
-
-inline
-sc_cthread_handle 
-sc_process_table::cthread_q_head()
-{
-    return m_cthread_q;
 }
 
 inline
@@ -282,36 +177,6 @@ sc_process_table::push_front( sc_thread_handle handle_ )
 {
     handle_->set_next_exist(m_thread_q);
     m_thread_q = handle_;
-}
-
-inline
-void
-sc_process_table::push_front( sc_cthread_handle handle_ )
-{
-    handle_->set_next_exist(m_cthread_q);
-    m_cthread_q = handle_;
-}
-
-
-sc_cthread_handle
-sc_process_table::remove( sc_cthread_handle handle_ )
-{
-    sc_cthread_handle now_p;	// Entry now examining.
-    sc_cthread_handle prior_p;	// Entry prior to one now examining.
-
-    prior_p = 0;
-    for ( now_p = m_cthread_q; now_p; now_p = now_p->next_exist() )
-    {
-	if ( now_p == handle_ )
-	{
-	    if ( prior_p )
-		prior_p->set_next_exist( now_p->next_exist() );
-	    else
-		m_cthread_q = now_p->next_exist();
-	    return handle_;
-	}
-    }
-    return 0;
 }
 
 sc_method_handle
@@ -363,29 +228,6 @@ sc_process_table::thread_q_head()
     return m_thread_q;
 }
 
-
-
-// ----------------------------------------------------------------------------
-
-void
-pln()
-{
-    static bool lnp = false;
-    if( ! lnp ) {
-        ::std::cerr << ::std::endl;
-	::std::cerr << sc_version() << ::std::endl;
-	::std::cerr << sc_copyright() << ::std::endl;
-
-	//  regressions check point
-        if( getenv( "SYSTEMC_REGRESSION" ) != 0 ) {
-            ::std::cerr << "SystemC Simulation" << ::std::endl;
-        }
-
-        lnp = true;
-    }
-}
-
-
 int
 sc_notify_time_compare( const void* p1, const void* p2 )
 {
@@ -405,6 +247,79 @@ sc_notify_time_compare( const void* p1, const void* p2 )
 }
 
 
+// +============================================================================
+// | CLASS sc_invoke_method - class to invoke sc_method's to support 
+// |                          sc_simcontext::preempt_with().
+// +============================================================================
+SC_MODULE(sc_invoke_method)
+{
+    SC_CTOR(sc_invoke_method)
+    {
+    }
+
+    virtual ~sc_invoke_method()
+    {
+	m_invokers.resize(0);
+    }
+
+    // Method to call to execute a method's semantics. 
+    
+    void invoke_method( sc_method_handle method_h )
+    {
+	sc_process_handle invoker_h;  // handle for invocation thread to use.
+	size_t            invokers_n; // number of invocation threads available.
+
+	m_method = method_h;
+
+	// There is not an invocation thread to use, so allocate one.
+
+	invokers_n = m_invokers.size();
+	if ( invokers_n == 0 )
+	{
+	    sc_spawn_options options;
+	    options.dont_initialize();
+	    options.set_stack_size(0x100000);
+	    options.set_sensitivity(&m_dummy);
+	    invoker_h = sc_spawn(sc_bind(&sc_invoke_method::invoker,this), 
+				 sc_gen_unique_name("invoker"), &options);
+	}
+
+	// There is an invocation thread to use, use the last one on the list.
+
+	else
+	{
+	    invoker_h = m_invokers[invokers_n-1];
+	    m_invokers.pop_back();
+	}
+
+	// Fire off the invocation thread to invoke the method's semantics,
+	// When it blocks put it onto the list of invocation threads that
+	// are available.
+
+        sc_get_curr_simcontext()->preempt_with( (sc_thread_handle)invoker_h );
+	m_invokers.push_back(invoker_h);
+    }
+
+    // Thread to call method from:
+
+    void invoker()
+    {
+	sc_process_b* me = sc_get_current_process_b();
+	DEBUG_MSG( DEBUG_NAME, me, "invoker initialization" );
+        for (;; )
+        {
+            DEBUG_MSG( DEBUG_NAME, m_method, "invoker executing method" );
+	    sc_get_curr_simcontext()->set_curr_proc( (sc_process_b*)m_method );
+	    m_method->run_process();
+	    sc_get_curr_simcontext()->set_curr_proc( me );
+	    wait();
+	}
+    }
+
+    sc_event                       m_dummy;    // dummy event to wait on.
+    sc_method_handle               m_method;   // method to be invoked.
+    std::vector<sc_process_handle> m_invokers; // list of invoking threads.
+};
 // ----------------------------------------------------------------------------
 //  CLASS : sc_simcontext
 //
@@ -441,20 +356,25 @@ sc_simcontext::init()
     m_timed_events = new sc_ppq<sc_event_timed*>( 128, sc_notify_time_compare );
     m_something_to_trace = false;
     m_runnable = new sc_runnable;
+    m_collectable = new sc_process_list;
     m_time_params = new sc_time_params;
     m_curr_time = SC_ZERO_TIME;
+    m_max_time = SC_ZERO_TIME;
+    m_change_stamp = 0;
     m_delta_count = 0;
     m_forced_stop = false;
+    m_paused = false;
     m_ready_to_simulate = false;
     m_elaboration_done = false;
     m_execution_phase = phase_initialize;
-    m_error = false;
-    m_until_event = 0;
+    m_error = NULL;
     m_cor_pkg = 0;
+    m_method_invoker_p = NULL;
     m_cor = 0;
     m_in_simulator_control = false;
     m_start_of_simulation_called = false;
     m_end_of_simulation_called = false;
+    m_simulation_status = SC_ELABORATION;
 }
 
 void
@@ -475,17 +395,27 @@ sc_simcontext::clean()
     }
     m_trace_files.resize(0);
     delete m_runnable;
+    delete m_collectable;
     delete m_time_params;
-    if( m_until_event != 0 ) {
-        delete m_until_event;
-    }
-    if( m_cor_pkg != 0 ) {
-	delete m_cor_pkg;
-    }
+    delete m_cor_pkg;
+    delete m_error;
 }
 
 
-sc_simcontext::sc_simcontext()
+sc_simcontext::sc_simcontext() :
+    m_object_manager(0), m_module_registry(0), m_port_registry(0),
+    m_export_registry(0), m_prim_channel_registry(0), m_name_gen(0),
+    m_process_table(0), m_curr_proc_info(), m_current_writer(0),
+    m_write_check(false), m_next_proc_id(-1), m_child_events(),
+    m_child_objects(), m_delta_events(), m_timed_events(0), m_trace_files(),
+    m_something_to_trace(false), m_runnable(0), m_collectable(0), 
+    m_time_params(), m_curr_time(SC_ZERO_TIME), m_max_time(SC_ZERO_TIME), 
+    m_change_stamp(0), m_delta_count(0), m_forced_stop(false), m_paused(false),
+    m_ready_to_simulate(false), m_elaboration_done(false),
+    m_execution_phase(phase_initialize), m_error(0),
+    m_in_simulator_control(false), m_end_of_simulation_called(false),
+    m_simulation_status(SC_ELABORATION), m_start_of_simulation_called(false),
+    m_cor_pkg(0), m_cor(0)
 {
     init();
 }
@@ -495,6 +425,43 @@ sc_simcontext::~sc_simcontext()
     clean();
 }
 
+// +----------------------------------------------------------------------------
+// |"sc_simcontext::active_object"
+// | 
+// | This method returns the currently active object with respect to 
+// | additions to the hierarchy. It will be the top of the object hierarchy
+// | stack if it is non-empty, or it will be the active process, or NULL 
+// | if there is no active process.
+// +----------------------------------------------------------------------------
+sc_object*
+sc_simcontext::active_object() 
+{
+    sc_object* result_p; // pointer to return.
+
+    result_p = m_object_manager->hierarchy_curr();
+    if ( !result_p )
+        result_p = (sc_object*)get_curr_proc_info()->process_handle;
+    return result_p;
+}
+
+// +----------------------------------------------------------------------------
+// |"sc_simcontext::crunch"
+// | 
+// | This method implements the simulator's execution of processes. It performs
+// | one or more "delta" cycles. Each delta cycle consists of an evaluation,
+// | an update phase, and a notification phase. During the evaluation phase any 
+// | processes that are ready to run are executed. After all the processes have
+// | been executed the update phase is entered. During the update phase the 
+// | values of any signals that have changed are updated. After the updates
+// | have been performed the notification phase is entered. During that phase
+// | any notifications that need to occur because of of signal values changes
+// | are performed. This will result in the queueing of processes for execution
+// | that are sensitive to those notifications. At that point a delta cycle
+// | is complete, and the process is started again unless 'once' is true.
+// |
+// | Arguments:
+// |     once = true if only one delta cycle is to be performed.
+// +----------------------------------------------------------------------------
 inline void
 sc_simcontext::crunch( bool once )
 {
@@ -502,70 +469,85 @@ sc_simcontext::crunch( bool once )
     int num_deltas = 0;  // number of delta cycles
 #endif
 
-    while ( true ) {
+    while ( true ) 
+    {
 
 	// EVALUATE PHASE
 	
 	m_execution_phase = phase_evaluate;
-	while( true ) {
-
+	bool empty_eval_phase = true;
+	while( true ) 
+	{
 
 	    // execute method processes
 
+	    m_runnable->toggle_methods();
 	    sc_method_handle method_h = pop_runnable_method();
 	    while( method_h != 0 ) {
-		try {
-		    method_h->semantics();
-		}
-		catch( const sc_report& ex ) {
-		    ::std::cout << "\n" << ex.what() << ::std::endl;
-		    m_error = true;
-		    return;
+		empty_eval_phase = false;
+		if ( !method_h->run_process() )
+		{
+		    goto out;
 		}
 		method_h = pop_runnable_method();
 	    }
 
 	    // execute (c)thread processes
 
+	    m_runnable->toggle_threads();
 	    sc_thread_handle thread_h = pop_runnable_thread();
 	    while( thread_h != 0 ) {
-		if ( thread_h->ready_to_run() ) break;
+                if ( thread_h->m_cor_p != NULL ) break;
 		thread_h = pop_runnable_thread();
 	    }
+
 	    if( thread_h != 0 ) {
+	        empty_eval_phase = false;
 		m_cor_pkg->yield( thread_h->m_cor_p );
 	    }
 	    if( m_error ) {
-		return;
+		goto out;
 	    }
 
 	    // check for call(s) to sc_stop
 	    if( m_forced_stop ) {
-		if ( stop_mode == SC_STOP_IMMEDIATE ) return;
+		if ( stop_mode == SC_STOP_IMMEDIATE ) goto out;
 	    }
 
+	    // no more runnable processes
+
 	    if( m_runnable->is_empty() ) {
-		// no more runnable processes
 		break;
 	    }
-	    m_runnable->toggle();
 	}
+
+	// remove finally dead zombies:
+
+        while( ! m_collectable->empty() )
+        {
+	    sc_process_b* del_p = m_collectable->front();
+	    m_collectable->pop_front();
+	    del_p->reference_decrement();
+        }
+
 
 	// UPDATE PHASE
 	//
-	// The delta count must be updated first so that event_occurred()
+	// The change stamp must be updated first so that event_occurred()
 	// will work.
 
 	m_execution_phase = phase_update;
-	m_delta_count ++;
+	if ( !empty_eval_phase ) 
+	{
+	    m_change_stamp++;
+	    m_delta_count ++;
+	}
 	m_prim_channel_registry->perform_update();
 	m_execution_phase = phase_notify;
 	
 	if( m_something_to_trace ) {
 	    trace_cycle( /* delta cycle? */ true );
 	}
-
-	// m_delta_count ++;
 
         // check for call(s) to sc_stop
         if( m_forced_stop ) {
@@ -585,7 +567,10 @@ sc_simcontext::crunch( bool once )
 	}
 #endif
 
-	// PROCESS DELTA NOTIFICATIONS:
+	// NOTIFICATION PHASE:
+	//
+	// Process delta notifications which will queue processes for 
+	// subsequent execution.
 
         int size = m_delta_events.size();
 	if ( size != 0 )
@@ -603,12 +588,21 @@ sc_simcontext::crunch( bool once )
 	    break;
 	}
 
-	// IF ONLY DOING ONE CYCLE, WE ARE DONE. OTHERWISE GET NEW CALLBACKS
+	// if sc_pause() was called we are done.
 
-	if ( once ) break;
+	if ( m_paused ) break;
 
-	m_runnable->toggle();
-    } 
+        // IF ONLY DOING ONE CYCLE, WE ARE DONE. OTHERWISE EXECUTE NEW CALLBACKS
+
+        if ( once ) break;
+    }
+
+    // When this point is reached the processing of delta cycles is complete,
+    // if the completion was because of an error throw the exception specified
+    // by '*m_error'.
+out:
+    this->reset_curr_proc();
+    if( m_error ) throw *m_error; // re-throw propagated error
 }
 
 inline
@@ -618,12 +612,10 @@ sc_simcontext::cycle( const sc_time& t)
     sc_time next_event_time;
 
     m_in_simulator_control = true;
-    m_runnable->toggle();
     crunch(); 
     trace_cycle( /* delta cycle? */ false );
     m_curr_time += t;
-    next_event_time = next_time();
-    if ( next_event_time != SC_ZERO_TIME && next_event_time <= m_curr_time) {
+    if ( next_time(next_event_time) && next_event_time <= m_curr_time) {
         SC_REPORT_WARNING(SC_ID_CYCLE_MISSES_EVENTS_, "");
     }
     m_in_simulator_control = false;
@@ -636,15 +628,24 @@ sc_simcontext::elaborate()
         return;
     }
 
-    m_port_registry->construction_done();
-    m_export_registry->construction_done();
-    m_prim_channel_registry->construction_done();
-    m_module_registry->construction_done();
+    // Instantiate the method invocation module (keep it out of the registry):
 
-    // check for call(s) to sc_stop
-    if( m_forced_stop ) {
-        do_sc_stop_action();
-        return;
+    m_method_invoker_p = new sc_invoke_method(SC_KERNEL_MODULE_PREFIX);
+
+    m_simulation_status = SC_BEFORE_END_OF_ELABORATION;
+    for( int cd = 0; cd != 4; /* empty */ )
+    {
+        cd  = m_port_registry->construction_done();
+        cd += m_export_registry->construction_done();
+        cd += m_prim_channel_registry->construction_done();
+        cd += m_module_registry->construction_done();
+
+        // check for call(s) to sc_stop
+        if( m_forced_stop ) {
+            do_sc_stop_action();
+            return;
+        }
+
     }
 
     // SIGNAL THAT ELABORATION IS DONE
@@ -654,6 +655,7 @@ sc_simcontext::elaborate()
     // the process as being dynamic.
 
     m_elaboration_done = true;
+    m_simulation_status = SC_END_OF_ELABORATION;
 
     m_port_registry->elaboration_done();
     m_export_registry->elaboration_done();
@@ -671,7 +673,6 @@ sc_simcontext::elaborate()
 void
 sc_simcontext::prepare_to_simulate()
 {
-    sc_cthread_handle cthread_p; // Pointer to cthread process accessing.
     sc_method_handle  method_p;  // Pointer to method process accessing.
     sc_thread_handle  thread_p;  // Pointer to thread process accessing.
 
@@ -693,6 +694,7 @@ sc_simcontext::prepare_to_simulate()
 
     // NOTIFY ALL OBJECTS THAT SIMULATION IS ABOUT TO START:
 
+    m_simulation_status = SC_START_OF_SIMULATION;
     m_port_registry->start_simulation();
     m_export_registry->start_simulation();
     m_prim_channel_registry->start_simulation();
@@ -714,12 +716,7 @@ sc_simcontext::prepare_to_simulate()
 	thread_p->prepare_for_simulation();
     }
 
-    for ( cthread_p = m_process_table->cthread_q_head(); 
-	  cthread_p; cthread_p = cthread_p->next_exist() )
-    {
-	cthread_p->prepare_for_simulation();
-    }
-
+    m_simulation_status = SC_RUNNING;
     m_ready_to_simulate = true;
     m_runnable->init();
 
@@ -736,19 +733,48 @@ sc_simcontext::prepare_to_simulate()
     for ( method_p = m_process_table->method_q_head(); 
 	  method_p; method_p = method_p->next_exist() )
     {
-        if( !method_p->dont_initialize() ) {
-            push_runnable_method_front( method_p );
+	if ( ((method_p->m_state & sc_process_b::ps_bit_disabled) != 0) ||
+	     method_p->dont_initialize() ) 
+	{
+	    if ( method_p->m_static_events.size() == 0 )
+	    {
+	        SC_REPORT_WARNING( SC_ID_DISABLE_WILL_ORPHAN_PROCESS_, 
+		                   method_p->name() );
+	    }
+	}
+	else if ( (method_p->m_state & sc_process_b::ps_bit_suspended) == 0) 
+	{
+	    push_runnable_method_front( method_p );
         }
+	else
+	{
+	    method_p->m_state |= sc_process_b::ps_bit_ready_to_run;
+	}
     }
 
-    // make all thread processes runnable
+    // make thread processes runnable
+    // (cthread processes always have the dont_initialize flag set)
 
     for ( thread_p = m_process_table->thread_q_head(); 
 	  thread_p; thread_p = thread_p->next_exist() )
     {
-        if( !thread_p->dont_initialize() ) {
+	if ( ((thread_p->m_state & sc_process_b::ps_bit_disabled) != 0) || 
+	     thread_p->dont_initialize() ) 
+	{
+	    if ( thread_p->m_static_events.size() == 0 )
+	    {
+	        SC_REPORT_WARNING( SC_ID_DISABLE_WILL_ORPHAN_PROCESS_, 
+		                   thread_p->name() );
+	    }
+	}
+	else if ( (thread_p->m_state & sc_process_b::ps_bit_suspended) == 0) 
+	{
             push_runnable_thread_front( thread_p );
         }
+	else
+	{
+	    thread_p->m_state |= sc_process_b::ps_bit_ready_to_run;
+	}
     }
 
 
@@ -762,13 +788,6 @@ sc_simcontext::prepare_to_simulate()
         } while( -- i >= 0 );
         m_delta_events.resize(0);
     }
-
-    // used in 'simulate()'
-    m_until_event = new sc_event;
-
-    if( m_runnable->is_empty() ) {
-        m_delta_count++;
-    }
 }
 
 void
@@ -777,7 +796,6 @@ sc_simcontext::initial_crunch( bool no_crunch )
     if( no_crunch || m_runnable->is_empty() ) {
         return;
     }
-    m_runnable->toggle();
 
     // run the delta cycle loop
 
@@ -799,11 +817,29 @@ sc_simcontext::initialize( bool no_crunch )
 {
     m_in_simulator_control = true;
     elaborate();
+
     prepare_to_simulate();
     initial_crunch(no_crunch);
     m_in_simulator_control = false;
 }
 
+// +----------------------------------------------------------------------------
+// |"sc_simcontext::simulate"
+// | 
+// | This method runs the simulation for the specified amount of time.
+// |
+// | Notes:
+// |   (1) This code always run with an SC_EXIT_ON_STARVATION starvation policy,
+// |       so the simulation time on return will be the minimum of the 
+// |       simulation on entry plus the duration, and the maximum time of any 
+// |       event present in the simulation. If the simulation policy is
+// |       SC_RUN_TO_TIME starvation it is implemented by the caller of this 
+// |       method, e.g., sc_start(), by artificially setting the simulation
+// |       time forward after this method completes.
+// |
+// | Arguments:
+// |     duration = amount of time to simulate.
+// +----------------------------------------------------------------------------
 void
 sc_simcontext::simulate( const sc_time& duration )
 {
@@ -822,36 +858,34 @@ sc_simcontext::simulate( const sc_time& duration )
     }
     else if ( duration < SC_ZERO_TIME )
     {
-	SC_REPORT_ERROR(SC_ID_NEGATIVE_SIMULATION_TIME_,"");
+        SC_REPORT_ERROR(SC_ID_NEGATIVE_SIMULATION_TIME_,"");
     }
+
     m_in_simulator_control = true;
+    m_paused = false;
 
     sc_time until_t = m_curr_time + duration;
+    sc_time t;            // current simulaton time.
 
-    m_until_event->cancel();  // to be on the safe side
-    m_until_event->notify_internal( duration );
-
-    sc_time t;
-
-    // IF DURATION WAS ZERO WE ONLY CRUNCH:
+    // IF DURATION WAS ZERO WE ONLY CRUNCH ONCE:
     //
     // We duplicate the code so that we don't add the overhead of the
     // check to each loop in the do below.
     if ( duration == SC_ZERO_TIME ) 
     {
-        m_runnable->toggle();
+	m_in_simulator_control = true;
   	crunch( true );
 	if( m_error ) return;
 	if( m_something_to_trace ) trace_cycle( /* delta cycle? */ false );
 	if( m_forced_stop ) 
 	    do_sc_stop_action(); 
+	m_in_simulator_control = false;
 	return;
     }
 
+    // NON-ZERO DURATION: EXECUTE UP TO THAT TIME, OR UNTIL EVENT STARVATION:
 
-    // NON-ZERO DURATION: EXECUTE UP TO THAT TIME:
     do {
-	m_runnable->toggle();
 
 	crunch();
 	if( m_error ) {
@@ -861,16 +895,30 @@ sc_simcontext::simulate( const sc_time& duration )
 	if( m_something_to_trace ) {
 	    trace_cycle( false );
 	}
-	// check for call(s) to sc_stop
+	// check for call(s) to sc_stop() or sc_pause().
 	if( m_forced_stop ) {
 	    do_sc_stop_action();
 	    return;
 	}
+	else if ( m_paused ) 
+	{
+	    m_in_simulator_control = false;
+	    return;
+	}
 	
-	do {
-            t = next_time();
+	t = m_curr_time; 
 
-	    // PROCESS TIMED NOTIFICATIONS
+	do {
+	    // See note 1 above:
+
+            if ( !next_time(t) || (t > until_t ) ) goto exit;
+	    if ( t > m_curr_time ) 
+	    {
+	        m_curr_time = t;
+		m_change_stamp++;
+	    }
+
+	    // PROCESS TIMED NOTIFICATIONS AT THE CURRENT TIME
 
 	    do {
 		sc_event_timed* et = m_timed_events->extract_top();
@@ -882,21 +930,34 @@ sc_simcontext::simulate( const sc_time& duration )
 	    } while( m_timed_events->size() &&
 		     m_timed_events->top()->notify_time() == t );
 
-	} while( m_runnable->is_empty() && t != until_t );
-	if ( t > m_curr_time ) m_curr_time = t;
+	    // if ( t > m_curr_time ) m_curr_time = t;
+	} while( m_runnable->is_empty() );
+    } while ( t < until_t ); // hold off on the delta for the until_t time.
 
-    } while( t != until_t );
+exit:
+    if ( t > m_curr_time && t <= until_t ) 
+    {
+        m_curr_time = t;
+	m_change_stamp++;
+    }
     m_in_simulator_control = false;
 }
 
 void
 sc_simcontext::do_sc_stop_action()
 {
-    ::std::cout << "SystemC: simulation stopped by user." << ::std::endl;
+    SC_REPORT_INFO("/OSCI/SystemC","Simulation stopped by user.");
     if (m_start_of_simulation_called) {
 	end();
 	m_in_simulator_control = false;
     }
+    m_simulation_status = SC_STOPPED;
+}
+
+void
+sc_simcontext::mark_to_collect_process( sc_process_b* zombie )
+{
+    m_collectable->push_back( zombie );
 }
 
 
@@ -947,6 +1008,7 @@ sc_simcontext::reset()
 void
 sc_simcontext::end()
 {
+    m_simulation_status = SC_END_OF_SIMULATION;
     m_ready_to_simulate = false;
     m_port_registry->simulation_done();
     m_export_registry->simulation_done();
@@ -1013,7 +1075,7 @@ sc_simcontext::create_cthread_process(
     const char* name_p, bool free_host, SC_ENTRY_FUNC method_p,         
     sc_process_host* host_p, const sc_spawn_options* opt_p )
 {
-    sc_cthread_handle handle = 
+    sc_thread_handle handle = 
         new sc_cthread_process(name_p, free_host, method_p, host_p, opt_p);
     if ( m_ready_to_simulate ) 
     {
@@ -1078,7 +1140,7 @@ sc_simcontext::next_cor()
     
     sc_thread_handle thread_h = pop_runnable_thread();
     while( thread_h != 0 ) {
-        if ( thread_h->ready_to_run() ) break;
+	if ( thread_h->m_cor_p != NULL ) break;
 	thread_h = pop_runnable_thread();
     }
     
@@ -1088,7 +1150,6 @@ sc_simcontext::next_cor()
 	return m_cor;
     }
 }
-
 
 const ::std::vector<sc_object*>&
 sc_simcontext::get_child_objects() const
@@ -1105,10 +1166,31 @@ sc_simcontext::get_child_objects() const
 }
 
 void
+sc_simcontext::add_child_event( sc_event* event_ )
+{
+    // no check if object_ is already in the set
+    m_child_events.push_back( event_ );
+}
+
+void
 sc_simcontext::add_child_object( sc_object* object_ )
 {
     // no check if object_ is already in the set
     m_child_objects.push_back( object_ );
+}
+
+void
+sc_simcontext::remove_child_event( sc_event* event_ )
+{
+    int size = m_child_events.size();
+    for( int i = 0; i < size; ++ i ) {
+	if( event_ == m_child_events[i] ) {
+	    m_child_events[i] = m_child_events[size - 1];
+	    m_child_events.resize(size-1);
+	    return;
+	}
+    }
+    // no check if event_ is really in the set
 }
 
 void
@@ -1151,19 +1233,30 @@ sc_simcontext::is_running() const
     return m_ready_to_simulate;
 }
 
-const sc_time
-sc_simcontext::next_time()
+// +----------------------------------------------------------------------------
+// |"sc_simcontext::next_time"
+// | 
+// | This method returns the time of the next event. If there are no events
+// | it returns false.
+// | 
+// | Arguments:
+// |     result = where to place time of the next event, if no event is 
+// |              found this value will not be changed.
+// | Result is true if an event is found, false if not.
+// +----------------------------------------------------------------------------
+bool
+sc_simcontext::next_time( sc_time& result ) const
 {
     while( m_timed_events->size() ) {
 	sc_event_timed* et = m_timed_events->top();
 	if( et->event() != 0 ) {
-	    return et->notify_time();
+	    result = et->notify_time();
+	    return true;
 	}
 	delete m_timed_events->extract_top();
     }
-    return SC_ZERO_TIME;
+    return false;
 }
-
 
 void
 sc_simcontext::remove_delta_event( sc_event* e )
@@ -1180,6 +1273,125 @@ sc_simcontext::remove_delta_event( sc_event* e )
     e->m_delta_event_index = -1;
 }
 
+// +----------------------------------------------------------------------------
+// |"sc_simcontext::preempt_with"
+// | 
+// | This method executes the supplied method immediately, suspending the
+// | caller. After executing the supplied method the caller's execution will
+// | be restored. It is used to allow a method to immediately throw an 
+// | exception, e.g., when the method's kill_process() method was called.
+// | There are three cases to consider:
+// |   (1) The caller is a method, e.g., murder by method.
+// |   (2) The caller is a thread instance, e.g., murder by thread.
+// |   (3) The caller is this method instance, e.g., suicide.
+// |
+// | Arguments:
+// |     method_h -> method to be executed.
+// +----------------------------------------------------------------------------
+void 
+sc_simcontext::preempt_with( sc_method_handle method_h )
+{
+    sc_curr_proc_info caller_info;     // process info for caller.
+    sc_method_handle  active_method_h; // active method or null.
+    sc_thread_handle  active_thread_h; // active thread or null.
+
+    // Determine the active process and take the thread to be run off the
+    // run queue, if its there, since we will be explicitly causing its 
+    // execution.
+
+    active_method_h = DCAST<sc_method_handle>(sc_get_current_process_b());
+    active_thread_h = DCAST<sc_thread_handle>(sc_get_current_process_b());
+    if ( method_h->next_runnable() != NULL )
+	remove_runnable_method( method_h );
+
+    // CALLER IS THE METHOD TO BE RUN:
+    //
+    // Should never get here, ignore it unless we are debugging.
+
+    if ( method_h == active_method_h )
+    {
+        DEBUG_MSG(DEBUG_NAME,method_h,"self preemption of active method");
+    }
+
+    // THE CALLER IS A METHOD:
+    //
+    //   (a) Set the current process information to our method.
+    //   (b) Invoke our method directly by-passing the run queue.
+    //   (c) Restore the process info to the caller.
+    //   (d) Check to see if the calling method should throw an exception
+    //       because of activity that occurred during the preemption.
+
+    else if ( active_method_h != NULL )
+    {
+	caller_info = m_curr_proc_info;
+        DEBUG_MSG( DEBUG_NAME, method_h,
+	           "preempting active method with this method" );
+	sc_get_curr_simcontext()->set_curr_proc( (sc_process_b*)method_h );
+	method_h->run_process();
+	sc_get_curr_simcontext()->set_curr_proc((sc_process_b*)active_method_h);
+	active_method_h->check_for_throws();
+    }
+
+    // CALLER IS A THREAD:
+    //
+    //   (a) Use an invocation thread to execute the method.
+
+    else if ( active_thread_h != NULL )
+    {
+        DEBUG_MSG( DEBUG_NAME, method_h,
+	           "preempting active thread with this method" );
+	m_method_invoker_p->invoke_method(method_h);
+    }
+
+    // CALLER IS THE SIMULATOR:
+    //
+    // That is not allowed.
+
+    else
+    {
+	caller_info = m_curr_proc_info;
+        DEBUG_MSG( DEBUG_NAME, method_h,
+	           "preempting no active process with this method" );
+	sc_get_curr_simcontext()->set_curr_proc( (sc_process_b*)method_h );
+	method_h->run_process();
+	m_curr_proc_info = caller_info;
+    }
+}
+
+//------------------------------------------------------------------------------
+//"sc_simcontext::requeue_current_process"
+//
+// This method requeues the current process at the beginning of the run queue
+// if it is a thread. This is called by sc_process_handle::throw_it() to assure
+// that a thread that is issuing a throw will execute immediately after the
+// processes it notifies via the throw.
+//------------------------------------------------------------------------------
+void sc_simcontext::requeue_current_process()
+{
+    sc_thread_handle thread_p;
+    thread_p = DCAST<sc_thread_handle>(get_curr_proc_info()->process_handle);
+    if ( thread_p )
+    {
+	execute_thread_next( thread_p );
+    }
+}
+
+//------------------------------------------------------------------------------
+//"sc_simcontext::suspend_current_process"
+//
+// This method suspends the current process if it is a thread. This is called 
+// by sc_process_handle::throw_it() to allow the processes that have received
+// a throw to execute.
+//------------------------------------------------------------------------------
+void sc_simcontext::suspend_current_process()
+{
+    sc_thread_handle thread_p;
+    thread_p = DCAST<sc_thread_handle>(get_curr_proc_info()->process_handle);
+    if ( thread_p )
+    {
+	thread_p->suspend_me(); 
+    }
+}
 
 void
 sc_simcontext::trace_cycle( bool delta_cycle )
@@ -1282,12 +1494,36 @@ sc_get_curr_process_handle()
 // Return indication if there are more processes to execute in this delta phase
 
 bool
-sc_pending_activity_at_current_time()
+sc_simcontext::pending_activity_at_current_time() const
 {
-    sc_simcontext* c_p = sc_get_curr_simcontext();
-    return (c_p->m_delta_events.size() != 0) ||
-    	    !c_p->m_runnable->is_empty() ||
-	    c_p->m_prim_channel_registry->pending_updates();
+    return ( m_delta_events.size() != 0) ||
+           ( m_runnable->is_initialized() && !m_runnable->is_empty() ) ||
+           m_prim_channel_registry->pending_updates();
+}
+
+// Return time of next activity.
+
+sc_time sc_time_to_pending_activity( const sc_simcontext* simc_p ) 
+{
+    // If there is an activity pending at the current time
+    // return a delta of zero.
+    
+    sc_time result=SC_ZERO_TIME; // time of pending activity.
+
+    if ( simc_p->pending_activity_at_current_time() )
+    {
+        return result;
+    }
+
+    // Any activity will take place in the future pick up the next event's time.
+
+    else
+    {
+        result = simc_p->max_time();
+        simc_p->next_time(result);
+        result -= sc_time_stamp();
+    }
+    return result;
 }
 
 // Set the random seed for controlled randomization -- not yet implemented
@@ -1300,32 +1536,89 @@ sc_set_random_seed( unsigned int )
 }
 
 
+// +----------------------------------------------------------------------------
+// |"sc_start"
+// | 
+// | This function starts, or restarts, the execution of the simulator.
+// |
+// | Arguments:
+// |     duration = the amount of time the simulator should execute.
+// |     p        = event starvation policy.
+// +----------------------------------------------------------------------------
 void
-sc_start( const sc_time& duration )
+sc_start( const sc_time& duration, sc_starvation_policy p )
 {
-    sc_simcontext* context;
-    int status;
+    sc_simcontext* context_p;      // current simulation context.
+    sc_time        entry_time;     // simulation time upon entry.
+    sc_time        exit_time;      // simulation time to set upon exit.
+    size_t         starting_delta; // delta count upon entry.
+    int            status;         // current simulation status.
 
-    context = sc_get_curr_simcontext();
-    status = context->sim_status();
+    // Set up based on the arguments passed to us:
+
+    context_p = sc_get_curr_simcontext();
+    starting_delta = sc_delta_count();
+    entry_time = context_p->m_curr_time;
+    if ( p == SC_RUN_TO_TIME )
+        exit_time = context_p->m_curr_time + duration;
+
+    // called with duration = SC_ZERO_TIME for the first time
+    static bool initialisation_delta =
+         ( starting_delta == 0 && exit_time == SC_ZERO_TIME );
+
+    // If the simulation status is bad issue the appropriate message:
+
+    status = context_p->sim_status();
     if( status != SC_SIM_OK ) 
     {
-	if ( status == SC_SIM_USER_STOP )
-	{
-	    SC_REPORT_ERROR(SC_ID_SIMULATION_START_AFTER_STOP_, "");        
-	}
+        if ( status == SC_SIM_USER_STOP )
+            SC_REPORT_ERROR(SC_ID_SIMULATION_START_AFTER_STOP_, "");
+        if ( status == SC_SIM_ERROR )
+            SC_REPORT_ERROR(SC_ID_SIMULATION_START_AFTER_ERROR_, "");
         return;
     }
-    context->simulate( duration );
+
+    // If the simulation status is good perform the simulation:
+
+    context_p->simulate( duration );
+
+    // Re-check the status:
+
+    status = context_p->sim_status();
+
+    // Update the current time to the exit time if that is the starvation
+    // policy:
+
+    if ( p == SC_RUN_TO_TIME && !context_p->m_paused && status == SC_SIM_OK )
+    {
+        context_p->m_curr_time = exit_time;
+    }
+
+    // If there was no activity and the simulation clock did not move warn
+    // the user, except if we're in a first sc_start(SC_ZERO_TIME) for
+    // initialisation (only):
+
+    if ( !initialisation_delta &&
+         starting_delta == sc_delta_count() &&
+         context_p->m_curr_time == entry_time &&
+         status == SC_SIM_OK )
+    {
+        SC_REPORT_WARNING(SC_ID_NO_SC_START_ACTIVITY_, "");
+    }
+
+    // subsequent calls are not initial ones
+    initialisation_delta = false;
 }
 
 void
 sc_start()  
 {
-	sc_start( sc_time(~sc_dt::UINT64_ZERO, false) - sc_time_stamp() );
+    sc_start( sc_time(~sc_dt::UINT64_ZERO, false) - sc_time_stamp(), 
+              SC_EXIT_ON_STARVATION );
 }
 
 // for backward compatibility with 1.0
+#if 0
 void
 sc_start( double duration )  // in default time units
 {
@@ -1347,6 +1640,7 @@ sc_start( double duration )  // in default time units
         sc_start( sc_time( duration, true ) );
     }
 }
+#endif // 
 
 void
 sc_stop()
@@ -1387,11 +1681,22 @@ sc_cycle( const sc_time& duration )
     sc_get_curr_simcontext()->cycle( duration );
 }
 
-sc_object* sc_find_object( const char* name, sc_simcontext* simc_p )
+sc_event* sc_find_event( const char* name )
 {
-    return simc_p->get_object_manager()->find_object( name );
+    return sc_get_curr_simcontext()->get_object_manager()->find_event( name );
 }
 
+sc_object* sc_find_object( const char* name )
+{
+    return sc_get_curr_simcontext()->get_object_manager()->find_object( name );
+}
+
+
+const sc_time&
+sc_max_time()
+{
+    return sc_get_curr_simcontext()->max_time();
+}
 
 const sc_time&
 sc_time_stamp()
@@ -1431,7 +1736,7 @@ void sc_set_stop_mode(sc_stop_mode mode)
 {
     if ( sc_is_running() )
     {
-        SC_REPORT_WARNING(SC_ID_STOP_MODE_AFTER_START_,"");
+        SC_REPORT_ERROR(SC_ID_STOP_MODE_AFTER_START_,"");
     }
     else
     {
@@ -1453,5 +1758,340 @@ sc_get_stop_mode()
     return stop_mode;
 }
 
+bool sc_is_unwinding()
+{ 
+    return sc_get_current_process_handle().is_unwinding();
+}
+
+// The IEEE 1666 Standard for 2011 designates that the treatment of
+// certain process control interactions as being "implementation dependent".
+// These interactions are:
+//   (1) What happens when a resume() call is performed on a disabled, 
+//       suspended process.
+//   (2) What happens when sync_reset_on() or sync_reset_off() is called
+//       on a suspended process.
+//   (3) What happens when the value specified in a reset_signal_is()
+//       call changes value while a process is suspended.
+//
+// By default this Proof of Concept implementation reports an error
+// for these interactions. However, the implementation also provides
+// a non-error treatment. The non-error treatment for the interactions is:
+//   (1) A resume() call performed on a disabled, suspended process will
+//       mark the process as no longer suspended, and if it is capable
+//       of execution (not waiting on any events) it will be placed on
+//       the queue of runnable processes. See the state diagram below.
+//   (2) A call to sync_reset_on() or sync_reset_off() will set or clear
+//       the synchronous reset flag. Whether the process is in reset or
+//       not will be determined when the process actually executes by
+//       looking at the flag's value at that time.
+//   (3) If a suspended process has a reset_signal_is() specification
+//       the value of the reset variable at the time of its next execution 
+//       will determine whether it is in reset or not.
+//      
+// TO GET THE NON-ERROR BEHAVIOR SET THE VARIABLE BELOW TO TRUE.
+//
+// This can be done in this source before you build the library, or you
+// can use an assignment as the first statement in your sc_main() function:
+//    sc_core::sc_allow_process_control_corners = true;
+
+bool sc_allow_process_control_corners = false;
+
+// The state transition diagram for the interaction of disable and suspend
+// when sc_allow_process_control_corners is true is shown below:
+//
+// ......................................................................
+// .         ENABLED                    .           DISABLED            .
+// .                                    .                               .
+// .                 +----------+    disable      +----------+          .
+// .   +------------>|          |-------.-------->|          |          .
+// .   |             | runnable |       .         | runnable |          .
+// .   |     +-------|          |<------.---------|          |------+   .
+// .   |     |       +----------+     enable      +----------+      |   .
+// .   |     |          |    ^          .            |    ^         |   .
+// .   |     |  suspend |    | resume   .    suspend |    | resume  |   .
+// .   |     |          V    |          .            V    |         |   .
+// .   |     |       +----------+    disable      +----------+      |   .
+// .   |     |       | suspend  |-------.-------->| suspend  |      |   .
+// . t |   r |       |          |       .         |          |      | r .
+// . r |   u |       |  ready   |<------.---------|  ready   |      | u .
+// . i |   n |       +----------+     enable      +----------+      | n .
+// . g |   / |         ^                .                           | / .
+// . g |   w |  trigger|                .                           | w .
+// . e |   a |         |                .                           | a .
+// . r |   i |       +----------+    disable      +----------+      | i .
+// .   |   t |       | suspend  |-------.-------->| suspend  |      | t .
+// .   |     |       |          |       .         |          |      |   .
+// .   |     |       | waiting  |<------.---------| waiting  |      |   .
+// .   |     |       +----------+     enable      +----------+      |   .
+// .   |     |          |    ^          .            |    ^         |   .
+// .   |     |  suspend |    | resume   .    suspend |    | resume  |   .
+// .   |     |          V    |          .            V    |         |   .
+// .   |     |       +----------+    disable      +----------+      |   .
+// .   |     +------>|          |-------.-------->|          |      |   .
+// .   |             | waiting  |       .         | waiting  |      |   .
+// .   +-------------|          |<------.---------|          |<-----+   .
+// .                 +----------+     enable      +----------+          .
+// .                                    .                               .
+// ......................................................................
+
 } // namespace sc_core
+
+/*****************************************************************************
+
+  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
+  changes you are making here.
+
+      Name, Affiliation, Date: Ali Dasdan, Synopsys, Inc.
+  Description of Modification: - Added sc_stop() detection into initial_crunch
+                                 and crunch. This makes it possible to exit out
+                                 of a combinational loop using sc_stop().
+
+      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems 20 May 2003
+  Description of Modification: - sc_stop mode
+                               - phase callbacks
+
+      Name, Affiliation, Date: Bishnupriya Bhattacharya, Cadence Design Systems,
+                               25 August 2003
+  Description of Modification: - support for dynamic process
+                               - support for sc export registry
+                               - new member methods elaborate(), 
+				 prepare_to_simulate(), and initial_crunch()
+				 that are invoked by initialize() in that order
+                               - implement sc_get_last_created_process_handle() for use
+                                 before simulation starts
+                               - remove "set_curr_proc(handle)" from 
+                                 register_method_process and 
+                                 register_thread_process - led to bugs
+                               
+      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems 04 Sep 2003
+  Description of Modification: - changed process existence structures to
+				 linked lists to eliminate exponential 
+				 execution problem with using sc_pvector.
+ *****************************************************************************/
+// $Log: sc_simcontext.cpp,v $
+// Revision 1.37  2011/08/29 18:04:32  acg
+//  Philipp A. Hartmann: miscellaneous clean ups.
+//
+// Revision 1.36  2011/08/26 20:46:10  acg
+//  Andy Goodrich: moved the modification log to the end of the file to
+//  eliminate source line number skew when check-ins are done.
+//
+// Revision 1.35  2011/08/24 22:05:51  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.34  2011/08/04 17:15:28  acg
+//  Andy Goodrich: added documentation to crunch() routine.
+//
+// Revision 1.32  2011/07/24 11:16:36  acg
+//  Philipp A. Hartmann: fix reference counting on deferred deletions of
+//  processes.
+//
+// Revision 1.31  2011/07/01 18:49:07  acg
+//  Andy Goodrich: moved pln() from sc_simcontext.cpp to sc_ver.cpp.
+//
+// Revision 1.30  2011/05/09 04:07:49  acg
+//  Philipp A. Hartmann:
+//    (1) Restore hierarchy in all phase callbacks.
+//    (2) Ensure calls to before_end_of_elaboration.
+//
+// Revision 1.29  2011/04/08 22:39:09  acg
+//  Andy Goodrich: moved method invocation code to sc_method.h so that the
+//  details are hidden from sc_simcontext.
+//
+// Revision 1.28  2011/04/05 20:50:57  acg
+//  Andy Goodrich:
+//    (1) changes to make sure that event(), posedge() and negedge() only
+//        return true if the clock has not moved.
+//    (2) fixes for method self-resumes.
+//    (3) added SC_PRERELEASE_VERSION
+//    (4) removed kernel events from the object hierarchy, added
+//        sc_hierarchy_name_exists().
+//
+// Revision 1.27  2011/04/05 06:14:15  acg
+//  Andy Goodrich: fix typo.
+//
+// Revision 1.26  2011/04/05 06:03:32  acg
+//  Philipp A. Hartmann: added code to set ready to run bit for a suspended
+//  process that does not have dont_initialize specified at simulation
+//  start up.
+//
+// Revision 1.25  2011/04/01 21:31:55  acg
+//  Andy Goodrich: make sure processes suspended before the start of execution
+//  don't get scheduled for initial execution.
+//
+// Revision 1.24  2011/03/28 13:02:52  acg
+//  Andy Goodrich: Changes for disable() interactions.
+//
+// Revision 1.23  2011/03/12 21:07:51  acg
+//  Andy Goodrich: changes to kernel generated event support.
+//
+// Revision 1.22  2011/03/07 17:38:43  acg
+//  Andy Goodrich: tightening up of checks for undefined interaction between
+//  synchronous reset and suspend.
+//
+// Revision 1.21  2011/03/06 19:57:11  acg
+//  Andy Goodrich: refinements for the illegal suspend - synchronous reset
+//  interaction.
+//
+// Revision 1.20  2011/03/06 15:58:50  acg
+//  Andy Goodrich: added escape to turn off process control corner case
+//  checks.
+//
+// Revision 1.19  2011/03/05 04:45:16  acg
+//  Andy Goodrich: moved active process calculation to the sc_simcontext class.
+//
+// Revision 1.18  2011/03/05 01:39:21  acg
+//  Andy Goodrich: changes for named events.
+//
+// Revision 1.17  2011/02/18 20:27:14  acg
+//  Andy Goodrich: Updated Copyrights.
+//
+// Revision 1.16  2011/02/17 19:53:28  acg
+//  Andy Goodrich: eliminated use of ready_to_run() as part of process control
+//  simplification.
+//
+// Revision 1.15  2011/02/13 21:47:38  acg
+//  Andy Goodrich: update copyright notice.
+//
+// Revision 1.14  2011/02/11 13:25:24  acg
+//  Andy Goodrich: Philipp A. Hartmann's changes:
+//    (1) Removal of SC_CTHREAD method overloads.
+//    (2) New exception processing code.
+//
+// Revision 1.13  2011/02/08 08:42:50  acg
+//  Andy Goodrich: fix ordering of check for stopped versus paused.
+//
+// Revision 1.12  2011/02/07 19:17:20  acg
+//  Andy Goodrich: changes for IEEE 1666 compatibility.
+//
+// Revision 1.11  2011/02/02 07:18:11  acg
+//  Andy Goodrich: removed toggle() calls for the new crunch() toggle usage.
+//
+// Revision 1.10  2011/02/01 23:01:53  acg
+//  Andy Goodrich: removed dead code.
+//
+// Revision 1.9  2011/02/01 21:11:59  acg
+//  Andy Goodrich:
+//  (1) Use of new toggle_methods() and toggle_threads() run queue methods
+//      to make sure the thread run queue does not execute when allow preempt_me()
+//      is called from an SC_METHOD.
+//  (2) Use of execute_thread_next() to allow thread execution in the current
+//      delta cycle() rather than push_runnable_thread_front which executed
+//      in the following cycle.
+//
+// Revision 1.8  2011/01/25 20:50:37  acg
+//  Andy Goodrich: changes for IEEE 1666 2011.
+//
+// Revision 1.7  2011/01/19 23:21:50  acg
+//  Andy Goodrich: changes for IEEE 1666 2011
+//
+// Revision 1.6  2011/01/18 20:10:45  acg
+//  Andy Goodrich: changes for IEEE1666_2011 semantics.
+//
+// Revision 1.5  2010/11/20 17:10:57  acg
+//  Andy Goodrich: reset processing changes for new IEEE 1666 standard.
+//
+// Revision 1.4  2010/07/22 20:02:33  acg
+//  Andy Goodrich: bug fixes.
+//
+// Revision 1.3  2008/05/22 17:06:26  acg
+//  Andy Goodrich: updated copyright notice to include 2008.
+//
+// Revision 1.2  2007/09/20 20:32:35  acg
+//  Andy Goodrich: changes to the semantics of throw_it() to match the
+//  specification. A call to throw_it() will immediately suspend the calling
+//  thread until all the throwees have executed. At that point the calling
+//  thread will be restarted before the execution of any other threads.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:05  acg
+// SystemC 2.3
+//
+// Revision 1.21  2006/08/29 23:37:13  acg
+//  Andy Goodrich: Added check for negative time.
+//
+// Revision 1.20  2006/05/26 20:33:16  acg
+//   Andy Goodrich: changes required by additional platform compilers (i.e.,
+//   Microsoft VC++, Sun Forte, HP aCC).
+//
+// Revision 1.19  2006/05/08 17:59:52  acg
+//  Andy Goodrich: added a check before m_curr_time is set to make sure it
+//  is not set to a time before its current value. This will treat
+//  sc_event.notify( ) calls with negative times as calls with a zero time.
+//
+// Revision 1.18  2006/04/20 17:08:17  acg
+//  Andy Goodrich: 3.0 style process changes.
+//
+// Revision 1.17  2006/04/11 23:13:21  acg
+//   Andy Goodrich: Changes for reduced reset support that only includes
+//   sc_cthread, but has preliminary hooks for expanding to method and thread
+//   processes also.
+//
+// Revision 1.16  2006/03/21 00:00:34  acg
+//   Andy Goodrich: changed name of sc_get_current_process_base() to be
+//   sc_get_current_process_b() since its returning an sc_process_b instance.
+//
+// Revision 1.15  2006/03/13 20:26:50  acg
+//  Andy Goodrich: Addition of forward class declarations, e.g.,
+//  sc_reset, to keep gcc 4.x happy.
+//
+// Revision 1.14  2006/02/02 23:42:41  acg
+//  Andy Goodrich: implemented a much better fix to the sc_event_finder
+//  proliferation problem. This new version allocates only a single event
+//  finder for each port for each type of event, e.g., pos(), neg(), and
+//  value_change(). The event finder persists as long as the port does,
+//  which is what the LRM dictates. Because only a single instance is
+//  allocated for each event type per port there is not a potential
+//  explosion of storage as was true in the 2.0.1/2.1 versions.
+//
+// Revision 1.13  2006/02/02 21:29:10  acg
+//  Andy Goodrich: removed the call to sc_event_finder::free_instances() that
+//  was in end_of_elaboration(), leaving only the call in clean(). This is
+//  because the LRM states that sc_event_finder instances are persistent as
+//  long as the sc_module hierarchy is valid.
+//
+// Revision 1.12  2006/02/02 21:09:50  acg
+//  Andy Goodrich: added call to sc_event_finder::free_instances in the clean()
+//  method.
+//
+// Revision 1.11  2006/02/02 20:43:14  acg
+//  Andy Goodrich: Added an existence linked list to sc_event_finder so that
+//  the dynamically allocated instances can be freed after port binding
+//  completes. This replaces the individual deletions in ~sc_bind_ef, as these
+//  caused an exception if an sc_event_finder instance was used more than
+//  once, due to a double freeing of the instance.
+//
+// Revision 1.10  2006/01/31 21:43:26  acg
+//  Andy Goodrich: added comments in constructor to highlight environmental
+//  overrides section.
+//
+// Revision 1.9  2006/01/26 21:04:54  acg
+//  Andy Goodrich: deprecation message changes and additional messages.
+//
+// Revision 1.8  2006/01/25 00:31:19  acg
+//  Andy Goodrich: Changed over to use a standard message id of
+//  SC_ID_IEEE_1666_DEPRECATION for all deprecation messages.
+//
+// Revision 1.7  2006/01/24 20:49:05  acg
+// Andy Goodrich: changes to remove the use of deprecated features within the
+// simulator, and to issue warning messages when deprecated features are used.
+//
+// Revision 1.6  2006/01/19 00:29:52  acg
+// Andy Goodrich: Yet another implementation for signal write checking. This
+// one uses an environment variable SC_SIGNAL_WRITE_CHECK, that when set to
+// DISABLE will disable write checking on signals.
+//
+// Revision 1.5  2006/01/13 18:44:30  acg
+// Added $Log to record CVS changes into the source.
+//
+// Revision 1.4  2006/01/03 23:18:44  acg
+// Changed copyright to include 2006.
+//
+// Revision 1.3  2005/12/20 22:11:10  acg
+// Fixed $Log lines.
+//
+// Revision 1.2  2005/12/20 22:02:30  acg
+// Changed where delta cycles are incremented to match IEEE 1666. Added the
+// event_occurred() method to hide how delta cycle comparisions are done within
+// sc_simcontext. Changed the boolean update_phase to an enum that shows all
+// the phases.
 // Taf!

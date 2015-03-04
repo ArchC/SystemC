@@ -15,7 +15,7 @@
 ##
 ## ****************************************************************************
 ##
-##  src/Makefile.am --
+##  src/sysc/Makefile.am --
 ##  Process this file with automake to produce a Makefile.in file.
 ##
 ##  Original Author: Martin Janssen, Synopsys, Inc., 2001-05-21
@@ -30,11 +30,21 @@
 ##
 ## ****************************************************************************
 
-include $(top_srcdir)/config/Make-rules
+include $(top_srcdir)/config/Make-rules.sysc
+
+# order of SUBDIRS is important, sysc needs to go first:
+SUBDIRS = \
+	sysc \
+	tlm_core/tlm_1 \
+	tlm_core/tlm_2 \
+	tlm_utils \
+	.
 
 H_FILES = \
 	systemc \
-	systemc.h
+	systemc.h \
+	tlm \
+	tlm.h
 
 noinst_HEADERS = $(H_FILES)
 
@@ -42,30 +52,21 @@ CXX_FILES =
 
 NO_CXX_FILES =
 
-SUBDIRS = \
-	sysc \
-	.
-
 INCLUDE_DIR = $(prefix)/include
 
 install-data-local:
 	@$(NORMAL_INSTALL)
 	$(mkinstalldirs) $(INCLUDE_DIR)
 	for file in $(noinst_HEADERS); do \
-	  $(INSTALL_DATA) $(srcdir)/$$file $(INCLUDE_DIR)/$$file; \
-	done
-	$(mkinstalldirs) $(prefix)/lib-$(TARGET_ARCH)
-	$(INSTALL_DATA) $(MAIN_LIBRARY) \
-	  $(prefix)/lib-$(TARGET_ARCH)/$(MAIN_LIBRARY)
-	$(RANLIB) $(prefix)/lib-$(TARGET_ARCH)/$(MAIN_LIBRARY)
+          $(INSTALL_DATA) $(srcdir)/$$file $(INCLUDE_DIR)/$$file; \
+        done
 
 uninstall-local:
 	@$(NORMAL_UNINSTALL)
-	for file in $(noinst_HEADERS); do \
-	  rm -f $(INCLUDE_DIR)/$$file; \
-	done
 	-rmdir $(INCLUDE_DIR)
-	rm -f $(prefix)/lib-$(TARGET_ARCH)/$(MAIN_LIBRARY)
-	-rmdir $(prefix)/lib-$(TARGET_ARCH)
+	for file in $(noinst_HEADERS); do \
+          rm -f $(INCLUDE_DIR)/$$file; \
+        done
+	-rmdir $(INCLUDE_DIR)
 
 ## Taf!

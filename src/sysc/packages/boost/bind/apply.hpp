@@ -1,5 +1,5 @@
-#ifndef BOOST_BIND_APPLY_HPP_INCLUDED
-#define BOOST_BIND_APPLY_HPP_INCLUDED
+#ifndef SC_BOOST_BIND_APPLY_HPP_INCLUDED
+#define SC_BOOST_BIND_APPLY_HPP_INCLUDED
 
 //
 //  apply.hpp
@@ -11,7 +11,7 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 //
 
-namespace boost
+namespace sc_boost
 {
 
 template<class R> struct apply
@@ -69,6 +69,6 @@ template<class R> struct apply
     }
 };
 
-} // namespace boost
+} // namespace sc_boost
 
-#endif // #ifndef BOOST_BIND_APPLY_HPP_INCLUDED
+#endif // #ifndef SC_BOOST_BIND_APPLY_HPP_INCLUDED

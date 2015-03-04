@@ -34,8 +34,14 @@
  *****************************************************************************/
 
 // $Log: sc_fxval.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.3  2011/01/19 18:57:40  acg
+//  Andy Goodrich: changes for IEEE_1666_2011.
+//
+// Revision 1.2  2010/12/07 20:09:08  acg
+// Andy Goodrich: Philipp Hartmann's constructor disambiguation fix
+//
+// Revision 1.1.1.1  2006/12/15 20:20:04  acg
+// SystemC 2.3
 //
 // Revision 1.3  2006/01/13 18:53:58  acg
 // Andy Goodrich: added $Log command so that CVS comments are reproduced in
@@ -55,6 +61,16 @@
 #endif
 #include "sysc/datatypes/fx/sc_fxval_observer.h"
 
+#ifdef SC_FXVAL_IMPLICIT_CONV
+#   define SCFX_EXPLICIT_ // nothing
+#else
+#   define SCFX_EXPLICIT_ explicit
+#endif
+#ifdef SC_FXVAL_IMPLICIT_OTHER
+#  define SCFX_EXPLICIT_OTHER_
+#else
+#  define SCFX_EXPLICIT_OTHER_ explicit
+#endif
 
 namespace sc_dt
 {
@@ -86,43 +102,28 @@ protected:
 public:
 
     // internal use only;
-    sc_fxval( scfx_rep* );
+    explicit sc_fxval( scfx_rep* );
 
 
-    explicit sc_fxval( sc_fxval_observer* = 0 );
-             sc_fxval( int,
-		       sc_fxval_observer* = 0 );
-             sc_fxval( unsigned int,
-		       sc_fxval_observer* = 0 );
-             sc_fxval( long,
-		       sc_fxval_observer* = 0 );
-             sc_fxval( unsigned long,
-		       sc_fxval_observer* = 0 );
-             sc_fxval( double,
-		       sc_fxval_observer* = 0 );
-             sc_fxval( const char*,
-		       sc_fxval_observer* = 0 );
-             sc_fxval( const sc_fxval&,
-		       sc_fxval_observer* = 0 );
-             sc_fxval( const sc_fxval_fast&,
-		       sc_fxval_observer* = 0 );
-             sc_fxval( const sc_fxnum&,
-		       sc_fxval_observer* = 0 );
-             sc_fxval( const sc_fxnum_fast&,
-		       sc_fxval_observer* = 0 );
+    explicit       sc_fxval( sc_fxval_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval( int, sc_fxval_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval( unsigned int, sc_fxval_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval( long, sc_fxval_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval( unsigned long, sc_fxval_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval( float, sc_fxval_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval( double, sc_fxval_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval( const char*, sc_fxval_observer* = 0 );
+                   sc_fxval( const sc_fxval&, sc_fxval_observer* = 0 );
+                   sc_fxval( const sc_fxval_fast&, sc_fxval_observer* = 0 );
+                   sc_fxval( const sc_fxnum&, sc_fxval_observer* = 0 );
+                   sc_fxval( const sc_fxnum_fast&, sc_fxval_observer* = 0 );
 #ifndef SC_FX_EXCLUDE_OTHER
-    explicit sc_fxval( int64,
-		       sc_fxval_observer* = 0 );
-    explicit sc_fxval( uint64,
-		       sc_fxval_observer* = 0 );
-    explicit sc_fxval( const sc_int_base&,
-		       sc_fxval_observer* = 0 );
-    explicit sc_fxval( const sc_uint_base&,
-		       sc_fxval_observer* = 0 );
-    explicit sc_fxval( const sc_signed&,
-		       sc_fxval_observer* = 0 );
-    explicit sc_fxval( const sc_unsigned&,
-		       sc_fxval_observer* = 0 );
+    SCFX_EXPLICIT_OTHER_ sc_fxval( int64, sc_fxval_observer* = 0 );
+    SCFX_EXPLICIT_OTHER_ sc_fxval( uint64, sc_fxval_observer* = 0 );
+    SCFX_EXPLICIT_OTHER_ sc_fxval( const sc_int_base&, sc_fxval_observer* = 0 );
+    SCFX_EXPLICIT_OTHER_ sc_fxval( const sc_uint_base&, sc_fxval_observer* = 0 );
+    SCFX_EXPLICIT_OTHER_ sc_fxval( const sc_signed&, sc_fxval_observer* = 0 );
+    SCFX_EXPLICIT_OTHER_ sc_fxval( const sc_unsigned&, sc_fxval_observer* = 0 );
 #endif
 
     ~sc_fxval();
@@ -168,6 +169,7 @@ public:
     DECL_BIN_OP_T(op,unsigned int)                                            \
     DECL_BIN_OP_T(op,long)                                                    \
     DECL_BIN_OP_T(op,unsigned long)                                           \
+    DECL_BIN_OP_T(op,float)                                                  \
     DECL_BIN_OP_T(op,double)                                                  \
     DECL_BIN_OP_T(op,const char*)                                             \
     DECL_BIN_OP_T(op,const sc_fxval_fast&)                                    \
@@ -185,6 +187,7 @@ public:
     DECL_BIN_OP_T(/,unsigned int)
     DECL_BIN_OP_T(/,long)
     DECL_BIN_OP_T(/,unsigned long)
+    DECL_BIN_OP_T(/,float)
     DECL_BIN_OP_T(/,double)
     DECL_BIN_OP_T(/,const char*)
     DECL_BIN_OP_T(/,const sc_fxval_fast&)
@@ -232,6 +235,7 @@ public:
     DECL_BIN_FNC_T(fnc,unsigned int)                                          \
     DECL_BIN_FNC_T(fnc,long)                                                  \
     DECL_BIN_FNC_T(fnc,unsigned long)                                         \
+    DECL_BIN_FNC_T(fnc,float)                                                \
     DECL_BIN_FNC_T(fnc,double)                                                \
     DECL_BIN_FNC_T(fnc,const char*)                                           \
     DECL_BIN_FNC_T(fnc,const sc_fxval_fast&)                                  \
@@ -275,6 +279,7 @@ public:
     DECL_REL_OP_T(op,unsigned int)                                            \
     DECL_REL_OP_T(op,long)                                                    \
     DECL_REL_OP_T(op,unsigned long)                                           \
+    DECL_REL_OP_T(op,float)                                                  \
     DECL_REL_OP_T(op,double)                                                  \
     DECL_REL_OP_T(op,const char*)                                             \
     DECL_REL_OP_T(op,const sc_fxval_fast&)                                    \
@@ -315,6 +320,7 @@ public:
     DECL_ASN_OP_T(op,unsigned int)                                            \
     DECL_ASN_OP_T(op,long)                                                    \
     DECL_ASN_OP_T(op,unsigned long)                                           \
+    DECL_ASN_OP_T(op,float)                                                  \
     DECL_ASN_OP_T(op,double)                                                  \
     DECL_ASN_OP_T(op,const char*)                                             \
     DECL_ASN_OP_T(op,const sc_fxval&)                                         \
@@ -439,40 +445,25 @@ protected:
 
 public:
 
-    explicit sc_fxval_fast( sc_fxval_fast_observer* = 0 );
-             sc_fxval_fast( int,
-			    sc_fxval_fast_observer* = 0 );
-             sc_fxval_fast( unsigned int,
-			    sc_fxval_fast_observer* = 0 );
-             sc_fxval_fast( long,
-			    sc_fxval_fast_observer* = 0 );
-             sc_fxval_fast( unsigned long,
-			    sc_fxval_fast_observer* = 0 );
-             sc_fxval_fast( double,
-			    sc_fxval_fast_observer* = 0 );
-             sc_fxval_fast( const char*,
-			    sc_fxval_fast_observer* = 0 );
-             sc_fxval_fast( const sc_fxval&,
-			    sc_fxval_fast_observer* = 0 );
-             sc_fxval_fast( const sc_fxval_fast&,
-			    sc_fxval_fast_observer* = 0 );
-             sc_fxval_fast( const sc_fxnum&,
-			    sc_fxval_fast_observer* = 0 );
-             sc_fxval_fast( const sc_fxnum_fast&,
-			    sc_fxval_fast_observer* = 0 );
+    explicit       sc_fxval_fast( sc_fxval_fast_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval_fast( int, sc_fxval_fast_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval_fast( unsigned int, sc_fxval_fast_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval_fast( long, sc_fxval_fast_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval_fast( unsigned long, sc_fxval_fast_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval_fast( float, sc_fxval_fast_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval_fast( double, sc_fxval_fast_observer* = 0 );
+    SCFX_EXPLICIT_ sc_fxval_fast( const char*, sc_fxval_fast_observer* = 0 );
+    sc_fxval_fast( const sc_fxval&, sc_fxval_fast_observer* = 0 );
+    sc_fxval_fast( const sc_fxval_fast&, sc_fxval_fast_observer* = 0 );
+    sc_fxval_fast( const sc_fxnum&, sc_fxval_fast_observer* = 0 );
+    sc_fxval_fast( const sc_fxnum_fast&, sc_fxval_fast_observer* = 0 );
 #ifndef SC_FX_EXCLUDE_OTHER
-    explicit sc_fxval_fast( int64,
-			    sc_fxval_fast_observer* = 0 );
-    explicit sc_fxval_fast( uint64,
-			    sc_fxval_fast_observer* = 0 );
-    explicit sc_fxval_fast( const sc_int_base&,
-			    sc_fxval_fast_observer* = 0 );
-    explicit sc_fxval_fast( const sc_uint_base&,
-			    sc_fxval_fast_observer* = 0 );
-    explicit sc_fxval_fast( const sc_signed&,
-			    sc_fxval_fast_observer* = 0 );
-    explicit sc_fxval_fast( const sc_unsigned&,
-			    sc_fxval_fast_observer* = 0 );
+    SCFX_EXPLICIT_OTHER_ sc_fxval_fast( int64, sc_fxval_fast_observer* = 0 );
+    SCFX_EXPLICIT_OTHER_ sc_fxval_fast( uint64, sc_fxval_fast_observer* = 0 );
+    SCFX_EXPLICIT_OTHER_ sc_fxval_fast( const sc_int_base&, sc_fxval_fast_observer* = 0 );
+    SCFX_EXPLICIT_OTHER_ sc_fxval_fast( const sc_uint_base&, sc_fxval_fast_observer* = 0 );
+    SCFX_EXPLICIT_OTHER_ sc_fxval_fast( const sc_signed&, sc_fxval_fast_observer* = 0 );
+    SCFX_EXPLICIT_OTHER_ sc_fxval_fast( const sc_unsigned&, sc_fxval_fast_observer* = 0 );
 #endif
 
     ~sc_fxval_fast();
@@ -518,6 +509,7 @@ public:
     DECL_BIN_OP_T(op,unsigned int)                                            \
     DECL_BIN_OP_T(op,long)                                                    \
     DECL_BIN_OP_T(op,unsigned long)                                           \
+    DECL_BIN_OP_T(op,float)                                                  \
     DECL_BIN_OP_T(op,double)                                                  \
     DECL_BIN_OP_T(op,const char*)                                             \
     DECL_BIN_OP_OTHER(op)
@@ -533,6 +525,7 @@ public:
     DECL_BIN_OP_T(/,unsigned int)
     DECL_BIN_OP_T(/,long)
     DECL_BIN_OP_T(/,unsigned long)
+    DECL_BIN_OP_T(/,float)
     DECL_BIN_OP_T(/,double)
     DECL_BIN_OP_T(/,const char*)
 //    DECL_BIN_OP_OTHER(/)
@@ -578,6 +571,7 @@ public:
     DECL_BIN_FNC_T(fnc,unsigned int)                                          \
     DECL_BIN_FNC_T(fnc,long)                                                  \
     DECL_BIN_FNC_T(fnc,unsigned long)                                         \
+    DECL_BIN_FNC_T(fnc,float)                                                \
     DECL_BIN_FNC_T(fnc,double)                                                \
     DECL_BIN_FNC_T(fnc,const char*)                                           \
     DECL_BIN_FNC_T(fnc,const sc_fxval&)                                       \
@@ -621,6 +615,7 @@ public:
     DECL_REL_OP_T(op,unsigned int)                                            \
     DECL_REL_OP_T(op,long)                                                    \
     DECL_REL_OP_T(op,unsigned long)                                           \
+    DECL_REL_OP_T(op,float)                                                  \
     DECL_REL_OP_T(op,double)                                                  \
     DECL_REL_OP_T(op,const char*)                                             \
     DECL_REL_OP_OTHER(op)
@@ -659,6 +654,7 @@ public:
     DECL_ASN_OP_T(op,unsigned int)                                            \
     DECL_ASN_OP_T(op,long)                                                    \
     DECL_ASN_OP_T(op,unsigned long)                                           \
+    DECL_ASN_OP_T(op,float)                                                  \
     DECL_ASN_OP_T(op,double)                                                  \
     DECL_ASN_OP_T(op,const char*)                                             \
     DECL_ASN_OP_T(op,const sc_fxval&)                                         \
@@ -784,7 +780,7 @@ sc_fxval::observer() const
 // internal use only;
 inline
 sc_fxval::sc_fxval( scfx_rep* a )
-: m_rep( a ),
+: m_rep( a != 0 ? a : new scfx_rep ),
   m_observer( 0 )
 {}
 
@@ -832,6 +828,7 @@ DEFN_CTOR_T_A(int)
 DEFN_CTOR_T_A(unsigned int)
 DEFN_CTOR_T_A(long)
 DEFN_CTOR_T_A(unsigned long)
+DEFN_CTOR_T_A(float)
 DEFN_CTOR_T_A(double)
 DEFN_CTOR_T_A(const char*)
 DEFN_CTOR_T_B(const sc_fxval_fast&)
@@ -957,6 +954,7 @@ DEFN_BIN_OP_T(op,fnc,int)                                                     \
 DEFN_BIN_OP_T(op,fnc,unsigned int)                                            \
 DEFN_BIN_OP_T(op,fnc,long)                                                    \
 DEFN_BIN_OP_T(op,fnc,unsigned long)                                           \
+DEFN_BIN_OP_T(op,fnc,float)                                                  \
 DEFN_BIN_OP_T(op,fnc,double)                                                  \
 DEFN_BIN_OP_T(op,fnc,const char*)                                             \
 DEFN_BIN_OP_T(op,fnc,const sc_fxval_fast&)                                    \
@@ -980,6 +978,7 @@ DEFN_BIN_OP_T(/,div,int)
 DEFN_BIN_OP_T(/,div,unsigned int)
 DEFN_BIN_OP_T(/,div,long)
 DEFN_BIN_OP_T(/,div,unsigned long)
+DEFN_BIN_OP_T(/,div,float)
 DEFN_BIN_OP_T(/,div,double)
 DEFN_BIN_OP_T(/,div,const char*)
 DEFN_BIN_OP_T(/,div,const sc_fxval_fast&)
@@ -1068,6 +1067,7 @@ DEFN_BIN_FNC_T(fnc,int)                                                       \
 DEFN_BIN_FNC_T(fnc,unsigned int)                                              \
 DEFN_BIN_FNC_T(fnc,long)                                                      \
 DEFN_BIN_FNC_T(fnc,unsigned long)                                             \
+DEFN_BIN_FNC_T(fnc,float)                                                    \
 DEFN_BIN_FNC_T(fnc,double)                                                    \
 DEFN_BIN_FNC_T(fnc,const char*)                                               \
 DEFN_BIN_FNC_T(fnc,const sc_fxval_fast&)                                      \
@@ -1154,6 +1154,7 @@ DEFN_REL_OP_T(op,ret,int)                                                     \
 DEFN_REL_OP_T(op,ret,unsigned int)                                            \
 DEFN_REL_OP_T(op,ret,long)                                                    \
 DEFN_REL_OP_T(op,ret,unsigned long)                                           \
+DEFN_REL_OP_T(op,ret,float)                                                  \
 DEFN_REL_OP_T(op,ret,double)                                                  \
 DEFN_REL_OP_T(op,ret,const char*)                                             \
 DEFN_REL_OP_T(op,ret,const sc_fxval_fast&)                                    \
@@ -1201,6 +1202,7 @@ DEFN_ASN_OP_T(int)
 DEFN_ASN_OP_T(unsigned int)
 DEFN_ASN_OP_T(long)
 DEFN_ASN_OP_T(unsigned long)
+DEFN_ASN_OP_T(float)
 DEFN_ASN_OP_T(double)
 DEFN_ASN_OP_T(const char*)
 DEFN_ASN_OP_T(const sc_fxval_fast&)
@@ -1260,6 +1262,7 @@ DEFN_ASN_OP_T(op,fnc,int)                                                     \
 DEFN_ASN_OP_T(op,fnc,unsigned int)                                            \
 DEFN_ASN_OP_T(op,fnc,long)                                                    \
 DEFN_ASN_OP_T(op,fnc,unsigned long)                                           \
+DEFN_ASN_OP_T(op,fnc,float)                                                  \
 DEFN_ASN_OP_T(op,fnc,double)                                                  \
 DEFN_ASN_OP_T(op,fnc,const char*)                                             \
 DEFN_ASN_OP_T(op,fnc,const sc_fxval_fast&)                                    \
@@ -1587,6 +1590,7 @@ DEFN_CTOR_T_A(int)
 DEFN_CTOR_T_A(unsigned int)
 DEFN_CTOR_T_A(long)
 DEFN_CTOR_T_A(unsigned long)
+DEFN_CTOR_T_A(float)
 DEFN_CTOR_T_A(double)
 DEFN_CTOR_T_B(const char*)
 DEFN_CTOR_T_C(const sc_fxval&)
@@ -1711,6 +1715,7 @@ DEFN_BIN_OP_T(op,int)                                                         \
 DEFN_BIN_OP_T(op,unsigned int)                                                \
 DEFN_BIN_OP_T(op,long)                                                        \
 DEFN_BIN_OP_T(op,unsigned long)                                               \
+DEFN_BIN_OP_T(op,float)                                                      \
 DEFN_BIN_OP_T(op,double)                                                      \
 DEFN_BIN_OP_T(op,const char*)                                                 \
 DEFN_BIN_OP_OTHER(op)
@@ -1732,6 +1737,7 @@ DEFN_BIN_OP_T(/,int)
 DEFN_BIN_OP_T(/,unsigned int)
 DEFN_BIN_OP_T(/,long)
 DEFN_BIN_OP_T(/,unsigned long)
+DEFN_BIN_OP_T(/,float)
 DEFN_BIN_OP_T(/,double)
 DEFN_BIN_OP_T(/,const char*)
 //DEFN_BIN_OP_OTHER(/)
@@ -1817,6 +1823,7 @@ DEFN_BIN_FNC_T(fnc,op,int)                                                    \
 DEFN_BIN_FNC_T(fnc,op,unsigned int)                                           \
 DEFN_BIN_FNC_T(fnc,op,long)                                                   \
 DEFN_BIN_FNC_T(fnc,op,unsigned long)                                          \
+DEFN_BIN_FNC_T(fnc,op,float)                                                 \
 DEFN_BIN_FNC_T(fnc,op,double)                                                 \
 DEFN_BIN_FNC_T(fnc,op,const char*)                                            \
 DEFN_BIN_FNC_OTHER(fnc,op)
@@ -1897,6 +1904,7 @@ DEFN_REL_OP_T(op,int)                                                         \
 DEFN_REL_OP_T(op,unsigned int)                                                \
 DEFN_REL_OP_T(op,long)                                                        \
 DEFN_REL_OP_T(op,unsigned long)                                               \
+DEFN_REL_OP_T(op,float)                                                      \
 DEFN_REL_OP_T(op,double)                                                      \
 DEFN_REL_OP_T(op,const char*)                                                 \
 DEFN_REL_OP_OTHER(op)
@@ -1943,6 +1951,7 @@ DEFN_ASN_OP_T(int)
 DEFN_ASN_OP_T(unsigned int)
 DEFN_ASN_OP_T(long)
 DEFN_ASN_OP_T(unsigned long)
+DEFN_ASN_OP_T(float)
 DEFN_ASN_OP_T(double)
 DEFN_ASN_OP_T(const char*)
 DEFN_ASN_OP_T(const sc_fxval&)
@@ -1998,6 +2007,7 @@ DEFN_ASN_OP_T(op,int)                                                         \
 DEFN_ASN_OP_T(op,unsigned int)                                                \
 DEFN_ASN_OP_T(op,long)                                                        \
 DEFN_ASN_OP_T(op,unsigned long)                                               \
+DEFN_ASN_OP_T(op,float)                                                      \
 DEFN_ASN_OP_T(op,double)                                                      \
 DEFN_ASN_OP_T(op,const char*)                                                 \
 DEFN_ASN_OP_T(op,const sc_fxval&)                                             \
@@ -2249,6 +2259,8 @@ operator >> ( ::std::istream& is, sc_fxval_fast& a )
 
 } // namespace sc_dt
 
+#undef SCFX_EXPLICIT_
+#undef SCFX_EXPLICIT_OTHER_
 
 #endif
 

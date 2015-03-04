@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -35,8 +35,23 @@
  *****************************************************************************/
 
 // $Log: sc_nbutils.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.6  2011/09/08 16:12:15  acg
+//  Philipp A. Hartmann: fix issue with Sun machines wrt real math libraries.
+//
+// Revision 1.5  2011/08/26 23:00:01  acg
+//  Torsten Maehne: remove use of ieeefp.h.
+//
+// Revision 1.4  2011/08/15 16:43:24  acg
+//  Torsten Maehne: changes to remove unused argument warnings.
+//
+// Revision 1.3  2011/02/18 20:19:15  acg
+//  Andy Goodrich: updating Copyright notice.
+//
+// Revision 1.2  2010/09/06 16:35:48  acg
+//  Andy Goodrich: changed i386 to __i386__ in ifdef's.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:05  acg
+// SystemC 2.3
 //
 // Revision 1.3  2006/01/13 18:49:32  acg
 // Added $Log command so that CVS check in comments are reproduced in the
@@ -47,11 +62,8 @@
 #define SC_NBUTILS_H
 
 
-#if !defined(__ppc__) && !defined(_MSC_VER) && !defined(__x86_64__) && !defined(i386) && !defined(__hpux) && !defined( __BORLANDC__ )
-#include <ieeefp.h>
-#else
 #include <cmath>
-#endif
+#include <limits>
 
 #include "sysc/datatypes/bit/sc_bit_ids.h"
 #include "sysc/datatypes/int/sc_int_ids.h"
@@ -906,7 +918,7 @@ inline
 void
 copy_digits_unsigned(small_type &us, 
                      int unb, int und, sc_digit *ud,
-                     int vnb, int vnd, const sc_digit *vd)
+                     int /* vnb */, int vnd, const sc_digit *vd)
 {
 
   if (und <= vnd)
@@ -950,22 +962,29 @@ safe_set(int i, bool v, sc_digit *d)
 // ----------------------------------------------------------------------------
 
 inline
+bool
+is_nan( double v )
+{
+    return std::numeric_limits<double>::has_quiet_NaN && (v != v);
+}
+
+inline
+bool
+is_inf( double v )
+{
+    return v ==  std::numeric_limits<double>::infinity()
+        || v == -std::numeric_limits<double>::infinity();
+}
+
+inline
 void
 is_bad_double(double v)
 {
 // Windows throws exception.
-#if !defined(WIN32) && !defined(i386) && !defined(__x86_64__) && !defined( __EDG__ )
-#if defined( __hpux ) && defined( isfinite )
-  // HP-UX 11.00 does not have finite anymore
-  if( ! isfinite( v ) ) {
-#else
-  if (! finite(v)) {
-#endif
-      SC_REPORT_ERROR( sc_core::SC_ID_VALUE_NOT_VALID_,
-		       "is_bad_double( double v ) : "
-		       "v is not finite - NaN or Inf" );
-  }
-#endif
+    if( is_nan(v) || is_inf(v) )
+        SC_REPORT_ERROR( sc_core::SC_ID_VALUE_NOT_VALID_,
+		         "is_bad_double( double v ) : "
+		         "v is not finite - NaN or Inf" );
 }
 
 } // namespace sc_dt

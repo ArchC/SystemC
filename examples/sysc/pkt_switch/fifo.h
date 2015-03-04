@@ -33,6 +33,12 @@
 
  *****************************************************************************/
 
+#ifndef FIFO_H_INCLUDED
+#define FIFO_H_INCLUDED
+
+#include "systemc.h"
+#include "pkt.h"
+
 struct fifo {
 
    pkt regs[4];
@@ -47,7 +53,7 @@ struct fifo {
       full = false;
       empty = true;
       pntr = 0;
-    };
+    }
 
   // methods
    
@@ -55,3 +61,4 @@ struct fifo {
    
    pkt pkt_out();
 };
+#endif // FIFO_H_INCLUDED

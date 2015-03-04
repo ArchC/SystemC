@@ -30,9 +30,9 @@
 ##
 ## ****************************************************************************
 
-include $(top_srcdir)/config/Make-rules
+include $(top_srcdir)/config/Make-rules.sysc
 
-noinst_LIBRARIES = 
+noinst_LTLIBRARIES =
 
 H_FILES = \
 	dinkumware.hpp \

@@ -23,8 +23,14 @@
 //****************************************************************************
 
 // $Log: scx_mutex_w_policy.cpp,v $
-// Revision 1.1.1.1  2006/12/15 20:31:29  acg
-// SystemC 2.2
+// Revision 1.3  2011/08/26 22:26:05  acg
+//  Torsten Maehne: eliminated unused argument warnings.
+//
+// Revision 1.2  2011/08/15 16:43:24  acg
+//  Torsten Maehne: changes to remove unused argument warnings.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:03  acg
+// SystemC 2.3
 //
 // Revision 1.3  2006/03/21 01:31:34  acg
 //  Andy Goodrich: changed over to sc_get_current_process_b() from
@@ -114,7 +120,7 @@ class top : public sc_module
 public:
   SC_HAS_PROCESS(top);
 
-  top(sc_module_name name) : mutex_(scx_mutex_w_policy::FIFO)
+  top(sc_module_name name) : sc_module(name), mutex_(scx_mutex_w_policy::FIFO)
   {
     SC_THREAD(t1);
     SC_THREAD(t2);
@@ -149,7 +155,7 @@ private:
     scx_mutex_w_policy mutex_;
 };
 
-int sc_main (int argc , char *argv[]) 
+int sc_main (int, char*[]) 
 {
   top top1("Top1");
   sc_start(1000, SC_NS);

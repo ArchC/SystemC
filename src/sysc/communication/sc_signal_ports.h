@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,7 +21,7 @@
 
   Original Author: Martin Janssen, Synopsys, Inc., 2001-05-21
 
-  Change log appears at end of file
+  CHANGE LOG APPEARS AT THE END OF THE FILE
  *****************************************************************************/
 
 #ifndef SC_SIGNAL_PORTS_H
@@ -33,6 +33,12 @@
 #include "sysc/communication/sc_signal_ifs.h"
 #include "sysc/datatypes/bit/sc_logic.h"
 #include "sysc/tracing/sc_trace.h"
+
+#if ! defined( SC_DISABLE_VIRTUAL_BIND )
+#  define SC_VIRTUAL_ virtual
+#else
+#  define SC_VIRTUAL_ /* non-virtual */
+#endif
 
 namespace sc_core {
 
@@ -78,6 +84,7 @@ public:
     typedef sc_signal_in_if<data_type>                    if_type;
     typedef sc_port<if_type,1,SC_ONE_OR_MORE_BOUND>       base_type;
     typedef sc_in<data_type>                              this_type;
+    typedef typename base_type::port_type                 base_port_type;
 
     typedef if_type                                       in_if_type;
     typedef base_type                                     in_port_type;
@@ -144,35 +151,38 @@ public:
     virtual ~sc_in()
 	{
 	    remove_traces();
-	    if ( m_change_finder_p ) delete m_change_finder_p;
+	    delete m_change_finder_p;
 	}
 
 
     // bind to in interface
 
-    void bind( const in_if_type& interface_ )
+    SC_VIRTUAL_ void bind( const in_if_type& interface_ )
 	{ sc_port_base::bind( CCAST<in_if_type&>( interface_ ) ); }
 
+    SC_VIRTUAL_ void bind( in_if_type& interface_ )
+	{ this->bind( CCAST<const in_if_type&>( interface_ ) ); }
+
     void operator () ( const in_if_type& interface_ )
-	{ sc_port_base::bind( CCAST<in_if_type&>( interface_ ) ); }
+	{ this->bind( interface_ ); }
 
 
     // bind to parent in port
 
-    void bind( in_port_type& parent_ )
+    SC_VIRTUAL_ void bind( in_port_type& parent_ )
         { sc_port_base::bind( parent_ ); }
 
     void operator () ( in_port_type& parent_ )
-        { sc_port_base::bind( parent_ ); }
+        { this->bind( parent_ ); }
 
 
     // bind to parent inout port
 
-    void bind( inout_port_type& parent_ )
+    SC_VIRTUAL_ void bind( inout_port_type& parent_ )
 	{ sc_port_base::bind( parent_ ); }
 
     void operator () ( inout_port_type& parent_ )
-	{ sc_port_base::bind( parent_ ); }
+	{ this->bind( parent_ ); }
 
 
     // interface access shortcut methods
@@ -243,6 +253,15 @@ protected:
     // called by pbind (for internal use only)
     virtual int vbind( sc_interface& );
     virtual int vbind( sc_port_base& );
+
+    // implement virtual base_type port-binding function
+    //  - avoids warnings on some compilers
+    //  - should only be called, when using sc_port_b explicitly
+    //  - errors are detected during elaboration
+
+    SC_VIRTUAL_ void bind( base_port_type& parent_ )
+        { sc_port_base::bind( parent_ ); }
+
 
 private:
   mutable sc_event_finder* m_change_finder_p;
@@ -379,6 +398,7 @@ public:
     typedef sc_signal_in_if<data_type>                     if_type;
     typedef sc_port<if_type,1,SC_ONE_OR_MORE_BOUND>        base_type;
     typedef sc_in<data_type>                               this_type;
+    typedef /* typename */ base_type::port_type            base_port_type;
 
     typedef if_type                                        in_if_type;
     typedef base_type                                      in_port_type;
@@ -452,37 +472,40 @@ public:
     virtual ~sc_in()
 	{
 	    remove_traces();
-	    if ( m_change_finder_p ) delete m_change_finder_p;
-	    if ( m_neg_finder_p ) delete m_neg_finder_p;
-	    if ( m_pos_finder_p ) delete m_pos_finder_p;
+	    delete m_change_finder_p;
+	    delete m_neg_finder_p;
+	    delete m_pos_finder_p;
 	}
 
 
     // bind to in interface
 
-    void bind( const in_if_type& interface_ )
+    SC_VIRTUAL_ void bind( const in_if_type& interface_ )
 	{ sc_port_base::bind( CCAST<in_if_type&>( interface_ ) ); }
 
+    SC_VIRTUAL_ void bind( in_if_type& interface_ )
+	{ this->bind( CCAST<const in_if_type&>( interface_ ) ); }
+
     void operator () ( const in_if_type& interface_ )
-	{ sc_port_base::bind( CCAST<in_if_type&>( interface_ ) ); }
+	{ this->bind( interface_ ); }
 
 
     // bind to parent in port
 
-    void bind( in_port_type& parent_ )
+    SC_VIRTUAL_ void bind( in_port_type& parent_ )
         { sc_port_base::bind( parent_ ); }
 
     void operator () ( in_port_type& parent_ )
-        { sc_port_base::bind( parent_ ); }
+        { this->bind( parent_ ); }
 
 
     // bind to parent inout port
 
-    void bind( inout_port_type& parent_ )
+    SC_VIRTUAL_ void bind( inout_port_type& parent_ )
 	{ sc_port_base::bind( parent_ ); }
 
     void operator () ( inout_port_type& parent_ )
-	{ sc_port_base::bind( parent_ ); }
+	{ this->bind( parent_ ); }
 
 
     // interface access shortcut methods
@@ -598,6 +621,14 @@ protected:
     virtual int vbind( sc_interface& );
     virtual int vbind( sc_port_base& );
 
+    // implement virtual base_type port-binding function
+    //  - avoids warnings on some compilers
+    //  - should only be called, when using sc_port_b explicitly
+    //  - errors are detected during elaboration
+
+    SC_VIRTUAL_ void bind( base_port_type& parent_ )
+        { sc_port_base::bind( parent_ ); }
+
 private:
   mutable sc_event_finder* m_change_finder_p;
   mutable sc_event_finder* m_neg_finder_p;
@@ -641,6 +672,7 @@ public:
     typedef sc_signal_in_if<data_type>                    if_type;
     typedef sc_port<if_type,1,SC_ONE_OR_MORE_BOUND>       base_type;
     typedef sc_in<data_type>                              this_type;
+    typedef /* typename */ base_type::port_type           base_port_type;
 
     typedef if_type                                       in_if_type;
     typedef base_type                                     in_port_type;
@@ -707,37 +739,40 @@ public:
     virtual ~sc_in()
 	{
 	    remove_traces();
-	    if ( m_change_finder_p ) delete m_change_finder_p;
-	    if ( m_neg_finder_p ) delete m_neg_finder_p;
-	    if ( m_pos_finder_p ) delete m_pos_finder_p;
+	    delete m_change_finder_p;
+	    delete m_neg_finder_p;
+	    delete m_pos_finder_p;
 	}
 
 
     // bind to in interface
 
-    void bind( const in_if_type& interface_ )
+    SC_VIRTUAL_ void bind( const in_if_type& interface_ )
 	{ sc_port_base::bind( CCAST<in_if_type&>( interface_ ) ); }
 
+    SC_VIRTUAL_ void bind( in_if_type& interface_ )
+	{ this->bind( CCAST<const in_if_type&>( interface_ ) ); }
+
     void operator () ( const in_if_type& interface_ )
-	{ sc_port_base::bind( CCAST<in_if_type&>( interface_ ) ); }
+	{ this->bind( interface_ ); }
 
 
     // bind to parent in port
 
-    void bind( in_port_type& parent_ )
+    SC_VIRTUAL_ void bind( in_port_type& parent_ )
         { sc_port_base::bind( parent_ ); }
 
     void operator () ( in_port_type& parent_ )
-        { sc_port_base::bind( parent_ ); }
+        { this->bind( parent_ ); }
 
 
     // bind to parent inout port
 
-    void bind( inout_port_type& parent_ )
+    SC_VIRTUAL_ void bind( inout_port_type& parent_ )
 	{ sc_port_base::bind( parent_ ); }
 
     void operator () ( inout_port_type& parent_ )
-	{ sc_port_base::bind( parent_ ); }
+	{ this->bind( parent_ ); }
 
 
     // interface access shortcut methods
@@ -852,6 +887,14 @@ protected:
     // called by pbind (for internal use only)
     virtual int vbind( sc_interface& );
     virtual int vbind( sc_port_base& );
+
+    // implement virtual base_type port-binding function
+    //  - avoids warnings on some compilers
+    //  - should only be called, when using sc_port_b explicitly
+    //  - errors are detected during elaboration
+
+    SC_VIRTUAL_ void bind( base_port_type& parent_ )
+        { sc_port_base::bind( parent_ ); }
 
 private:
   mutable sc_event_finder* m_change_finder_p;
@@ -1078,10 +1121,8 @@ template <class T>
 inline
 sc_inout<T>::~sc_inout()
 {
-    if ( m_change_finder_p ) delete m_change_finder_p;
-    if( m_init_val != 0 ) {
-	delete m_init_val;
-    }
+    delete m_change_finder_p;
+    delete m_init_val;
     remove_traces();
 }
 
@@ -1781,6 +1822,8 @@ sc_trace( sc_trace_file* tf, const sc_inout<T>& port,
 
 } // namespace sc_core
 
+#undef SC_VIRTUAL_
+
 /*****************************************************************************
 
   MODIFICATION LOG - modifiers, enter your name, affiliation, date and
@@ -1797,8 +1840,40 @@ sc_trace( sc_trace_file* tf, const sc_inout<T>& port,
 
  *****************************************************************************/
 //$Log: sc_signal_ports.h,v $
-//Revision 1.1.1.1  2006/12/15 20:31:35  acg
-//SystemC 2.2
+//Revision 1.10  2011/08/29 18:04:32  acg
+// Philipp A. Hartmann: miscellaneous clean ups.
+//
+//Revision 1.9  2011/08/26 20:45:43  acg
+// Andy Goodrich: moved the modification log to the end of the file to
+// eliminate source line number skew when check-ins are done.
+//
+//Revision 1.8  2011/08/07 19:08:01  acg
+// Andy Goodrich: moved logs to end of file so line number synching works
+// better between versions.
+//
+//Revision 1.7  2011/08/07 18:53:09  acg
+// Philipp A. Hartmann: add virtual instances of the bind function for
+// base classes to eliminate warning messages for clang platforms.
+//
+//Revision 1.6  2011/04/02 00:03:23  acg
+// Andy Goodrich: catch the other bind()'s that I missed in Philipp's update.
+//
+//Revision 1.5  2011/04/01 22:33:31  acg
+// Philipp A. Harmann: Use const interface signature to implement non-const
+// interface signature for virtual bind(...).
+//
+//Revision 1.4  2011/03/30 16:46:10  acg
+// Andy Goodrich: added a signature and removed a virtual specification
+// to eliminate warnings with certain compilers.
+//
+//Revision 1.3  2011/02/18 20:23:45  acg
+// Andy Goodrich: Copyright update.
+//
+//Revision 1.2  2011/01/20 16:52:15  acg
+// Andy Goodrich: changes for IEEE 1666 2011.
+//
+//Revision 1.1.1.1  2006/12/15 20:20:04  acg
+//SystemC 2.3
 //
 //Revision 1.11  2006/04/18 23:36:50  acg
 // Andy Goodrich: made add_trace_internal public until I can figure out

@@ -30,7 +30,7 @@
 ##
 ## ****************************************************************************
 
-include $(top_srcdir)/config/Make-rules
+include $(top_srcdir)/config/Make-rules.sysc
 
 SUBDIRS = \
 	kernel \
@@ -42,13 +42,56 @@ SUBDIRS = \
 	datatypes \
 	.
 
-INCLUDE_DIR = $(prefix)/include/sysc
+H_FILES = 
+
+noinst_HEADERS = $(H_FILES)
+
+CXX_FILES =
+
+NO_CXX_FILES =
+
+INCLUDE_DIR = $(prefix)/include
+
+libdir = $(prefix)/lib-$(TARGET_ARCH)
+
+lib_LTLIBRARIES = libsystemc.la
+
+libsystemc_la_SOURCES =
+
+if !WANT_PTHREADS_THREADS
+QT_LIB=qt/libqt.la
+endif
+
+libsystemc_la_LIBADD = \
+       kernel/libkernel.la \
+       $(QT_LIB) \
+       communication/libcommunication.la \
+       tracing/libtracing.la \
+       utils/libutils.la \
+       datatypes/bit/libbit.la \
+       datatypes/fx/libfx.la \
+       datatypes/int/libint.la \
+       datatypes/misc/libmisc.la 
+
+libsystemc_la_LDFLAGS = -release $(VERSION) -L$(prefix)/lib-$(TARGET_ARCH)
 
 install-data-local:
 	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(INCLUDE_DIR)
+	for file in $(noinst_HEADERS); do \
+	  $(INSTALL_DATA) $(srcdir)/$$file $(INCLUDE_DIR)/$$file; \
+	done
+	$(mkinstalldirs) $(prefix)/lib-$(TARGET_ARCH)
+	$(INSTALL_DATA) $(MAIN_LIBRARY) \
+	    $(prefix)/lib-$(TARGET_ARCH)/$(MAIN_LIBRARY)
 
 uninstall-local:
 	@$(NORMAL_UNINSTALL)
+	for file in $(noinst_HEADERS); do \
+	  rm -f $(INCLUDE_DIR)/$$file; \
+	done
 	-rmdir $(INCLUDE_DIR)
+	rm -f $(prefix)/lib-$(TARGET_ARCH)/$(MAIN_LIBRARY)
+	-rmdir $(prefix)/lib-$(TARGET_ARCH)
 
 ## Taf!

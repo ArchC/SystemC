@@ -1,6 +1,6 @@
 
-#ifndef BOOST_MPL_BOOL_FWD_HPP_INCLUDED
-#define BOOST_MPL_BOOL_FWD_HPP_INCLUDED
+#ifndef SC_BOOST_MPL_BOOL_FWD_HPP_INCLUDED
+#define SC_BOOST_MPL_BOOL_FWD_HPP_INCLUDED
 
 // Copyright Aleksey Gurtovoy 2000-2004
 //
@@ -10,13 +10,13 @@
 //
 // See http://www.boost.org/libs/mpl for documentation.
 
-// $Source: /Users/acg/CVSROOT/systemc-2.2/src/sysc/packages/boost/mpl/bool_fwd.hpp,v $
-// $Date: 2006/12/15 20:31:38 $
-// $Revision: 1.1.1.1 $
+// $Source: /Users/acg/CVSROOT/systemc-2.3/src/sysc/packages/boost/mpl/bool_fwd.hpp,v $
+// $Date: 2009/10/14 19:11:02 $
+// $Revision: 1.2 $
 
 #include <sysc/packages/boost/mpl/aux_/adl_barrier.hpp>
 
-BOOST_MPL_AUX_ADL_BARRIER_NAMESPACE_OPEN
+SC_BOOST_MPL_AUX_ADL_BARRIER_NAMESPACE_OPEN
 
 template< bool C_ > struct bool_;
 
@@ -24,10 +24,10 @@ template< bool C_ > struct bool_;
 typedef bool_<true> true_;
 typedef bool_<false> false_;
 
-BOOST_MPL_AUX_ADL_BARRIER_NAMESPACE_CLOSE
+SC_BOOST_MPL_AUX_ADL_BARRIER_NAMESPACE_CLOSE
 
-BOOST_MPL_AUX_ADL_BARRIER_DECL(bool_)
-BOOST_MPL_AUX_ADL_BARRIER_DECL(true_)
-BOOST_MPL_AUX_ADL_BARRIER_DECL(false_)
+SC_BOOST_MPL_AUX_ADL_BARRIER_DECL(bool_)
+SC_BOOST_MPL_AUX_ADL_BARRIER_DECL(true_)
+SC_BOOST_MPL_AUX_ADL_BARRIER_DECL(false_)
 
-#endif // BOOST_MPL_BOOL_FWD_HPP_INCLUDED
+#endif // SC_BOOST_MPL_BOOL_FWD_HPP_INCLUDED

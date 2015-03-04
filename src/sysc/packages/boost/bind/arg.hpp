@@ -1,5 +1,5 @@
-#ifndef BOOST_BIND_ARG_HPP_INCLUDED
-#define BOOST_BIND_ARG_HPP_INCLUDED
+#ifndef SC_BOOST_BIND_ARG_HPP_INCLUDED
+#define SC_BOOST_BIND_ARG_HPP_INCLUDED
 
 // MS compatible compilers support #pragma once
 
@@ -19,7 +19,7 @@
 //  See http://www.boost.org/libs/bind/bind.html for documentation.
 //
 
-namespace boost
+namespace sc_boost
 {
 
 template<int I> class arg
@@ -31,6 +31,6 @@ template<int I> bool operator==(arg<I> const &, arg<I> const &)
     return true;
 }
 
-} // namespace boost
+} // namespace sc_boost
 
-#endif // #ifndef BOOST_BIND_ARG_HPP_INCLUDED
+#endif // #ifndef SC_BOOST_BIND_ARG_HPP_INCLUDED

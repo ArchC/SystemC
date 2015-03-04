@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,36 +21,17 @@
 
   Original Author: Andy Goodrich, Forte Design Systems
 
+ CHANGE LOG APPEARS AT THE END OF THE FILE
  *****************************************************************************/
 
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-
- *****************************************************************************/
-
-
-// $Log: sc_main_main.cpp,v $
-// Revision 1.1.1.1  2006/12/15 20:31:37  acg
-// SystemC 2.2
-//
-// Revision 1.4  2006/01/25 00:31:19  acg
-//  Andy Goodrich: Changed over to use a standard message id of
-//  SC_ID_IEEE_1666_DEPRECATION for all deprecation messages.
-//
-// Revision 1.3  2006/01/13 18:44:29  acg
-// Added $Log to record CVS changes into the source.
-//
 
 #include "sysc/kernel/sc_cmnhdr.h"
 #include "sysc/kernel/sc_externs.h"
+#include "sysc/kernel/sc_except.h"
 #include "sysc/utils/sc_iostream.h"
 #include "sysc/utils/sc_report.h"
 #include "sysc/utils/sc_report_handler.h"
+#include <vector>
 
 namespace sc_core {
 
@@ -83,11 +64,12 @@ const char* const* sc_argv()
 int
 sc_elab_and_sim( int argc, char* argv[] )
 {
-    int status = 0;
+    int status = 1;
     argc_copy = argc;
-    argv_copy = new char*[argc];
+    argv_copy = argv;
+    std::vector<char*> argv_call;
     for ( int i = 0; i < argc; i++ ) 
-    argv_copy[i] = argv[i];
+        argv_call.push_back(argv[i]);
 
     try
     {
@@ -96,22 +78,21 @@ sc_elab_and_sim( int argc, char* argv[] )
         // Perform initialization here
         sc_in_action = true;
 
-        status = sc_main( argc, argv );
+        status = sc_main( argc, &argv_call[0] );
 
         // Perform cleanup here
         sc_in_action = false;
     }
     catch( const sc_report& x )
     {
-        message_function( x.what() );
-    }
-    catch( const char* s )
-    {
-        message_function( s );
+	message_function( x.what() );
     }
     catch( ... )
     {
-        message_function( "UNKNOWN EXCEPTION OCCURED" );
+        // translate other escaping exceptions
+        sc_report*  err_p = sc_handle_exception();
+        if( err_p ) message_function( err_p->what() );
+        delete err_p;
     }
 
     // IF DEPRECATION WARNINGS WERE ISSUED TELL THE USER HOW TO TURN THEM OFF 
@@ -127,8 +108,48 @@ sc_elab_and_sim( int argc, char* argv[] )
           "SC_DO_NOTHING);\n\n" );
     }
 
-    delete [] argv_copy;
     return status;
 }
 
 } // namespace sc_core
+
+// $Log: sc_main_main.cpp,v $
+// Revision 1.9  2011/08/26 20:46:10  acg
+//  Andy Goodrich: moved the modification log to the end of the file to
+//  eliminate source line number skew when check-ins are done.
+//
+// Revision 1.8  2011/05/09 04:07:48  acg
+//  Philipp A. Hartmann:
+//    (1) Restore hierarchy in all phase callbacks.
+//    (2) Ensure calls to before_end_of_elaboration.
+//
+// Revision 1.7  2011/02/18 20:27:14  acg
+//  Andy Goodrich: Updated Copyrights.
+//
+// Revision 1.6  2011/02/13 21:47:37  acg
+//  Andy Goodrich: update copyright notice.
+//
+// Revision 1.5  2010/03/15 18:29:25  acg
+//  Andy Goodrich: Changed the default stack size to 128K from 64K.
+//
+// Revision 1.4  2009/10/14 19:06:48  acg
+//  Andy Goodrich: changed the way the "copy" of argv is handled. It is
+//  now passed to sc_main, and the original is referenced via argv_copy.
+//
+// Revision 1.3  2008/05/22 17:06:25  acg
+//  Andy Goodrich: updated copyright notice to include 2008.
+//
+// Revision 1.2  2008/04/11 20:41:28  acg
+//  Andy Goodrich: changed the return value in sc_elab_and_sim() to be 1
+//  when an exception occurs in sc_main() rather than 0.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:05  acg
+// SystemC 2.3
+//
+// Revision 1.4  2006/01/25 00:31:19  acg
+//  Andy Goodrich: Changed over to use a standard message id of
+//  SC_ID_IEEE_1666_DEPRECATION for all deprecation messages.
+//
+// Revision 1.3  2006/01/13 18:44:29  acg
+// Added $Log to record CVS changes into the source.
+//

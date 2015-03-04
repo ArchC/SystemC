@@ -34,8 +34,17 @@
  *****************************************************************************/
 
 // $Log: sc_value_base.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.4  2011/08/29 18:04:32  acg
+//  Philipp A. Hartmann: miscellaneous clean ups.
+//
+// Revision 1.3  2011/08/24 22:05:48  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.2  2011/06/28 21:23:04  acg
+//  Andy Goodrich: merging of SCV tree.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:05  acg
+// SystemC 2.3
 //
 // Revision 1.3  2006/01/13 18:54:01  acg
 // Andy Goodrich: added $Log command so that CVS comments are reproduced in
@@ -77,7 +86,7 @@ class sc_value_base
     virtual void concat_set( const sc_unsigned& src, int low_i );
     virtual void concat_set( uint64 src, int low_i );
   public:
-    virtual ~sc_value_base() {};
+    virtual ~sc_value_base() {}
 };
 
 

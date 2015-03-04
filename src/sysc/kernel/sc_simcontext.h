@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -22,77 +22,8 @@
   Original Author: Stan Y. Liao, Synopsys, Inc.
                    Martin Janssen, Synopsys, Inc.
 
+  CHANGE LOG AT THE END OF THE FILE
  *****************************************************************************/
-
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems 20 May 2003
-  Description of Modification: - phase callbacks
-                               - sc_stop mode
-
-      Name, Affiliation, Date: Bishnupriya Bhattacharya, Cadence Design Systems,
-                               25 August, 2003
-  Description of Modification: - support for dynamic process
-                               - support for sc export registry
-                               - new member methods elaborate(), 
-				 prepare_to_simulate(), and initial_crunch()
-				 that are invoked by initialize() in that order
-                               - add sc_get_last_created_process_handle() for 
-				 use before simulation starts
-                               
-      Name, Affiliation, Date: Bishnupriya Bhattacharya, Cadence Design Systems,
-                               3 March, 2004
-  Description of Modification: add sc_get_curr_process_kind()
-
-      Name, Affiliation, Date: 
-  Description of Modification: 
-                               
- *****************************************************************************/
-// $Log: sc_simcontext.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:37  acg
-// SystemC 2.2
-//
-// Revision 1.11  2006/04/11 23:13:21  acg
-//   Andy Goodrich: Changes for reduced reset support that only includes
-//   sc_cthread, but has preliminary hooks for expanding to method and thread
-//   processes also.
-//
-// Revision 1.10  2006/03/21 00:00:34  acg
-//   Andy Goodrich: changed name of sc_get_current_process_base() to be
-//   sc_get_current_process_b() since its returning an sc_process_b instance.
-//
-// Revision 1.9  2006/01/26 21:04:54  acg
-//  Andy Goodrich: deprecation message changes and additional messages.
-//
-// Revision 1.8  2006/01/24 20:49:05  acg
-// Andy Goodrich: changes to remove the use of deprecated features within the
-// simulator, and to issue warning messages when deprecated features are used.
-//
-// Revision 1.7  2006/01/19 00:29:52  acg
-// Andy Goodrich: Yet another implementation for signal write checking. This
-// one uses an environment variable SC_SIGNAL_WRITE_CHECK, that when set to
-// DISABLE will disable write checking on signals.
-//
-// Revision 1.6  2006/01/18 21:42:37  acg
-// Andy Goodrich: Changes for check writer support.
-//
-// Revision 1.5  2006/01/13 18:44:30  acg
-// Added $Log to record CVS changes into the source.
-//
-// Revision 1.4  2006/01/03 23:18:44  acg
-// Changed copyright to include 2006.
-//
-// Revision 1.3  2005/12/20 22:11:10  acg
-// Fixed $Log lines.
-//
-// Revision 1.2  2005/12/20 22:02:30  acg
-// Changed where delta cycles are incremented to match IEEE 1666. Added the
-// event_occurred() method to hide how delta cycle comparisions are done within
-// sc_simcontext. Changed the boolean update_phase to an enum that shows all
-// the phases.
 
 #ifndef SC_SIMCONTEXT_H
 #define SC_SIMCONTEXT_H
@@ -126,8 +57,12 @@ class sc_signal_bool_deval;
 class sc_trace_file;
 class sc_runnable;
 class sc_process_host;
+class sc_method_process;
+class sc_cthread_process;
+class sc_thread_process;
 
-
+template< typename > class sc_plist;
+typedef sc_plist< sc_process_b* > sc_process_list;
 
 struct sc_curr_proc_info
 {
@@ -138,25 +73,23 @@ struct sc_curr_proc_info
 
 typedef const sc_curr_proc_info* sc_curr_proc_handle;
 
-// friend function declarations
-
-sc_dt::uint64 sc_delta_count();
-const std::vector<sc_object*>& sc_get_top_level_objects(
-const sc_simcontext* simc_p);
-bool sc_is_running( const sc_simcontext* simc_p );
-bool sc_end_of_simulation_invoked();
-bool sc_start_of_simulation_invoked();
-void    sc_set_time_resolution( double, sc_time_unit );
-sc_time sc_get_time_resolution();
-void    sc_set_default_time_unit( double, sc_time_unit );
-sc_time sc_get_default_time_unit();
-bool sc_pending_activity_at_current_time();
-
 // simulation status codes
 
 const int SC_SIM_OK        = 0;
 const int SC_SIM_ERROR     = 1;
 const int SC_SIM_USER_STOP = 2;
+
+enum sc_status { // sc_get_status values:
+    SC_UNITIALIZED=0x00,               // initialize() not called yet.
+    SC_ELABORATION=0x01,               // during module hierarchy construction.
+    SC_BEFORE_END_OF_ELABORATION=0x02, // during before_end_of_elaboration().
+    SC_END_OF_ELABORATION=0x04,        // during end_of_elaboration().
+    SC_START_OF_SIMULATION=0x08,       // during start_of_simulation().
+    SC_RUNNING=0x10,                   // initialization, evaluation or update.
+    SC_PAUSED=0x20,                    // when scheduler stopped by sc_pause().
+    SC_STOPPED=0x40,                   // when scheduler stopped by sc_stop().
+    SC_END_OF_SIMULATION=0x80          // during end_of_simulation().
+};
 
 enum sc_stop_mode {          // sc_stop modes:
     SC_STOP_FINISH_DELTA,
@@ -165,6 +98,49 @@ enum sc_stop_mode {          // sc_stop modes:
 extern void sc_set_stop_mode( sc_stop_mode mode );
 extern sc_stop_mode sc_get_stop_mode();
 
+enum sc_starvation_policy 
+{
+    SC_EXIT_ON_STARVATION,
+    SC_RUN_TO_TIME
+};
+extern void sc_start();
+extern void sc_start( const sc_time& duration, 
+                      sc_starvation_policy p=SC_RUN_TO_TIME );
+inline void sc_start( int duration, sc_time_unit unit, 
+                      sc_starvation_policy p=SC_RUN_TO_TIME )
+{
+    sc_start( sc_time((double)duration,unit), p );
+}
+
+inline void sc_start( double duration, sc_time_unit unit, 
+                      sc_starvation_policy p=SC_RUN_TO_TIME )
+{
+    sc_start( sc_time(duration,unit), p );
+}
+
+extern void sc_stop();
+
+// friend function declarations
+
+sc_dt::uint64 sc_delta_count();
+const std::vector<sc_event*>& sc_get_top_level_events(
+				const   sc_simcontext* simc_p);
+const std::vector<sc_object*>& sc_get_top_level_objects(
+				const   sc_simcontext* simc_p);
+bool    sc_is_running( const sc_simcontext* simc_p );
+void    sc_pause();
+bool    sc_end_of_simulation_invoked();
+void    sc_start( const sc_time&, sc_starvation_policy );
+bool    sc_start_of_simulation_invoked();
+void    sc_set_time_resolution( double, sc_time_unit );
+sc_time sc_get_time_resolution();
+void    sc_set_default_time_unit( double, sc_time_unit );
+sc_time sc_get_default_time_unit();
+bool    sc_pending_activity_at_current_time( const sc_simcontext* );
+bool    sc_pending_activity_at_future_time( const sc_simcontext* );
+sc_time sc_time_to_pending_activity( const sc_simcontext* );
+
+struct sc_invoke_method; 
 
 // ----------------------------------------------------------------------------
 //  CLASS : sc_simcontext
@@ -174,6 +150,7 @@ extern sc_stop_mode sc_get_stop_mode();
 
 class sc_simcontext
 {
+    friend struct sc_invoke_method; 
     friend class sc_event;
     friend class sc_module;
     friend class sc_object;
@@ -181,16 +158,25 @@ class sc_simcontext
     friend class sc_clock;
     friend class sc_method_process;
     friend class sc_process_b;
-	friend class sc_prim_channel;
+    friend class sc_process_handle;
+    friend class sc_prim_channel;
+    friend class sc_cthread_process;
     friend class sc_thread_process;
     friend sc_dt::uint64 sc_delta_count();
+    friend const std::vector<sc_event*>& sc_get_top_level_events(
+        const sc_simcontext* simc_p);
     friend const std::vector<sc_object*>& sc_get_top_level_objects(
         const sc_simcontext* simc_p);
     friend bool sc_is_running( const sc_simcontext* simc_p );
-
+    friend void sc_pause();
     friend bool sc_end_of_simulation_invoked();
-    friend bool sc_pending_activity_at_current_time();
+    friend void sc_start( const sc_time&, sc_starvation_policy );
     friend bool sc_start_of_simulation_invoked();
+    friend void sc_thread_cor_fn(void*);
+    friend sc_time sc_time_to_pending_activity( const sc_simcontext* );
+    friend bool sc_pending_activity_at_current_time( const sc_simcontext* );
+    friend bool sc_pending_activity_at_future_time( const sc_simcontext* );
+
 
     void init();
     void clean();
@@ -208,9 +194,13 @@ public:
     void reset();
 
     int sim_status() const;
-	bool elaboration_done() const;
+    bool elaboration_done() const;
 
     sc_object_manager* get_object_manager();
+
+    inline sc_status get_status() const;
+
+    sc_object* active_object();
 
     void hierarchy_push( sc_module* );
     sc_module* hierarchy_pop();
@@ -231,16 +221,16 @@ public:
 
     // process creation
     sc_process_handle create_cthread_process( 
-	const char* name_p, bool free_host, SC_ENTRY_FUNC method_p, 
-	sc_process_host* host_p, const sc_spawn_options* opt_p );
+    const char* name_p, bool free_host, SC_ENTRY_FUNC method_p, 
+    sc_process_host* host_p, const sc_spawn_options* opt_p );
 
     sc_process_handle create_method_process( 
-	const char* name_p, bool free_host, SC_ENTRY_FUNC method_p, 
-	sc_process_host* host_p, const sc_spawn_options* opt_p );
+    const char* name_p, bool free_host, SC_ENTRY_FUNC method_p, 
+    sc_process_host* host_p, const sc_spawn_options* opt_p );
 
     sc_process_handle create_thread_process( 
-	const char* name_p, bool free_host, SC_ENTRY_FUNC method_p, 
-	sc_process_host* host_p, const sc_spawn_options* opt_p );
+    const char* name_p, bool free_host, SC_ENTRY_FUNC method_p, 
+    sc_process_host* host_p, const sc_spawn_options* opt_p );
 
     sc_curr_proc_handle get_curr_proc_info();
     sc_object* get_current_writer() const;
@@ -257,14 +247,17 @@ public:
     friend void    sc_set_default_time_unit( double, sc_time_unit );
     friend sc_time sc_get_default_time_unit();
 
+    const sc_time& max_time() const;
     const sc_time& time_stamp() const;
 
+    sc_dt::uint64 change_stamp() const;
     sc_dt::uint64 delta_count() const;
-	bool event_occurred( sc_dt::uint64 last_change_count ) const;
+    bool event_occurred( sc_dt::uint64 last_change_count ) const;
+    bool evaluation_phase() const;
     bool is_running() const;
     bool update_phase() const;
     bool get_error();
-    void set_error();
+    void set_error( sc_report* );
 
     sc_cor_pkg* cor_pkg()
         { return m_cor_pkg; }
@@ -275,14 +268,17 @@ public:
     void elaborate();
     void prepare_to_simulate();
     inline void initial_crunch( bool no_crunch );
-    const sc_time next_time(); 
+    bool next_time( sc_time& t ) const; 
+    bool pending_activity_at_current_time() const;
 
 private:
 
+    void add_child_event( sc_event* );
     void add_child_object( sc_object* );
+    void remove_child_event( sc_event* );
     void remove_child_object( sc_object* );
 
-    void crunch(bool once=false);
+    void crunch( bool once=false );
 
     int add_delta_event( sc_event* );
     void remove_delta_event( sc_event* );
@@ -290,7 +286,17 @@ private:
 
     void trace_cycle( bool delta_cycle );
 
+    const ::std::vector<sc_event*>& get_child_events_internal() const;
     const ::std::vector<sc_object*>& get_child_objects_internal() const;
+
+    void execute_method_next( sc_method_handle );
+    void execute_thread_next( sc_thread_handle );
+
+    sc_method_handle pop_runnable_method();
+    sc_thread_handle pop_runnable_thread();
+
+    void preempt_with( sc_method_handle );
+    inline void preempt_with( sc_thread_handle );
 
     void push_runnable_method( sc_method_handle );
     void push_runnable_thread( sc_thread_handle );
@@ -298,22 +304,23 @@ private:
     void push_runnable_method_front( sc_method_handle );
     void push_runnable_thread_front( sc_thread_handle );
 
-    sc_method_handle pop_runnable_method();
-    sc_thread_handle pop_runnable_thread();
-
     void remove_runnable_method( sc_method_handle );
     void remove_runnable_thread( sc_thread_handle );
 
+    void requeue_current_process();
+    void suspend_current_process();
+
     void do_sc_stop_action();
+    void mark_to_collect_process( sc_process_b* zombie_p );
 
 private:
 
     enum execution_phases {
-	    phase_initialize = 0,
-	    phase_evaluate,
-	    phase_update,
-	    phase_notify
-	};
+        phase_initialize = 0,
+        phase_evaluate,
+        phase_update,
+        phase_notify
+    };
     sc_object_manager*          m_object_manager;
 
     sc_module_registry*         m_module_registry;
@@ -329,6 +336,7 @@ private:
     bool                        m_write_check;
     int                         m_next_proc_id;
 
+    std::vector<sc_event*>      m_child_events;
     std::vector<sc_object*>     m_child_objects;
 
     std::vector<sc_event*>      m_delta_events;
@@ -338,22 +346,25 @@ private:
     bool                        m_something_to_trace;
 
     sc_runnable*                m_runnable;
+    sc_process_list*            m_collectable;
 
     sc_time_params*             m_time_params;
     sc_time                     m_curr_time;
+    mutable sc_time             m_max_time;
  
+    sc_invoke_method*           m_method_invoker_p;
+    sc_dt::uint64               m_change_stamp; // "time" change occurred.
     sc_dt::uint64               m_delta_count;
     bool                        m_forced_stop;
+    bool                        m_paused;
     bool                        m_ready_to_simulate;
     bool                        m_elaboration_done;
     execution_phases            m_execution_phase;
-    bool                        m_error;
+    sc_report*                  m_error;
     bool                        m_in_simulator_control;   
     bool                        m_end_of_simulation_called;
+    sc_status                   m_simulation_status;
     bool                        m_start_of_simulation_called;
-
-
-    sc_event*                   m_until_event;
 
     sc_cor_pkg*                 m_cor_pkg; // the simcontext's coroutine package
     sc_cor*                     m_cor;     // the simcontext's coroutine
@@ -385,6 +396,10 @@ sc_get_curr_simcontext()
 #else
     extern sc_simcontext* sc_get_curr_simcontext();
 #endif // 0
+inline sc_status sc_get_status()
+{
+    return sc_get_curr_simcontext()->get_status();
+}
 
 
 // IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
@@ -396,6 +411,13 @@ sc_simcontext::elaboration_done() const
     return m_elaboration_done;
 }
 
+
+inline sc_status sc_simcontext::get_status() const
+{
+    return m_simulation_status != SC_RUNNING ? 
+                  m_simulation_status :
+		  (m_in_simulator_control ? SC_RUNNING : SC_PAUSED);
+}
 
 inline
 int
@@ -465,6 +487,24 @@ sc_simcontext::next_proc_id()
 
 inline
 const sc_time&
+sc_simcontext::max_time() const
+{
+    if ( m_max_time == SC_ZERO_TIME )
+    {
+        m_max_time = sc_time(~(sc_dt::uint64)0, false);
+    }
+    return m_max_time;
+}
+
+inline
+sc_dt::uint64
+sc_simcontext::change_stamp() const
+{
+    return m_change_stamp;
+}
+
+inline
+const sc_time&
 sc_simcontext::time_stamp() const
 {
     return m_curr_time;
@@ -473,9 +513,17 @@ sc_simcontext::time_stamp() const
 
 inline 
 bool
-sc_simcontext::event_occurred(sc_dt::uint64 last_change_count) const
+sc_simcontext::event_occurred(sc_dt::uint64 last_change_stamp) const
 {
-	return m_delta_count == last_change_count;
+    return m_change_stamp == last_change_stamp;
+}
+
+inline
+bool
+sc_simcontext::evaluation_phase() const
+{
+    return (m_execution_phase == phase_evaluate) &&
+           m_ready_to_simulate;
 }
 
 inline
@@ -487,9 +535,10 @@ sc_simcontext::update_phase() const
 
 inline
 void
-sc_simcontext::set_error()
+sc_simcontext::set_error( sc_report* err )
 {
-    m_error = true;
+    delete m_error;
+    m_error = err;
 }
 
 
@@ -497,7 +546,7 @@ inline
 bool
 sc_simcontext::get_error()
 {
-    return m_error;
+    return m_error != NULL;
 }
 
 inline
@@ -568,16 +617,18 @@ void
 sc_set_random_seed( unsigned int seed_ );
 
 
-extern void sc_start();
-extern void sc_start( const sc_time& duration );
-extern void sc_start( double duration );
-extern void sc_stop();
-
 extern void sc_initialize();
-extern void sc_cycle( const sc_time& duration );
 
+extern const sc_time& sc_max_time();    // Get maximum time value.
 extern const sc_time& sc_time_stamp();  // Current simulation time.
 extern double sc_simulation_time();     // Current time in default time units.
+
+inline
+const std::vector<sc_event*>& sc_get_top_level_events(
+    const sc_simcontext* simc_p = sc_get_curr_simcontext() )
+{
+    return simc_p->m_child_events;
+}
 
 inline
 const std::vector<sc_object*>& sc_get_top_level_objects(
@@ -586,8 +637,9 @@ const std::vector<sc_object*>& sc_get_top_level_objects(
     return simc_p->m_child_objects;
 }
 
-extern sc_object* sc_find_object(
-    const char* name, sc_simcontext* simc_p = sc_get_curr_simcontext() );
+extern sc_event* sc_find_event( const char* name );
+
+extern sc_object* sc_find_object( const char* name );
 
 inline
 sc_dt::uint64 sc_delta_count()
@@ -601,43 +653,238 @@ bool sc_is_running( const sc_simcontext* simc_p = sc_get_curr_simcontext() )
     return simc_p->m_ready_to_simulate;
 }
 
-inline
-void
-sc_start( double duration, sc_time_unit time_unit )
+bool sc_is_unwinding();
+
+inline void sc_pause()
 {
-    sc_start( sc_time( duration, time_unit ) );
+    sc_get_curr_simcontext()->m_paused = true;
 }
 
-inline
-void
-sc_cycle( double duration, sc_time_unit time_unit )
+// Return indication if there are more processes to execute in this delta phase
+
+inline bool sc_pending_activity_at_current_time
+  ( const sc_simcontext* simc_p = sc_get_curr_simcontext() )
 {
-    sc_cycle( sc_time( duration, time_unit ) );
+  return simc_p->pending_activity_at_current_time();
 }
 
-// for backward compatibility with 1.0
-inline
-void
-sc_cycle( double duration )  // in default time units
+// Return indication if there are timed notifications in the future
+
+inline bool sc_pending_activity_at_future_time
+  ( const sc_simcontext* simc_p = sc_get_curr_simcontext() )
 {
-    sc_cycle( sc_time( duration, true ) );
+  sc_time ignored;
+  return simc_p->next_time( ignored );
 }
+
+// Return indication if there are processes to run,
+// or notifications in the future
+
+inline bool sc_pending_activity
+  ( const sc_simcontext* simc_p = sc_get_curr_simcontext() )
+{
+  return sc_pending_activity_at_current_time( simc_p )
+      || sc_pending_activity_at_future_time( simc_p );
+}
+
+sc_time
+sc_time_to_pending_activity
+  ( const sc_simcontext* simc_p = sc_get_curr_simcontext() );
+
 
 inline
 bool
 sc_end_of_simulation_invoked()
 {
-        return sc_get_curr_simcontext()->m_end_of_simulation_called;
+    return sc_get_curr_simcontext()->m_end_of_simulation_called;
 }
 
+inline bool sc_hierarchical_name_exists( const char* name )
+{
+    return sc_find_object(name) || sc_find_event(name);
+}
 
 inline
 bool 
 sc_start_of_simulation_invoked()
 {
-        return sc_get_curr_simcontext()->m_start_of_simulation_called;
+    return sc_get_curr_simcontext()->m_start_of_simulation_called;
 }
 
+// The following variable controls whether process control corners should
+// be considered errors or not. See sc_simcontext.cpp for details on what
+// happens if this value is set to true.
+
+extern bool sc_allow_process_control_corners;
+
 } // namespace sc_core
+
+/*****************************************************************************
+
+  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
+  changes you are making here.
+
+      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems 20 May 2003
+  Description of Modification: - phase callbacks
+                               - sc_stop mode
+
+      Name, Affiliation, Date: Bishnupriya Bhattacharya, Cadence Design Systems,
+                               25 August, 2003
+  Description of Modification: - support for dynamic process
+                               - support for sc export registry
+                               - new member methods elaborate(), 
+                 prepare_to_simulate(), and initial_crunch()
+                 that are invoked by initialize() in that order
+                               - add sc_get_last_created_process_handle() for 
+                 use before simulation starts
+                               
+      Name, Affiliation, Date: Bishnupriya Bhattacharya, Cadence Design Systems,
+                               3 March, 2004
+  Description of Modification: add sc_get_curr_process_kind()
+
+      Name, Affiliation, Date: 
+  Description of Modification: 
+                               
+ *****************************************************************************/
+// $Log: sc_simcontext.h,v $
+// Revision 1.26  2011/09/05 21:20:22  acg
+//  Andy Goodrich: result of automake invocation.
+//
+// Revision 1.25  2011/09/01 15:28:10  acg
+//  Andy Goodrich: the aftermath of automake.
+//
+// Revision 1.24  2011/08/29 18:04:32  acg
+//  Philipp A. Hartmann: miscellaneous clean ups.
+//
+// Revision 1.23  2011/08/26 20:46:10  acg
+//  Andy Goodrich: moved the modification log to the end of the file to
+//  eliminate source line number skew when check-ins are done.
+//
+// Revision 1.22  2011/08/24 22:05:51  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.21  2011/05/09 04:07:49  acg
+//  Philipp A. Hartmann:
+//    (1) Restore hierarchy in all phase callbacks.
+//    (2) Ensure calls to before_end_of_elaboration.
+//
+// Revision 1.20  2011/04/08 18:26:07  acg
+//  Andy Goodrich: added execute_method_next() to handle method dispatch
+//   for asynchronous notifications that occur outside the evaluation phase.
+//
+// Revision 1.19  2011/04/05 20:50:57  acg
+//  Andy Goodrich:
+//    (1) changes to make sure that event(), posedge() and negedge() only
+//        return true if the clock has not moved.
+//    (2) fixes for method self-resumes.
+//    (3) added SC_PRERELEASE_VERSION
+//    (4) removed kernel events from the object hierarchy, added
+//        sc_hierarchical_name_exists().
+//
+// Revision 1.18  2011/03/20 13:43:23  acg
+//  Andy Goodrich: added async_signal_is() plus suspend() as a corner case.
+//
+// Revision 1.17  2011/03/07 18:25:19  acg
+//  Andy Goodrich: tightening of check for resume on a disabled process to
+//  only produce an error if it is ready to run.
+//
+// Revision 1.16  2011/03/06 15:58:50  acg
+//  Andy Goodrich: added escape to turn off process control corner case
+//  checks.
+//
+// Revision 1.15  2011/03/05 04:45:16  acg
+//  Andy Goodrich: moved active process calculation to the sc_simcontext class.
+//
+// Revision 1.14  2011/03/05 01:39:21  acg
+//  Andy Goodrich: changes for named events.
+//
+// Revision 1.13  2011/02/18 20:27:14  acg
+//  Andy Goodrich: Updated Copyrights.
+//
+// Revision 1.12  2011/02/13 21:47:38  acg
+//  Andy Goodrich: update copyright notice.
+//
+// Revision 1.11  2011/02/13 21:34:35  acg
+//  Andy Goodrich: added SC_UNITIALIZED enum value to process status so
+//  its possible to detect throws before initialization.
+//
+// Revision 1.10  2011/02/11 13:25:24  acg
+//  Andy Goodrich: Philipp A. Hartmann's changes:
+//    (1) Removal of SC_CTHREAD method overloads.
+//    (2) New exception processing code.
+//
+// Revision 1.9  2011/02/01 21:18:56  acg
+//  Andy Goodrich: addition of new preempt_with() method used to immediately
+//  throw exceptions from threads.
+//
+// Revision 1.8  2011/01/25 20:50:37  acg
+//  Andy Goodrich: changes for IEEE 1666 2011.
+//
+// Revision 1.7  2011/01/19 23:21:50  acg
+//  Andy Goodrich: changes for IEEE 1666 2011
+//
+// Revision 1.6  2011/01/18 20:10:45  acg
+//  Andy Goodrich: changes for IEEE1666_2011 semantics.
+//
+// Revision 1.5  2010/07/22 20:02:33  acg
+//  Andy Goodrich: bug fixes.
+//
+// Revision 1.4  2009/05/22 16:06:29  acg
+//  Andy Goodrich: process control updates.
+//
+// Revision 1.3  2008/05/22 17:06:26  acg
+//  Andy Goodrich: updated copyright notice to include 2008.
+//
+// Revision 1.2  2007/09/20 20:32:35  acg
+//  Andy Goodrich: changes to the semantics of throw_it() to match the
+//  specification. A call to throw_it() will immediately suspend the calling
+//  thread until all the throwees have executed. At that point the calling
+//  thread will be restarted before the execution of any other threads.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:05  acg
+// SystemC 2.3
+//
+// Revision 1.13  2006/05/08 18:00:06  acg
+// Andy Goodrich: added David Long's forward declarations for friend
+//   functions, methods, and operators to keep the Microsoft compiler happy.
+//
+// Revision 1.11  2006/04/11 23:13:21  acg
+//   Andy Goodrich: Changes for reduced reset support that only includes
+//   sc_cthread, but has preliminary hooks for expanding to method and thread
+//   processes also.
+//
+// Revision 1.10  2006/03/21 00:00:34  acg
+//   Andy Goodrich: changed name of sc_get_current_process_base() to be
+//   sc_get_current_process_b() since its returning an sc_process_b instance.
+//
+// Revision 1.9  2006/01/26 21:04:54  acg
+//  Andy Goodrich: deprecation message changes and additional messages.
+//
+// Revision 1.8  2006/01/24 20:49:05  acg
+// Andy Goodrich: changes to remove the use of deprecated features within the
+// simulator, and to issue warning messages when deprecated features are used.
+//
+// Revision 1.7  2006/01/19 00:29:52  acg
+// Andy Goodrich: Yet another implementation for signal write checking. This
+// one uses an environment variable SC_SIGNAL_WRITE_CHECK, that when set to
+// DISABLE will disable write checking on signals.
+//
+// Revision 1.6  2006/01/18 21:42:37  acg
+// Andy Goodrich: Changes for check writer support.
+//
+// Revision 1.5  2006/01/13 18:44:30  acg
+// Added $Log to record CVS changes into the source.
+//
+// Revision 1.4  2006/01/03 23:18:44  acg
+// Changed copyright to include 2006.
+//
+// Revision 1.3  2005/12/20 22:11:10  acg
+// Fixed $Log lines.
+//
+// Revision 1.2  2005/12/20 22:02:30  acg
+// Changed where delta cycles are incremented to match IEEE 1666. Added the
+// event_occurred() method to hide how delta cycle comparisions are done within
+// sc_simcontext. Changed the boolean update_phase to an enum that shows all
+// the phases.
 
 #endif

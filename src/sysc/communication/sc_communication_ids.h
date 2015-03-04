@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,56 +21,8 @@
 
   Original Author: Martin Janssen, Synopsys, Inc., 2002-01-17
 
+  CHANGE LOG IS AT THE END OF THE FILE
  *****************************************************************************/
-
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-    
- *****************************************************************************/
-
-/* 
-$Log: sc_communication_ids.h,v $
-Revision 1.1.1.1  2006/12/15 20:31:35  acg
-SystemC 2.2
-
-Revision 1.5  2006/01/25 00:31:11  acg
- Andy Goodrich: Changed over to use a standard message id of
- SC_ID_IEEE_1666_DEPRECATION for all deprecation messages.
-
-Revision 1.4  2006/01/24 20:46:31  acg
-Andy Goodrich: changes to eliminate use of deprecated features. For instance,
-using notify(SC_ZERO_TIME) in place of notify_delayed().
-
-Revision 1.3  2006/01/18 21:42:26  acg
-Andy Goodrich: Changes for check writer support, and tightening up sc_clock
-port usage.
-
-Revision 1.2  2006/01/03 23:18:26  acg
-Changed copyright to include 2006.
-
-Revision 1.1.1.1  2005/12/19 23:16:43  acg
-First check in of SystemC 2.1 into its own archive.
-
-Revision 1.12  2005/04/03 22:52:51  acg
-Namespace changes.
-
-Revision 1.11  2005/03/21 22:31:32  acg
-Changes to sc_core namespace.
-
-Revision 1.10  2004/10/28 00:21:48  acg
-Added check that sc_export instances are not bound twice.
-
-Revision 1.9  2004/09/27 21:02:54  acg
-Andy Goodrich - Forte Design Systems, Inc.
-   - Added a $Log comment so that CVS checkin comments will appear in
-     checked out source.
-
-*/
 
 #ifndef SC_COMMUNICATION_IDS_H
 #define SC_COMMUNICATION_IDS_H
@@ -135,10 +87,8 @@ SC_DEFINE_MESSAGE( SC_ID_INVALID_SEMAPHORE_VALUE_,  119,
 			"sc_semaphore requires an initial value >= 0" )
 SC_DEFINE_MESSAGE( SC_ID_SC_EXPORT_HAS_NO_INTERFACE_,  120,
 			"sc_export instance has no interface" )
-SC_DEFINE_MESSAGE( SC_ID_SC_EXPORT_AFTER_START_,  121,
-    "insert sc_export failed, sc_export instance after simulation has started" )
-SC_DEFINE_MESSAGE( SC_ID_SC_EXPORT_ALREADY_REGISTERED_,  122,
-    "insert sc_export failed, sc_export already inserted" )
+SC_DEFINE_MESSAGE( SC_ID_INSERT_EXPORT_,  121,
+    "insert sc_export failed" )
 SC_DEFINE_MESSAGE( SC_ID_SC_EXPORT_NOT_REGISTERED_,  123,
     "remove sc_export failed, sc_export not registered" )
 SC_DEFINE_MESSAGE( SC_ID_SC_EXPORT_NOT_BOUND_AFTER_CONSTRUCTION_,  124,
@@ -151,6 +101,61 @@ SC_DEFINE_MESSAGE( SC_ID_OPERATION_ON_NON_SPECIALIZED_SIGNAL_,  127,
     "attempted specalized signal operation on non-specialized signal" )
 SC_DEFINE_MESSAGE( SC_ID_ATTEMPT_TO_BIND_CLOCK_TO_OUTPUT_,  128,
     "attempted to bind sc_clock instance to sc_inout or sc_out" )
+SC_DEFINE_MESSAGE( SC_ID_NO_ASYNC_UPDATE_,  129,
+    "this build has no asynchronous update support" )
+
+/* 
+$Log: sc_communication_ids.h,v $
+Revision 1.5  2011/08/26 20:45:39  acg
+ Andy Goodrich: moved the modification log to the end of the file to
+ eliminate source line number skew when check-ins are done.
+
+Revision 1.4  2011/04/19 02:36:26  acg
+ Philipp A. Hartmann: new aysnc_update and mutex support.
+
+Revision 1.3  2011/02/18 20:23:45  acg
+ Andy Goodrich: Copyright update.
+
+Revision 1.2  2011/02/14 17:50:16  acg
+ Andy Goodrich: testing for sc_port and sc_export instantiations during
+ end of elaboration and issuing appropriate error messages.
+
+Revision 1.1.1.1  2006/12/15 20:20:04  acg
+SystemC 2.3
+
+Revision 1.5  2006/01/25 00:31:11  acg
+ Andy Goodrich: Changed over to use a standard message id of
+ SC_ID_IEEE_1666_DEPRECATION for all deprecation messages.
+
+Revision 1.4  2006/01/24 20:46:31  acg
+Andy Goodrich: changes to eliminate use of deprecated features. For instance,
+using notify(SC_ZERO_TIME) in place of notify_delayed().
+
+Revision 1.3  2006/01/18 21:42:26  acg
+Andy Goodrich: Changes for check writer support, and tightening up sc_clock
+port usage.
+
+Revision 1.2  2006/01/03 23:18:26  acg
+Changed copyright to include 2006.
+
+Revision 1.1.1.1  2005/12/19 23:16:43  acg
+First check in of SystemC 2.1 into its own archive.
+
+Revision 1.12  2005/04/03 22:52:51  acg
+Namespace changes.
+
+Revision 1.11  2005/03/21 22:31:32  acg
+Changes to sc_core namespace.
+
+Revision 1.10  2004/10/28 00:21:48  acg
+Added check that sc_export instances are not bound twice.
+
+Revision 1.9  2004/09/27 21:02:54  acg
+Andy Goodrich - Forte Design Systems, Inc.
+   - Added a $Log comment so that CVS checkin comments will appear in
+     checked out source.
+
+*/
 
 #endif
 

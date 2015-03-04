@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -22,36 +22,22 @@
 
   Original Author: Stan Y. Liao, Synopsys, Inc.
 
+  CHANGE LOG AT END OF FILE
  *****************************************************************************/
-
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-
- *****************************************************************************/
-
-
-// $Log: sc_hash.cpp,v $
-// Revision 1.1.1.1  2006/12/15 20:31:39  acg
-// SystemC 2.2
-//
-// Revision 1.3  2006/01/13 18:53:10  acg
-// Andy Goodrich: Added $Log command so that CVS comments are reproduced in
-// the source.
-//
 
 #include <assert.h>
 #include <cstdlib>
+#include <cstddef>
 
 #include "sysc/kernel/sc_cmnhdr.h"
 #include "sysc/utils/sc_hash.h"
 #include "sysc/utils/sc_mempool.h"
 
 namespace sc_core {
+
+// we can't assume global availability of uintptr_t,
+// approximate it by size_t
+typedef std::size_t uintptr_t;
 
 const double PHASH_DEFAULT_GROW_FACTOR     = 2.0;
 
@@ -66,11 +52,13 @@ private:
 
     sc_phash_elem( void* k, void* c, sc_phash_elem* n )
         : key(k), contents(c), next(n) { }
-    sc_phash_elem() { }
+    sc_phash_elem() : key(0), contents(0), next(0) { }
     ~sc_phash_elem() { }
 
-    static void* operator new(std::size_t sz)            { return sc_mempool::allocate(sz); }
-    static void operator delete(void* p, std::size_t sz) { sc_mempool::release(p, sz);      }
+    static void* operator new(std::size_t sz) 
+        { return sc_mempool::allocate(sz); }
+    static void operator delete(void* p, std::size_t sz) 
+        { sc_mempool::release(p, sz);      }
 };
 
 
@@ -82,15 +70,11 @@ sc_phash_base::sc_phash_base(
     bool reorder,
     unsigned (*hash_fn)(const void*),
     int (*cmp_fn)(const void*, const void*)
-)
+) :
+    default_value(def), num_bins(0), num_entries(0), max_density(density),
+    reorder_flag(reorder), grow_factor(grow), bins(0), hash(hash_fn), 
+    cmpr(cmp_fn)
 {
-    default_value = def;
-    hash          = hash_fn;
-    num_entries   = 0;
-    max_density   = density;
-    grow_factor   = grow;
-    reorder_flag  = reorder;
-
     if (size <= 0)
         size = PHASH_DEFAULT_INIT_TABLE_SIZE;
     else if ((size % 2) == 0)
@@ -99,8 +83,6 @@ sc_phash_base::sc_phash_base(
     bins = new sc_phash_elem*[size];
     for (int i = 0; i < size; ++i)
         bins[i] = 0;
-
-    set_cmpr_fn(cmp_fn);
 }
 
 void
@@ -608,14 +590,14 @@ sc_phash_base_iter::set_contents( void* c )
 unsigned 
 default_ptr_hash_fn(const void* p)
 {
-    return ((unsigned long)(p) >> 2) * 2654435789U;
+    return ((uintptr_t)(p) >> 2) * 2654435789U;
 
 }
 
 unsigned
 default_int_hash_fn(const void* p)
 {
-    return (unsigned long)(p) * 3141592661U;
+    return (uintptr_t)(p) * 3141592661U;
 }
 
 
@@ -645,7 +627,9 @@ sc_strhash_cmp( const void* a, const void* b )
 void*
 sc_strhash_kdup(const void* k)
 {
-    return strdup((const char*) k);
+    char* result = (char*) malloc( strlen((const char*)k)+1 );
+    strcpy(result, (const char*) k);
+    return result;
 }
 
 void
@@ -654,3 +638,29 @@ sc_strhash_kfree(void* k)
     if (k) free((char*) k);
 }
  } // namespace sc_core
+
+// $Log: sc_hash.cpp,v $
+// Revision 1.5  2011/08/26 20:42:30  acg
+//  Andy Goodrich:
+//    (1) Replaced strdup with new and strcpy to eliminate issue with the
+//        Greenhills compiler.
+//    (2) Moved modification log to the end of the file to eliminate line
+//        skew when check-ins are done.
+//
+// Revision 1.4  2011/08/24 22:05:56  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.3  2011/05/05 17:46:04  acg
+//  Philip A. Hartmann: changes in "swap" support.
+//
+// Revision 1.2  2011/02/18 20:38:43  acg
+//  Andy Goodrich: Updated Copyright notice.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:06  acg
+// SystemC 2.3
+//
+// Revision 1.3  2006/01/13 18:53:10  acg
+// Andy Goodrich: Added $Log command so that CVS comments are reproduced in
+// the source.
+
+// taf

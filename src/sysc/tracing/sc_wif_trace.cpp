@@ -121,7 +121,7 @@ public:
 
 wif_trace::wif_trace(const std::string& name_, 
 	const std::string& wif_name_)
-        : name(name_), wif_name(wif_name_), bit_width(-1)
+        : name(name_), wif_name(wif_name_), wif_type(0), bit_width(-1) 
 {
     /* Intentionally blank */
 }
@@ -181,12 +181,11 @@ wif_uint64_trace::wif_uint64_trace(const sc_dt::uint64& object_,
                          const std::string& name_,
                          const std::string& wif_name_,
                          int width_) 
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_),
+  mask(static_cast<sc_dt::uint64>(-1))
 {
     bit_width = width_;
-    mask = (sc_dt::uint64)-1;
     if (bit_width < 32) mask = ~(mask << bit_width);
-    old_value = object;
     wif_type = "BIT";
 }
 
@@ -247,12 +246,11 @@ wif_int64_trace::wif_int64_trace(const sc_dt::int64& object_,
                          const std::string& name_,
                          const std::string& wif_name_,
                          int width_) 
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_),
+  mask(static_cast<sc_dt::uint64>(-1))
 {
     bit_width = width_;
-    mask = (sc_dt::uint64)-1;
     if (bit_width < 32) mask = ~(mask << bit_width);
-    old_value = object;
     wif_type = "BIT";
 }
 
@@ -313,11 +311,9 @@ protected:
 wif_bool_trace::wif_bool_trace( const bool& object_,
 				const std::string& name_,
 				const std::string& wif_name_ )
-: wif_trace( name_, wif_name_ ),
-  object( object_ )
+: wif_trace( name_, wif_name_ ), object( object_ ), old_value( object_ )
 {
     bit_width = 0;
-    old_value = object_;
     wif_type = "BIT";
 }
 
@@ -356,10 +352,9 @@ protected:
 wif_sc_bit_trace::wif_sc_bit_trace(const sc_dt::sc_bit& object_,
 				   const std::string& name_,
 				   const std::string& wif_name_)
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_)
 {
     bit_width = 0;
-    old_value = object_;
     wif_type = "BIT";
 }
 
@@ -397,10 +392,9 @@ protected:
 wif_sc_logic_trace::wif_sc_logic_trace(const sc_dt::sc_logic& object_,
 				       const std::string& name_,
 				       const std::string& wif_name_) 
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_)
 {
     bit_width = 0;
-    old_value = object;
     wif_type = "MVL";
 }
 
@@ -646,11 +640,9 @@ protected:
 wif_sc_fxval_trace::wif_sc_fxval_trace( const sc_dt::sc_fxval& object_,
 				        const std::string& name_,
 					const std::string& wif_name_ )
-: wif_trace( name_, wif_name_ ),
-  object( object_ )
+: wif_trace( name_, wif_name_ ), object( object_ ), old_value( object_ )
 {
     bit_width = 0;
-    old_value = object;
     wif_type = "real";
 }
 
@@ -690,11 +682,9 @@ wif_sc_fxval_fast_trace::wif_sc_fxval_fast_trace(
                                 const sc_dt::sc_fxval_fast& object_,
 				const std::string& name_,
 				const std::string& wif_name_ )
-: wif_trace( name_, wif_name_ ),
-  object( object_ )
+: wif_trace(name_, wif_name_), object( object_ ), old_value( object_ )
 {
     bit_width = 0;
-    old_value = object;
     wif_type = "real";
 }
 
@@ -858,7 +848,8 @@ wif_unsigned_int_trace::wif_unsigned_int_trace(const unsigned& object_,
 					   const std::string& name_,
 					   const std::string& wif_name_,
 					   int width_) 
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_),
+  mask(0xffffffff)
 {
     bit_width = width_;
     if (bit_width < 32) {
@@ -867,7 +858,6 @@ wif_unsigned_int_trace::wif_unsigned_int_trace(const unsigned& object_,
         mask = 0xffffffff;
     }
 
-    old_value = object;
     wif_type = "BIT";
 }
 
@@ -925,7 +915,7 @@ wif_unsigned_short_trace::wif_unsigned_short_trace(
        const std::string& name_,
        const std::string& wif_name_,
        int width_) 
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_), mask(0xffff)
 {
     bit_width = width_;
     if (bit_width < 16) {
@@ -934,7 +924,6 @@ wif_unsigned_short_trace::wif_unsigned_short_trace(
         mask = 0xffff;
     }
 
-    old_value = object;
     wif_type = "BIT";
 }
 
@@ -990,7 +979,7 @@ wif_unsigned_char_trace::wif_unsigned_char_trace(const unsigned char& object_,
 					 const std::string& name_,
 					 const std::string& wif_name_,
 					 int width_) 
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_), mask(0xff)
 {
     bit_width = width_;
     if (bit_width < 8) {
@@ -999,7 +988,6 @@ wif_unsigned_char_trace::wif_unsigned_char_trace(const unsigned char& object_,
         mask = 0xff;
     }
 
-    old_value = object;
     wif_type = "BIT";
 }
 
@@ -1055,7 +1043,8 @@ wif_unsigned_long_trace::wif_unsigned_long_trace(const unsigned long& object_,
 					     const std::string& name_,
 					     const std::string& wif_name_,
 					     int width_) 
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_),
+  mask(0xffffffff)
 {
     bit_width = width_;
     if (bit_width < 32) {
@@ -1064,7 +1053,6 @@ wif_unsigned_long_trace::wif_unsigned_long_trace(const unsigned long& object_,
         mask = 0xffffffff;
     }
 
-    old_value = object;
     wif_type = "BIT";
 }
 
@@ -1120,7 +1108,8 @@ wif_signed_int_trace::wif_signed_int_trace(const signed& object_,
 					   const std::string& name_,
 					   const std::string& wif_name_,
 					   int width_) 
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_),
+  mask(0xffffffff)
 {
     bit_width = width_;
     if (bit_width < 32) {
@@ -1129,7 +1118,6 @@ wif_signed_int_trace::wif_signed_int_trace(const signed& object_,
         mask = 0xffffffff;
     }
 
-    old_value = object;
     wif_type = "BIT";
 }
 
@@ -1185,7 +1173,7 @@ wif_signed_short_trace::wif_signed_short_trace(const short& object_,
 					   const std::string& name_,
 					   const std::string& wif_name_,
 					   int width_) 
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_), mask(0xffff)
 {
     bit_width = width_;
     if (bit_width < 16) {
@@ -1194,7 +1182,6 @@ wif_signed_short_trace::wif_signed_short_trace(const short& object_,
         mask = 0xffff;
     }
 
-    old_value = object;
     wif_type = "BIT";
 }
 
@@ -1250,7 +1237,7 @@ wif_signed_char_trace::wif_signed_char_trace(const char& object_,
 					     const std::string& name_,
 					     const std::string& wif_name_,
 					     int width_) 
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_), mask(0xff)
 {
     bit_width = width_;
     if (bit_width < 8) {
@@ -1259,7 +1246,6 @@ wif_signed_char_trace::wif_signed_char_trace(const char& object_,
         mask = 0xff;
     }
 
-    old_value = object;
     wif_type = "BIT";
 }
 
@@ -1315,7 +1301,8 @@ wif_signed_long_trace::wif_signed_long_trace(const long& object_,
 					     const std::string& name_,
 					     const std::string& wif_name_,
 					     int width_) 
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_),
+  mask(0xffffffff)
 {
     bit_width = width_;
     if (bit_width < 32) {
@@ -1324,7 +1311,6 @@ wif_signed_long_trace::wif_signed_long_trace(const long& object_,
         mask = 0xffffffff;
     }
 
-    old_value = object;
     wif_type = "BIT";
 }
 
@@ -1376,10 +1362,9 @@ protected:
 wif_float_trace::wif_float_trace(const float& object_,
 				 const std::string& name_,
 				 const std::string& wif_name_)
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_)
 {
     bit_width = 0;
-    old_value = object;
     wif_type = "real";
 }
 
@@ -1412,10 +1397,9 @@ protected:
 wif_double_trace::wif_double_trace(const double& object_,
 				   const std::string& name_,
 				   const std::string& wif_name_)
-: wif_trace(name_, wif_name_), object(object_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_)
 {
     bit_width = 0;
-    old_value = object;
     wif_type = "real";
 }
 
@@ -1460,14 +1444,13 @@ wif_enum_trace::wif_enum_trace(const unsigned& object_,
 			       const std::string& name_,
 			       const std::string& wif_name_,
 			       const char** enum_literals_) 
-: wif_trace(name_, wif_name_), object(object_), literals(enum_literals_)
+: wif_trace(name_, wif_name_), object(object_), old_value(object_),
+  literals(enum_literals_), nliterals(0), type_name(name_ + "__type__")
 {
     // find number of enumeration literals - counting loop
-    for (nliterals = 0; enum_literals_[nliterals]; nliterals++);
+    for (nliterals = 0; enum_literals_[nliterals]; nliterals++) continue;
 
     bit_width = 0;
-    old_value = object;
-    type_name = name_ + "__type__";
     wif_type = type_name.c_str();
 }       
 
@@ -1562,6 +1545,12 @@ typedef wif_T_trace<sc_dt::sc_lv_base> wif_sc_lv_trace;
 
 
 wif_trace_file::wif_trace_file(const char * name)
+: fp(0), trace_delta_cycles(false), wif_name_index(0),
+  previous_time_units_low(0), previous_time_units_high(0), previous_time(0.0),
+  traces(), initialized(false),
+  timescale_unit(sc_get_time_resolution().to_seconds()),
+  timescale_set_by_user(false)
+
 {
     std::string file_name = name ;
     file_name += ".awif";
@@ -1573,14 +1562,6 @@ wif_trace_file::wif_trace_file(const char * name)
 	::std::cerr << "FATAL: " << msg << "\n";
         exit(1);
     }
-    trace_delta_cycles = false; // make it the default
-    initialized = false;
-    wif_name_index = 0;
-
-    // default time step is the time resolution
-    timescale_unit = sc_get_time_resolution().to_seconds();
-
-    timescale_set_by_user = false;
 }
 
 
@@ -1922,6 +1903,46 @@ wif_trace_file::obtain_new_index()
     char buf[32];
     std::sprintf( buf, "O%d", wif_name_index ++ );
     return std::string( buf );
+}
+
+// Set the time unit
+void wif_trace_file::set_time_unit(double v, sc_time_unit tu)
+{
+    if(initialized)
+    {        
+	put_error_message(
+	    "Trace timescale unit cannot be changed once tracing has begun.",
+	    false
+        );
+        std::cout << "To change the scale, create a new trace file." 
+		  << std::endl;
+        return;    
+    }
+
+    switch ( tu )
+    {
+      case SC_FS:  v = v * 1e-15; break;
+      case SC_PS:  v = v * 1e-12; break;
+      case SC_NS:  v = v * 1e-9;  break;
+      case SC_US:  v = v * 1e-6;  break;
+      case SC_MS:  v = v * 1e-3;  break;
+      case SC_SEC:                break;
+      default:                    
+	  	put_error_message("Unknown time unit specified ",true);
+		std::cout << tu << std::endl;
+		break;
+    }
+    timescale_unit = v;
+
+    // EMIT ADVISORY MESSAGE ABOUT CHANGE IN TIME SCALE:
+
+    char buf[200];
+    std::sprintf(buf,
+        "Note: VCD trace timescale unit is set by user to %e sec.\n",
+        timescale_unit);
+    ::std::cout << buf << ::std::flush;
+
+	timescale_set_by_user = true;
 }
 
 // Cleanup and close trace file

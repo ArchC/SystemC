@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,26 +21,8 @@
 
   Original Author: Stan Y. Liao, Synopsys, Inc.
 
+  CHANGE LOG AT END OF FILE
  *****************************************************************************/
-
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-
- *****************************************************************************/
-
-// $Log: sc_string.cpp,v $
-// Revision 1.1.1.1  2006/12/15 20:31:39  acg
-// SystemC 2.2
-//
-// Revision 1.3  2006/01/13 18:53:11  acg
-// Andy Goodrich: Added $Log command so that CVS comments are reproduced in
-// the source.
-//
 
 #include <assert.h>
 #include <ctype.h>
@@ -113,17 +95,14 @@ class sc_string_rep
     friend ::std::istream& operator>>( ::std::istream&, sc_string_old& );
     friend sc_string_old operator+( const char*, const sc_string_old& );
 
-    sc_string_rep( int size = 16 )
+    sc_string_rep( int size = 16 ) :
+        ref_count(1), alloc( sc_roundup( size, 16 ) ), str( new char[alloc] )
     {
-        ref_count = 1;
-        alloc = sc_roundup( size, 16 );
-        str = new char[alloc];
         *str = '\0';
     }
 
-    sc_string_rep( const char* s )
+    sc_string_rep( const char* s ) : ref_count(1), alloc(0), str(0)
     {
-        ref_count = 1;
         if (s) {
             alloc = 1 + strlen(s);
             str = strcpy( new char[alloc], s );
@@ -153,9 +132,9 @@ class sc_string_rep
 
 // IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
-sc_string_rep::sc_string_rep( const char* s, int n)
+sc_string_rep::sc_string_rep( const char* s, int n) :
+    ref_count(1), alloc(0), str(0)
 {
-    ref_count = 1;
     if (s && n>0) {
         alloc = 1 + n;
         str = strncpy( new char[alloc], s,n );
@@ -194,30 +173,26 @@ sc_string_rep::set_string( const char* s )
 
 // constructors
 
-sc_string_old::sc_string_old( int size )
+sc_string_old::sc_string_old( int size ) : rep( new sc_string_rep(size) )
 {
-    rep = new sc_string_rep( size );
 }
 
-sc_string_old::sc_string_old( const char* s )
+sc_string_old::sc_string_old( const char* s ) : rep( new sc_string_rep(s) )
 {
-    rep = new sc_string_rep( s );
 }
 
-sc_string_old::sc_string_old( const char* s, int n )
+sc_string_old::sc_string_old( const char* s, int n ) : 
+    rep( new sc_string_rep( s, n ) )
 {
-    rep = new sc_string_rep( s, n );
 }
 
-sc_string_old::sc_string_old( const sc_string_old& s )
+sc_string_old::sc_string_old( const sc_string_old& s ) : rep( s.rep )
 {
-    rep = s.rep;
     rep->ref_count ++;
 }
 
-sc_string_old::sc_string_old( sc_string_rep* r )
+sc_string_old::sc_string_old( sc_string_rep* r ) : rep(r)
 {
-    rep = r;
 }
 
 
@@ -430,7 +405,6 @@ sc_string_old::set( int i, char c )
 sc_string_old sc_string_old::to_string(const char* format, ...)
 {
    va_list argptr;
-   int cnt;
    sc_string_old result;
    char buffer[1024]; // static string buffer
    buffer[1023]=000;
@@ -439,9 +413,9 @@ sc_string_old sc_string_old::to_string(const char* format, ...)
 #if defined(WIN32)
    // Windows provides safer implementation
 #if defined(_MSC_VER)
-   cnt = _vsnprintf(buffer, 1024, format, argptr);
+   int cnt = _vsnprintf(buffer, 1024, format, argptr);
 #else
-   cnt = vsnprintf(buffer, 1024, format, argptr);
+   int cnt = vsnprintf(buffer, 1024, format, argptr);
 #endif
    if(cnt>1023) // string too long
    {
@@ -476,7 +450,7 @@ sc_string_old sc_string_old::to_string(const char* format, ...)
    try {
      // this may end up in a core dump
      // if we are lucky we can catch exception
-     cnt = vsprintf(buffer, format, argptr);
+     vsprintf(buffer, format, argptr);
    }
    catch(...)
    {
@@ -664,3 +638,29 @@ operator >> ( ::std::istream& is, sc_string_old& s )
     return is;
 }
  } // namespace sc_dt
+
+// $Log: sc_string.cpp,v $
+// Revision 1.6  2011/08/29 18:04:32  acg
+//  Philipp A. Hartmann: miscellaneous clean ups.
+//
+// Revision 1.5  2011/08/26 22:49:42  acg
+//  Torsten Maehne: remove redudant assignment.
+//
+// Revision 1.4  2011/08/26 20:46:19  acg
+//  Andy Goodrich: moved the modification log to the end of the file to
+//  eliminate source line number skew when check-ins are done.
+//
+// Revision 1.3  2011/08/24 22:05:56  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.2  2011/02/18 20:38:44  acg
+//  Andy Goodrich: Updated Copyright notice.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:06  acg
+// SystemC 2.3
+//
+// Revision 1.3  2006/01/13 18:53:11  acg
+// Andy Goodrich: Added $Log command so that CVS comments are reproduced in
+// the source.
+
+// taf

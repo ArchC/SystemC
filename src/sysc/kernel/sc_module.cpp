@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,87 +21,9 @@
 
   Original Author: Stan Y. Liao, Synopsys, Inc.
 
+  CHANGE LOG AT THE END OF THE FILE
  *****************************************************************************/
 
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date: Ali Dasdan, Synopsys, Inc.
-  Description of Modification: - Implementation of operator() and operator,
-                                 positional connection method.
-                               - Implementation of error checking in
-                                 operator<<'s.
-                               - Implementation of the function test_module_prm.
-                               - Implementation of set_stack_size().
-
-      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems 20 May 2003
-  Description of Modification: Inherit from sc_process_host
-
-      Name, Affiliation, Date: Bishnupriya Bhattacharya, Cadence Design Systems,
-                               25 August, 2003
-  Description of Modification: dont_initialize() uses 
-                               sc_get_last_created_process_handle() instead of
-                               sc_get_current_process_b()
-
-      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems 25 Mar 2003
-  Description of Modification: Fixed bug in SC_NEW, see comments on 
-                               ~sc_module_dynalloc_list below.
-
-
- *****************************************************************************/
-
-
-// $Log: sc_module.cpp,v $
-// Revision 1.1.1.1  2006/12/15 20:31:37  acg
-// SystemC 2.2
-//
-// Revision 1.8  2006/03/21 00:00:34  acg
-//   Andy Goodrich: changed name of sc_get_current_process_base() to be
-//   sc_get_current_process_b() since its returning an sc_process_b instance.
-//
-// Revision 1.7  2006/03/14 23:56:58  acg
-//   Andy Goodrich: This fixes a bug when an exception is thrown in
-//   sc_module::sc_module() for a dynamically allocated sc_module
-//   object. We are calling sc_module::end_module() on a module that has
-//   already been deleted. The scenario runs like this:
-//
-//   a) the sc_module constructor is entered
-//   b) the exception is thrown
-//   c) the exception processor deletes the storage for the sc_module
-//   d) the stack is unrolled causing the sc_module_name instance to be deleted
-//   e) ~sc_module_name() calls end_module() with its pointer to the sc_module
-//   f) because the sc_module has been deleted its storage is corrupted,
-//      either by linking it to a free space chain, or by reuse of some sort
-//   g) the m_simc field is garbage
-//   h) the m_object_manager field is also garbage
-//   i) an exception occurs
-//
-//   This does not happen for automatic sc_module instances since the
-//   storage for the module is not reclaimed its just part of the stack.
-//
-//   I am fixing this by having the destructor for sc_module clear the
-//   module pointer in its sc_module_name instance. That cuts things at
-//   step (e) above, since the pointer will be null if the module has
-//   already been deleted. To make sure the module stack is okay, I call
-//   end-module() in ~sc_module in the case where there is an
-//   sc_module_name pointer lying around.
-//
-// Revision 1.6  2006/01/26 21:04:54  acg
-//  Andy Goodrich: deprecation message changes and additional messages.
-//
-// Revision 1.5  2006/01/25 00:31:19  acg
-//  Andy Goodrich: Changed over to use a standard message id of
-//  SC_ID_IEEE_1666_DEPRECATION for all deprecation messages.
-//
-// Revision 1.4  2006/01/24 20:49:05  acg
-// Andy Goodrich: changes to remove the use of deprecated features within the
-// simulator, and to issue warning messages when deprecated features are used.
-//
-// Revision 1.3  2006/01/13 18:44:29  acg
-// Added $Log to record CVS changes into the source.
-//
 
 #include <cassert>
 #include <math.h>
@@ -139,7 +61,7 @@ class sc_module_dynalloc_list
 {
 public:
 
-    sc_module_dynalloc_list()
+    sc_module_dynalloc_list() : m_list()
         {}
 
     ~sc_module_dynalloc_list();
@@ -218,22 +140,13 @@ const sc_bind_proxy SC_BIND_PROXY_NIL;
 void
 sc_module::sc_module_init()
 {
+    simcontext()->get_module_registry()->insert( *this );
     simcontext()->hierarchy_push( this );
     m_end_module_called = false;
-	m_module_name_p = 0;
+    m_module_name_p = 0;
     m_port_vec = new std::vector<sc_port_base*>;
     m_port_index = 0;
     m_name_gen = new sc_name_gen;
-    simcontext()->get_module_registry()->insert( *this );
-}
-
-sc_module::sc_module( const char* nm )
-: sc_object(nm),
-  sensitive(this),
-  sensitive_pos(this),
-  sensitive_neg(this)
-{
-    sc_module_init();
 }
 
 /*
@@ -263,7 +176,12 @@ sc_module::sc_module()
                   ->operator const char*()),
   sensitive(this),
   sensitive_pos(this),
-  sensitive_neg(this)
+  sensitive_neg(this),
+  m_end_module_called(false),
+  m_port_vec(),
+  m_port_index(0),
+  m_name_gen(0),
+  m_module_name_p(0)
 {
     /* When this form is used, we better have a fresh sc_module_name
        on the top of the stack */
@@ -283,7 +201,12 @@ sc_module::sc_module( const sc_module_name& )
                   ->operator const char*()),
   sensitive(this),
   sensitive_pos(this),
-  sensitive_neg(this)
+  sensitive_neg(this),
+  m_end_module_called(false),
+  m_port_vec(),
+  m_port_index(0),
+  m_name_gen(0),
+  m_module_name_p(0)
 {
     /* For those used to the old style of passing a name to sc_module,
        this constructor will reduce the chance of making a mistake */
@@ -299,19 +222,49 @@ sc_module::sc_module( const sc_module_name& )
     m_module_name_p = mod_name; // must come after sc_module_init call.
 }
 
+/* --------------------------------------------------------------------
+ *
+ * Deprecated constructors:
+ *   sc_module( const char* )
+ *   sc_module( const std::string& )
+ */
+sc_module::sc_module( const char* nm )
+: sc_object(nm),
+  sensitive(this),
+  sensitive_pos(this),
+  sensitive_neg(this),
+  m_end_module_called(false),
+  m_port_vec(),
+  m_port_index(0),
+  m_name_gen(0),
+  m_module_name_p(0)
+{
+    SC_REPORT_WARNING( SC_ID_BAD_SC_MODULE_CONSTRUCTOR_, nm );
+    sc_module_init();
+}
+
 sc_module::sc_module( const std::string& s )
 : sc_object( s.c_str() ),
   sensitive(this),
   sensitive_pos(this),
-  sensitive_neg(this)
+  sensitive_neg(this),
+  m_end_module_called(false),
+  m_port_vec(),
+  m_port_index(0),
+  m_name_gen(0),
+  m_module_name_p(0)
 {
+    SC_REPORT_WARNING( SC_ID_BAD_SC_MODULE_CONSTRUCTOR_, s.c_str() );
     sc_module_init();
 }
+
+/* -------------------------------------------------------------------- */
 
 sc_module::~sc_module()
 {
     delete m_port_vec;
     delete m_name_gen;
+    orphan_child_objects();
     if ( m_module_name_p )
     {
 	m_module_name_p->clear_module( this ); // must be before end_module()
@@ -327,27 +280,31 @@ sc_module::get_child_objects() const
     return m_child_objects;
 }
 
+// set SC_THREAD asynchronous reset sensitivity
+
 void
-sc_module::add_child_object( sc_object* object_ )
+sc_module::async_reset_signal_is( const sc_in<bool>& port, bool level )
 {
-    // no check if object_ is already in the set
-    m_child_objects.push_back( object_ );
+	sc_reset::reset_signal_is(true, port, level);
 }
 
 void
-sc_module::remove_child_object( sc_object* object_ )
+sc_module::async_reset_signal_is( const sc_inout<bool>& port, bool level )
 {
-    int size = m_child_objects.size();
-    for( int i = 0; i < size; ++ i ) {
-	if( object_ == m_child_objects[i] ) {
-	    m_child_objects[i] = m_child_objects[size - 1];
-	    m_child_objects.resize(size-1);
-	    return;
-	}
-    }
-    // no check if object_ is really in the set
+	sc_reset::reset_signal_is(true, port, level);
 }
 
+void
+sc_module::async_reset_signal_is( const sc_out<bool>& port, bool level )
+{
+	sc_reset::reset_signal_is(true, port, level);
+}
+
+void
+sc_module::async_reset_signal_is(const sc_signal_in_if<bool>& iface, bool level)
+{
+	sc_reset::reset_signal_is(true, iface, level);
+}
 
 void
 sc_module::end_module()
@@ -375,18 +332,30 @@ sc_module::dont_initialize()
     last_proc.dont_initialize( true );
 }
 
-// set SC_CTHREAD reset sensitivity
+// set SC_THREAD synchronous reset sensitivity
 
 void
 sc_module::reset_signal_is( const sc_in<bool>& port, bool level )
 {
-	sc_reset::reset_signal_is(port, level);
+	sc_reset::reset_signal_is(false, port, level);
+}
+
+void
+sc_module::reset_signal_is( const sc_inout<bool>& port, bool level )
+{
+	sc_reset::reset_signal_is(false, port, level);
+}
+
+void
+sc_module::reset_signal_is( const sc_out<bool>& port, bool level )
+{
+	sc_reset::reset_signal_is(false, port, level);
 }
 
 void
 sc_module::reset_signal_is( const sc_signal_in_if<bool>& iface, bool level )
 {
-	sc_reset::reset_signal_is(iface, level);
+	sc_reset::reset_signal_is(false, iface, level);
 }
 
 // to generate unique names for objects in an MT-Safe way
@@ -451,7 +420,9 @@ sc_module::start_of_simulation()
 void
 sc_module::start_simulation()
 {
+    simcontext()->hierarchy_push( this );
     start_of_simulation();
+    simcontext()->hierarchy_pop();
 }
 
 // called by simulation_done (does nothing by default)
@@ -463,7 +434,9 @@ sc_module::end_of_simulation()
 void
 sc_module::simulation_done()
 {
+    simcontext()->hierarchy_push( this );
     end_of_simulation();
+    simcontext()->hierarchy_pop();
 }
 
 void
@@ -746,5 +719,129 @@ sc_module::operator () ( const sc_bind_proxy& p001,
 }
 
 } // namespace sc_core
+
+/*****************************************************************************
+
+  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
+  changes you are making here.
+
+      Name, Affiliation, Date: Ali Dasdan, Synopsys, Inc.
+  Description of Modification: - Implementation of operator() and operator,
+                                 positional connection method.
+                               - Implementation of error checking in
+                                 operator<<'s.
+                               - Implementation of the function test_module_prm.
+                               - Implementation of set_stack_size().
+
+      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems 20 May 2003
+  Description of Modification: Inherit from sc_process_host
+
+      Name, Affiliation, Date: Bishnupriya Bhattacharya, Cadence Design Systems,
+                               25 August, 2003
+  Description of Modification: dont_initialize() uses 
+                               sc_get_last_created_process_handle() instead of
+                               sc_get_current_process_b()
+
+      Name, Affiliation, Date: Andy Goodrich, Forte Design Systems 25 Mar 2003
+  Description of Modification: Fixed bug in SC_NEW, see comments on 
+                               ~sc_module_dynalloc_list below.
+
+
+ *****************************************************************************/
+
+
+// $Log: sc_module.cpp,v $
+// Revision 1.14  2011/08/29 18:04:32  acg
+//  Philipp A. Hartmann: miscellaneous clean ups.
+//
+// Revision 1.13  2011/08/26 20:46:10  acg
+//  Andy Goodrich: moved the modification log to the end of the file to
+//  eliminate source line number skew when check-ins are done.
+//
+// Revision 1.12  2011/08/24 22:05:51  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.11  2011/03/05 19:44:20  acg
+//  Andy Goodrich: changes for object and event naming and structures.
+//
+// Revision 1.10  2011/02/18 20:27:14  acg
+//  Andy Goodrich: Updated Copyrights.
+//
+// Revision 1.9  2011/02/16 22:37:30  acg
+//  Andy Goodrich: clean up to remove need for ps_disable_pending.
+//
+// Revision 1.8  2011/02/14 17:51:40  acg
+//  Andy Goodrich: proper pushing an poppping of the module hierarchy for
+//  start_of_simulation() and end_of_simulation.
+//
+// Revision 1.7  2011/02/13 21:47:37  acg
+//  Andy Goodrich: update copyright notice.
+//
+// Revision 1.6  2011/01/25 20:50:37  acg
+//  Andy Goodrich: changes for IEEE 1666 2011.
+//
+// Revision 1.5  2009/05/22 16:06:29  acg
+//  Andy Goodrich: process control updates.
+//
+// Revision 1.4  2008/11/17 15:57:15  acg
+//  Andy Goodrich: added deprecation message for sc_module(const char*)
+//
+// Revision 1.3  2008/05/22 17:06:25  acg
+//  Andy Goodrich: updated copyright notice to include 2008.
+//
+// Revision 1.2  2007/05/17 20:16:33  acg
+//  Andy Goodrich: changes for beta release to LWG.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:05  acg
+// SystemC 2.3
+//
+// Revision 1.9  2006/12/02 20:58:18  acg
+//  Andy Goodrich: updates from 2.2 for IEEE 1666 support.
+//
+// Revision 1.8  2006/03/21 00:00:34  acg
+//   Andy Goodrich: changed name of sc_get_current_process_base() to be
+//   sc_get_current_process_b() since its returning an sc_process_b instance.
+//
+// Revision 1.7  2006/03/14 23:56:58  acg
+//   Andy Goodrich: This fixes a bug when an exception is thrown in
+//   sc_module::sc_module() for a dynamically allocated sc_module
+//   object. We are calling sc_module::end_module() on a module that has
+//   already been deleted. The scenario runs like this:
+//
+//   a) the sc_module constructor is entered
+//   b) the exception is thrown
+//   c) the exception processor deletes the storage for the sc_module
+//   d) the stack is unrolled causing the sc_module_name instance to be deleted
+//   e) ~sc_module_name() calls end_module() with its pointer to the sc_module
+//   f) because the sc_module has been deleted its storage is corrupted,
+//      either by linking it to a free space chain, or by reuse of some sort
+//   g) the m_simc field is garbage
+//   h) the m_object_manager field is also garbage
+//   i) an exception occurs
+//
+//   This does not happen for automatic sc_module instances since the
+//   storage for the module is not reclaimed its just part of the stack.
+//
+//   I am fixing this by having the destructor for sc_module clear the
+//   module pointer in its sc_module_name instance. That cuts things at
+//   step (e) above, since the pointer will be null if the module has
+//   already been deleted. To make sure the module stack is okay, I call
+//   end-module() in ~sc_module in the case where there is an
+//   sc_module_name pointer lying around.
+//
+// Revision 1.6  2006/01/26 21:04:54  acg
+//  Andy Goodrich: deprecation message changes and additional messages.
+//
+// Revision 1.5  2006/01/25 00:31:19  acg
+//  Andy Goodrich: Changed over to use a standard message id of
+//  SC_ID_IEEE_1666_DEPRECATION for all deprecation messages.
+//
+// Revision 1.4  2006/01/24 20:49:05  acg
+// Andy Goodrich: changes to remove the use of deprecated features within the
+// simulator, and to issue warning messages when deprecated features are used.
+//
+// Revision 1.3  2006/01/13 18:44:29  acg
+// Added $Log to record CVS changes into the source.
+//
 
 // Taf!

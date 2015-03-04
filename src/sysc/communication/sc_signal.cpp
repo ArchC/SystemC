@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,26 +21,139 @@
 
   Original Author: Martin Janssen, Synopsys, Inc., 2001-05-21
 
+  CHANGE LOG IS AT THE END OF THE FILE
  *****************************************************************************/
 
-/*****************************************************************************
 
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
+#include "sysc/communication/sc_communication_ids.h"
+#include "sysc/utils/sc_utils_ids.h"
+#include "sysc/communication/sc_signal.h"
+#include "sysc/datatypes/int/sc_signed.h"
+#include "sysc/datatypes/int/sc_unsigned.h"
+#include "sysc/datatypes/bit/sc_lv_base.h"
+#include "sysc/kernel/sc_reset.h"
 
-      Name, Affiliation, Date:
-  Description of Modification:
-    
- *****************************************************************************/
+#include <sstream>
+
+using sc_dt::sc_lv_base;
+using sc_dt::sc_signed;
+using sc_dt::sc_unsigned;
+using sc_dt::int64;
+using sc_dt::uint64;
+
+namespace sc_core {
+
+// to avoid code bloat in sc_signal<T>
+
+void
+sc_signal_invalid_writer( sc_object* target, sc_object* first_writer,
+                          sc_object* second_writer, bool check_delta )
+{
+    if ( second_writer )
+    {   
+        std::stringstream msg;
+
+        msg
+            << "\n signal "
+               "`" << target->name() << "' "
+               "(" << target->kind() << ")"
+            << "\n first driver "
+               "`" << first_writer->name() << "' "
+              " (" << first_writer->kind() << ")"
+            << "\n second driver "
+               "`" << second_writer->name() << "' "
+               "(" << second_writer->kind() << ")";
+
+        if( check_delta )
+        {
+            msg << "\n first conflicting write in delta cycle "
+                << sc_delta_count();
+        }
+        SC_REPORT_ERROR( SC_ID_MORE_THAN_ONE_SIGNAL_DRIVER_,
+                         msg.str().c_str() );
+    }
+}
+
+bool
+sc_writer_policy_check_port::
+  check_port( sc_object* target, sc_port_base * port_, bool is_output )
+{
+    if ( is_output && sc_get_curr_simcontext()->write_check() )
+    {
+        // an out or inout port; only one can be connected
+        if( m_output != 0) {
+            sc_signal_invalid_writer( target, m_output, port_, false );
+            return false;
+        } else {
+            m_output = port_;
+        }
+    }
+    return true;
+}
+
+void sc_deprecated_get_data_ref()
+{
+    static bool warn_get_data_ref_deprecated=true;
+    if ( warn_get_data_ref_deprecated )
+    {
+        warn_get_data_ref_deprecated=false;
+	SC_REPORT_INFO(SC_ID_IEEE_1666_DEPRECATION_,
+	    "get_data_ref() is deprecated, use read() instead" );
+    }
+}
+
+void sc_deprecated_get_new_value()
+{
+    static bool warn_new_value=true;
+    if ( warn_new_value )
+    {
+        warn_new_value=false;
+	SC_REPORT_INFO(SC_ID_IEEE_1666_DEPRECATION_,
+	    "sc_signal<T>::get_new_value() is deprecated");
+    }
+}
+
+void sc_deprecated_trace()
+{
+    static bool warn_trace_deprecated=true;
+    if ( warn_trace_deprecated )
+    {
+        warn_trace_deprecated=false;
+	SC_REPORT_INFO(SC_ID_IEEE_1666_DEPRECATION_,
+	    "sc_signal<T>::trace() is deprecated");
+    }
+}
+
+} // namespace sc_core
 
 /* 
 $Log: sc_signal.cpp,v $
-Revision 1.2  2007/04/02 17:24:30  acg
+Revision 1.9  2011/08/26 20:45:42  acg
+ Andy Goodrich: moved the modification log to the end of the file to
+ eliminate source line number skew when check-ins are done.
+
+Revision 1.8  2011/02/18 20:23:45  acg
+ Andy Goodrich: Copyright update.
+
+Revision 1.7  2011/02/18 20:08:14  acg
+ Philipp A. Hartmann: addition of include for sstream for MSVC.
+
+Revision 1.6  2011/01/25 20:50:37  acg
+ Andy Goodrich: changes for IEEE 1666 2011.
+
+Revision 1.5  2010/12/07 19:50:36  acg
+ Andy Goodrich: addition of writer policies, courtesy of Philipp Hartmann.
+
+Revision 1.3  2007/04/09 21:59:49  acg
+ Andy Goodrich: fixed multiple write notification bug where writes
+ done outside the simulator were being treated as multiple writes.
+
+Revision 1.2  2007/04/02 17:24:01  acg
  Andy Goodrich: added check for null writer pointers in sc_signal invalid
  writer method.
 
-Revision 1.1.1.1  2006/12/15 20:31:35  acg
-SystemC 2.2
+Revision 1.1.1.1  2006/12/15 20:20:04  acg
+SystemC 2.3
 
 Revision 1.7  2006/04/11 23:11:57  acg
   Andy Goodrich: Changes for reset support that only includes
@@ -92,121 +205,5 @@ Andy Goodrich - Forte Design Systems, Inc.
      checked out source.
 
 */
-
-
-#include "sysc/communication/sc_communication_ids.h"
-#include "sysc/utils/sc_utils_ids.h"
-#include "sysc/communication/sc_signal.h"
-#include "sysc/datatypes/int/sc_signed.h"
-#include "sysc/datatypes/int/sc_unsigned.h"
-#include "sysc/datatypes/bit/sc_lv_base.h"
-#include "sysc/kernel/sc_reset.h"
-
-using sc_dt::sc_lv_base;
-using sc_dt::sc_signed;
-using sc_dt::sc_unsigned;
-using sc_dt::int64;
-using sc_dt::uint64;
-
-namespace sc_core {
-
-// to avoid code bloat in sc_signal<T>
-
-void
-sc_signal_invalid_writer( 
-    sc_object* target, sc_object* first_writer, sc_object* second_writer )
-{
-    char msg[BUFSIZ];
-    const char* target_name = target->name();
-    const char* target_kind = target->kind();
-    const char* writer1_name = first_writer->name();
-    const char* writer1_kind = first_writer->kind();
-    const char* writer2_name;
-    const char* writer2_kind;
-    if ( second_writer )
-    {
-        writer2_name = second_writer->name();
-        writer2_kind = second_writer->kind();
-
-	std::sprintf( msg, "\n signal `%s' (%s)"
-	     "\n first driver `%s' (%s)"
-	     "\n second driver `%s' (%s)",
-	     target_name, target_kind, 
-	     writer1_name, writer1_kind, 
-	     writer2_name, writer2_kind );
-	SC_REPORT_ERROR( SC_ID_MORE_THAN_ONE_SIGNAL_DRIVER_, msg );
-    }
-}
-
-
-// ----------------------------------------------------------------------------
-//  CLASS : sc_signal<bool>
-//
-//  Specialization of sc_signal<T> for type bool.
-// ----------------------------------------------------------------------------
-
-
-// reset support:
-
-sc_reset* sc_signal<bool>::is_reset() const
-{
-    sc_reset* result_p;
-    if ( !m_reset_p ) m_reset_p = new sc_reset( this );
-    result_p = m_reset_p;
-    return result_p;
-}
-
-// destructor
-
-sc_signal<bool>::~sc_signal()
-{
-    if ( !m_change_event_p )  delete m_change_event_p;
-    if ( !m_negedge_event_p ) delete m_negedge_event_p;
-    if ( !m_posedge_event_p ) delete m_posedge_event_p;
-    if ( m_reset_p )          delete m_reset_p;
-}
-
-
-// ----------------------------------------------------------------------------
-//  CLASS : sc_signal<sc_logic>
-//
-//  Specialization of sc_signal<T> for type sc_logic.
-// ----------------------------------------------------------------------------
-
-
-void sc_deprecated_get_data_ref()
-{
-    static bool warn_get_data_ref_deprecated=true;
-    if ( warn_get_data_ref_deprecated )
-    {
-        warn_get_data_ref_deprecated=false;
-	SC_REPORT_INFO(SC_ID_IEEE_1666_DEPRECATION_,
-	    "get_data_ref() is deprecated, use read() instead" );
-    }
-}
-
-void sc_deprecated_get_new_value()
-{
-    static bool warn_new_value=true;
-    if ( warn_new_value )
-    {
-        warn_new_value=false;
-	SC_REPORT_INFO(SC_ID_IEEE_1666_DEPRECATION_,
-	    "sc_signal<T>::get_new_value() is deprecated");
-    }
-}
-
-void sc_deprecated_trace()
-{
-    static bool warn_trace_deprecated=true;
-    if ( warn_trace_deprecated )
-    {
-        warn_trace_deprecated=false;
-	SC_REPORT_INFO(SC_ID_IEEE_1666_DEPRECATION_,
-	    "sc_signal<T>::trace() is deprecated");
-    }
-}
-
-} // namespace sc_core
 
 // Taf!

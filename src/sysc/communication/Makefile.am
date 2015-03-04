@@ -30,9 +30,9 @@
 ##
 ## ****************************************************************************
 
-include $(top_srcdir)/config/Make-rules
+include $(top_srcdir)/config/Make-rules.sysc
 
-noinst_LIBRARIES = libcommunication.a
+noinst_LTLIBRARIES = libcommunication.la
 
 H_FILES = \
 	sc_buffer.h \
@@ -45,6 +45,7 @@ H_FILES = \
 	sc_fifo.h \
 	sc_fifo_ifs.h \
 	sc_fifo_ports.h \
+	sc_host_mutex.h \
 	sc_interface.h \
 	sc_mutex.h \
 	sc_mutex_if.h \
@@ -58,7 +59,8 @@ H_FILES = \
 	sc_signal_resolved.h \
 	sc_signal_resolved_ports.h \
 	sc_signal_rv.h \
-	sc_signal_rv_ports.h 
+	sc_signal_rv_ports.h \
+	sc_writer_policy.h
 
 noinst_HEADERS = $(H_FILES)
 
@@ -79,7 +81,7 @@ CXX_FILES = \
 
 NO_CXX_FILES =
 
-libcommunication_a_SOURCES = $(H_FILES) $(CXX_FILES)
+libcommunication_la_SOURCES = $(H_FILES) $(CXX_FILES)
 
 INCLUDE_DIR = $(prefix)/include/sysc/communication
 
@@ -89,8 +91,6 @@ install-data-local:
 	for file in $(noinst_HEADERS); do \
 	  $(INSTALL_DATA) $(srcdir)/$$file $(INCLUDE_DIR)/$$file; \
 	done
-	$(AR_TOOL) $(top_builddir)/src/$(MAIN_LIBRARY) \
-	  $(libcommunication_a_OBJECTS)
 
 uninstall-local:
 	@$(NORMAL_UNINSTALL)

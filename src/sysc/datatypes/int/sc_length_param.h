@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -34,8 +34,18 @@
  *****************************************************************************/
 
 // $Log: sc_length_param.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.3  2011/08/24 22:05:46  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.2  2011/02/18 20:19:15  acg
+//  Andy Goodrich: updating Copyright notice.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:05  acg
+// SystemC 2.3
+//
+// Revision 1.4  2006/05/08 17:50:01  acg
+//   Andy Goodrich: Added David Long's declarations for friend operators,
+//   functions, and methods, to keep the Microsoft compiler happy.
 //
 // Revision 1.3  2006/01/13 18:49:32  acg
 // Added $Log command so that CVS check in comments are reproduced in the
@@ -110,16 +120,15 @@ typedef sc_context<sc_length_param> sc_length_context;
 // IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
 inline
-sc_length_param::sc_length_param()
+sc_length_param::sc_length_param() : m_len()
 {
     *this = sc_length_context::default_value();
 }
 
 inline
-sc_length_param::sc_length_param( int len_ )
+sc_length_param::sc_length_param( int len_ ) : m_len(len_)
 {
     SC_CHECK_WL_( len_ );
-    m_len = len_;
 }
 
 inline

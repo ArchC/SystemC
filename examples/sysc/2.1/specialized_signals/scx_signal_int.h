@@ -35,8 +35,17 @@
 
 /* 
 $Log: scx_signal_int.h,v $
-Revision 1.1.1.1  2006/12/15 20:31:29  acg
-SystemC 2.2
+Revision 1.4  2011/08/15 17:18:21  acg
+ Andy Goodrich: fix blown inclusion of Torsten's edit.
+
+Revision 1.3  2011/08/15 16:43:24  acg
+ Torsten Maehne: changes to remove unused argument warnings.
+
+Revision 1.2  2011/06/28 21:23:02  acg
+ Andy Goodrich: merging of SCV tree.
+
+Revision 1.1.1.1  2006/12/15 20:20:03  acg
+SystemC 2.3
 
 Revision 1.2  2005/12/26 20:11:14  acg
 Fixed up copyright.
@@ -584,6 +593,8 @@ inline void sc_signal<sc_dt::sc_int<W> >::register_port(
 			}
 			m_output_p = &port_;
 		}
+#       else
+            if ( &port_ && if_typename_ ) {} // Silence unused args warning.
 #       endif
 }
 
@@ -899,7 +910,7 @@ class sc_in<sc_dt::sc_int<W> > :
     void remove_traces() const
         {
             if( m_traces != 0 ) {
-                for( unsigned int i = m_traces->size() - 1; i >= 0; -- i ) {
+                for( int i = m_traces->size() - 1; i >= 0; -- i ) {
                     delete (*m_traces)[i];
                 }
                 delete m_traces;
@@ -1233,7 +1244,7 @@ class sc_inout<sc_dt::sc_int<W> > :
     void remove_traces() const
         {
             if( m_traces != 0 ) {
-                for( unsigned int i = m_traces->size() - 1; i >= 0; -- i ) {
+                for( int i = m_traces->size() - 1; i >= 0; -- i ) {
                     delete (*m_traces)[i];
                 }
                 delete m_traces;
@@ -1406,9 +1417,8 @@ inline void sc_int_sigref::operator = ( sc_dt::uint64 v )
 	m_if_p->write_part( v, m_left, m_right );
 }
 
-inline void sc_int_sigref::operator = ( const char* v )
+inline void sc_int_sigref::operator = ( const char* /*v*/ )
 {
-    // #### *this = (sc_dt::uint64)a;
 }
 
 inline void sc_int_sigref:: operator = ( sc_dt::int64 v )

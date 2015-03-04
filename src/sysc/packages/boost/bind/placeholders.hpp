@@ -1,5 +1,5 @@
-#ifndef BOOST_BIND_PLACEHOLDERS_HPP_INCLUDED
-#define BOOST_BIND_PLACEHOLDERS_HPP_INCLUDED
+#ifndef SC_BOOST_BIND_PLACEHOLDERS_HPP_INCLUDED
+#define SC_BOOST_BIND_PLACEHOLDERS_HPP_INCLUDED
 
 // MS compatible compilers support #pragma once
 
@@ -22,47 +22,50 @@
 #include <sysc/packages/boost/bind/arg.hpp>
 #include <sysc/packages/boost/config.hpp>
 
-namespace
+namespace sc_unnamed
 {
 
-#if defined(__BORLANDC__)
+namespace { // anonymous namespace
 
-static inline boost::arg<1> _1() { return boost::arg<1>(); }
-static inline boost::arg<2> _2() { return boost::arg<2>(); }
-static inline boost::arg<3> _3() { return boost::arg<3>(); }
-static inline boost::arg<4> _4() { return boost::arg<4>(); }
-static inline boost::arg<5> _5() { return boost::arg<5>(); }
-static inline boost::arg<6> _6() { return boost::arg<6>(); }
-static inline boost::arg<7> _7() { return boost::arg<7>(); }
-static inline boost::arg<8> _8() { return boost::arg<8>(); }
-static inline boost::arg<9> _9() { return boost::arg<9>(); }
+#if defined(__BORLANDC__) || defined(__GNUC__)
 
-#elif defined(BOOST_MSVC) || (defined(__DECCXX_VER) && __DECCXX_VER <= 60590031) || defined(__MWERKS__)
+static inline sc_boost::arg<1> _1() { return sc_boost::arg<1>(); }
+static inline sc_boost::arg<2> _2() { return sc_boost::arg<2>(); }
+static inline sc_boost::arg<3> _3() { return sc_boost::arg<3>(); }
+static inline sc_boost::arg<4> _4() { return sc_boost::arg<4>(); }
+static inline sc_boost::arg<5> _5() { return sc_boost::arg<5>(); }
+static inline sc_boost::arg<6> _6() { return sc_boost::arg<6>(); }
+static inline sc_boost::arg<7> _7() { return sc_boost::arg<7>(); }
+static inline sc_boost::arg<8> _8() { return sc_boost::arg<8>(); }
+static inline sc_boost::arg<9> _9() { return sc_boost::arg<9>(); }
 
-static boost::arg<1> _1;
-static boost::arg<2> _2;
-static boost::arg<3> _3;
-static boost::arg<4> _4;
-static boost::arg<5> _5;
-static boost::arg<6> _6;
-static boost::arg<7> _7;
-static boost::arg<8> _8;
-static boost::arg<9> _9;
+#elif defined(SC_BOOST_MSVC) || (defined(__DECCXX_VER) && __DECCXX_VER <= 60590031) || defined(__MWERKS__)
+
+static sc_boost::arg<1> _1;
+static sc_boost::arg<2> _2;
+static sc_boost::arg<3> _3;
+static sc_boost::arg<4> _4;
+static sc_boost::arg<5> _5;
+static sc_boost::arg<6> _6;
+static sc_boost::arg<7> _7;
+static sc_boost::arg<8> _8;
+static sc_boost::arg<9> _9;
 
 #else
 
-boost::arg<1> _1;
-boost::arg<2> _2;
-boost::arg<3> _3;
-boost::arg<4> _4;
-boost::arg<5> _5;
-boost::arg<6> _6;
-boost::arg<7> _7;
-boost::arg<8> _8;
-boost::arg<9> _9;
+sc_boost::arg<1> _1;
+sc_boost::arg<2> _2;
+sc_boost::arg<3> _3;
+sc_boost::arg<4> _4;
+sc_boost::arg<5> _5;
+sc_boost::arg<6> _6;
+sc_boost::arg<7> _7;
+sc_boost::arg<8> _8;
+sc_boost::arg<9> _9;
 
 #endif
 
-} // unnamed namespace
+} // anonymous namespace
+} // namespace sc_unnamed
 
-#endif // #ifndef BOOST_BIND_PLACEHOLDERS_HPP_INCLUDED
+#endif // #ifndef SC_BOOST_BIND_PLACEHOLDERS_HPP_INCLUDED

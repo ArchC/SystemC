@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,52 +21,9 @@
 
   Original Author: Martin Janssen, Synopsys, Inc., 2001-05-21
 
+  CHANGE LOG IS AT THE END OF THE FILE
  *****************************************************************************/
 
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date: Bishnupriya Bhattacharya, Cadence Design Systems,
-                               Andy Goodrich, Forte Design Systems,
-                               3 October, 2003
-  Description of Modification: sc_clock inherits from sc_signal<bool> only
-                               instead of sc_signal_in_if<bool> and sc_module.
-                               The 2 methods posedge_action() and
-                               negedge_action() are created using sc_spawn().
-                               boost::bind() is not required, instead a local
-                               bind function can be used since the signatures
-                               of the spawned functions are statically known.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-
- *****************************************************************************/
-
-
-// $Log: sc_clock.cpp,v $
-// Revision 1.1.1.1  2006/12/15 20:31:35  acg
-// SystemC 2.2
-//
-// Revision 1.8  2006/04/18 23:36:50  acg
-//  Andy Goodrich: made add_trace_internal public until I can figure out
-//  how to do a friend specification for sc_trace in an environment where
-//  there are partial template and full template specifications for its
-//  arguments.
-//
-// Revision 1.7  2006/04/17 16:38:42  acg
-//  Andy Goodrich: added more context to the deprecation message for the
-//  sc_clock constructor.
-//
-// Revision 1.6  2006/01/25 00:31:11  acg
-//  Andy Goodrich: Changed over to use a standard message id of
-//  SC_ID_IEEE_1666_DEPRECATION for all deprecation messages.
-//
-// Revision 1.5  2006/01/24 20:43:24  acg
-// Andy Goodrich: convert notify_delayed() calls into notify_internal() calls.
-// notify_internal() is an implementation dependent version of notify_delayed()
-// that is simpler, and does not trigger the deprecation warning one would get
 // using notify_delayed().
 //
 // Revision 1.4  2006/01/18 21:42:26  acg
@@ -94,8 +51,15 @@ namespace sc_core {
 
 // constructors
 
-sc_clock::sc_clock()
-: sc_signal<bool>( sc_gen_unique_name( "clock" ) )
+sc_clock::sc_clock() : 
+    sc_signal<bool>( sc_gen_unique_name( "clock" ) ),
+    m_period(), m_duty_cycle(), m_start_time(), m_posedge_first(),
+    m_posedge_time(), m_negedge_time(),
+    m_next_posedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
+                          "_next_posedge_event").c_str()),
+    m_next_negedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
+                          "_next_negedge_event").c_str())
+
 {
     init( sc_time( 1.0, true ),
 	  0.5,
@@ -105,8 +69,14 @@ sc_clock::sc_clock()
     m_next_posedge_event.notify_internal( m_start_time );
 }
 
-sc_clock::sc_clock( const char* name_ )
-: sc_signal<bool>( name_ )
+sc_clock::sc_clock( const char* name_ ) :
+    sc_signal<bool>( name_ ),
+    m_period(), m_duty_cycle(), m_start_time(), m_posedge_first(),
+    m_posedge_time(), m_negedge_time(),
+    m_next_posedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
+			   std::string(name_) + "_next_posedge_event").c_str()),
+    m_next_negedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
+			   std::string(name_) + "_next_negedge_event").c_str())
 {
     init( sc_time( 1.0, true ),
 	  0.5,
@@ -120,8 +90,14 @@ sc_clock::sc_clock( const char* name_,
 		    const sc_time& period_,
 		    double         duty_cycle_,
 		    const sc_time& start_time_,
-		    bool           posedge_first_ )
-: sc_signal<bool>( name_ )
+		    bool           posedge_first_ ) :
+    sc_signal<bool>( name_ ),
+    m_period(), m_duty_cycle(), m_start_time(), m_posedge_first(),
+    m_posedge_time(), m_negedge_time(),
+    m_next_posedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
+			   std::string(name_) + "_next_posedge_event").c_str()),
+    m_next_negedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
+			   std::string(name_) + "_next_negedge_event").c_str())
 {
     init( period_,
 	  duty_cycle_,
@@ -140,8 +116,14 @@ sc_clock::sc_clock( const char* name_,
 sc_clock::sc_clock( const char* name_,
 		    double         period_v_,
 		    sc_time_unit   period_tu_,
-		    double         duty_cycle_ )
-: sc_signal<bool>( name_ )
+		    double         duty_cycle_ ) :
+    sc_signal<bool>( name_ ),
+    m_period(), m_duty_cycle(), m_start_time(), m_posedge_first(),
+    m_posedge_time(), m_negedge_time(),
+    m_next_posedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
+			   std::string(name_) + "_next_posedge_event").c_str()),
+    m_next_negedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
+			   std::string(name_) + "_next_negedge_event").c_str())
 {
     init( sc_time( period_v_, period_tu_, simcontext() ),
 	  duty_cycle_,
@@ -158,8 +140,14 @@ sc_clock::sc_clock( const char* name_,
 		    double         duty_cycle_,
 		    double         start_time_v_,
 		    sc_time_unit   start_time_tu_,
-		    bool           posedge_first_ )
-: sc_signal<bool>( name_ )
+		    bool           posedge_first_ ) :
+    sc_signal<bool>( name_ ),
+    m_period(), m_duty_cycle(), m_start_time(), m_posedge_first(),
+    m_posedge_time(), m_negedge_time(),
+    m_next_posedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
+			   std::string(name_) + "_next_posedge_event").c_str()),
+    m_next_negedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
+			   std::string(name_) + "_next_negedge_event").c_str())
 {
     init( sc_time( period_v_, period_tu_, simcontext() ),
 	  duty_cycle_,
@@ -180,8 +168,14 @@ sc_clock::sc_clock( const char* name_,
 		    double         period_,      // in default time units
 		    double         duty_cycle_,
 		    double         start_time_,  // in default time units
-		    bool           posedge_first_ )
-: sc_signal<bool>( name_ )
+		    bool           posedge_first_ ) :
+    sc_signal<bool>( name_ ),
+    m_period(), m_duty_cycle(), m_start_time(), m_posedge_first(),
+    m_posedge_time(), m_negedge_time(),
+    m_next_posedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
+			   std::string(name_) + "_next_posedge_event").c_str()),
+    m_next_negedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
+			   std::string(name_) + "_next_negedge_event").c_str())
 {
     static bool warn_sc_clock=true;
     if ( warn_sc_clock )
@@ -216,7 +210,7 @@ sc_clock::sc_clock( const char* name_,
 // so that the processes are registered with the global simcontext rather
 // than the scope of the clock's parent.
 //------------------------------------------------------------------------------
-#if ( defined(_MSC_VER) && _MSC_VER < 1300 ) //VC++6.0 doesn't support sc_spawn with functor
+#if ( defined(_MSC_VER) && _MSC_VER < 1300 ) //VC++6.0 doesn't support sc_spawn with functor.
 #   define sc_clock_posedge_callback(ptr) sc_clock_posedge_callback
 
 #   define sc_clock_negedge_callback(ptr) sc_clock_negedge_callback
@@ -259,7 +253,7 @@ void sc_clock::before_end_of_elaboration()
 sc_clock::~sc_clock()
 {}
 
-void sc_clock::register_port( sc_port_base& port, const char* if_typename_ )
+void sc_clock::register_port( sc_port_base& /*port*/, const char* if_typename_ )
 {
     std::string nm( if_typename_ );
     if( nm == typeid( sc_signal_inout_if<bool> ).name() ) {
@@ -268,7 +262,7 @@ void sc_clock::register_port( sc_port_base& port, const char* if_typename_ )
 }
 
 void
-sc_clock::write( const bool& value)
+sc_clock::write( const bool& /* value */ )
 {
     SC_REPORT_ERROR(SC_ID_ATTEMPT_TO_WRITE_TO_CLOCK_, "");
 }
@@ -344,5 +338,67 @@ sc_clock::init( const sc_time& period_,
 
 } // namespace sc_core
 
+/*****************************************************************************
+
+  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
+  changes you are making here.
+
+      Name, Affiliation, Date: Bishnupriya Bhattacharya, Cadence Design Systems,
+                               Andy Goodrich, Forte Design Systems,
+                               3 October, 2003
+  Description of Modification: sc_clock inherits from sc_signal<bool> only
+                               instead of sc_signal_in_if<bool> and sc_module.
+                               The 2 methods posedge_action() and
+                               negedge_action() are created using sc_spawn().
+                               boost::bind() is not required, instead a local
+                               bind function can be used since the signatures
+                               of the spawned functions are statically known.
+
+      Name, Affiliation, Date:
+  Description of Modification:
+
+ *****************************************************************************/
+
+// $Log: sc_clock.cpp,v $
+// Revision 1.7  2011/08/26 20:45:39  acg
+//  Andy Goodrich: moved the modification log to the end of the file to
+//  eliminate source line number skew when check-ins are done.
+//
+// Revision 1.6  2011/08/24 22:05:35  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.5  2011/08/15 16:43:24  acg
+//  Torsten Maehne: changes to remove unused argument warnings.
+//
+// Revision 1.4  2011/03/12 21:07:42  acg
+//  Andy Goodrich: changes to kernel generated event support.
+//
+// Revision 1.3  2011/03/06 15:55:08  acg
+//  Andy Goodrich: Changes for named events.
+//
+// Revision 1.2  2011/02/18 20:23:45  acg
+//  Andy Goodrich: Copyright update.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:04  acg
+// SystemC 2.3
+//
+// Revision 1.8  2006/04/18 23:36:50  acg
+//  Andy Goodrich: made add_trace_internal public until I can figure out
+//  how to do a friend specification for sc_trace in an environment where
+//  there are partial template and full template specifications for its
+//  arguments.
+//
+// Revision 1.7  2006/04/17 16:38:42  acg
+//  Andy Goodrich: added more context to the deprecation message for the
+//  sc_clock constructor.
+//
+// Revision 1.6  2006/01/25 00:31:11  acg
+//  Andy Goodrich: Changed over to use a standard message id of
+//  SC_ID_IEEE_1666_DEPRECATION for all deprecation messages.
+//
+// Revision 1.5  2006/01/24 20:43:24  acg
+// Andy Goodrich: convert notify_delayed() calls into notify_internal() calls.
+// notify_internal() is an implementation dependent version of notify_delayed()
+// that is simpler, and does not trigger the deprecation warning one would get
 
 // Taf!

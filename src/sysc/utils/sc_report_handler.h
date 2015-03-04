@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -22,26 +22,8 @@
   Original Author: Alex Riesen, Synopsys, Inc.
   see also sc_report.h
 
+  CHANGE LOG AT END OF FILE
  *****************************************************************************/
-
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-
- *****************************************************************************/
-
-// $Log: sc_report_handler.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:39  acg
-// SystemC 2.2
-//
-// Revision 1.3  2006/01/13 18:53:11  acg
-// Andy Goodrich: Added $Log command so that CVS comments are reproduced in
-// the source.
-//
 
 #ifndef SC_REPORT_HANDLER_H
 #define SC_REPORT_HANDLER_H
@@ -81,6 +63,13 @@ public:
 		       const char* file,
 		       int line);
 
+    static void report( sc_severity, 
+                        const char* msg_type, 
+			const char* msg, 
+                        int verbosity, 
+			const char* file, 
+			int line );
+
     static sc_actions set_actions(sc_severity,
 				  sc_actions = SC_UNSPECIFIED);
 
@@ -102,8 +91,11 @@ public:
 
     static int get_count(sc_severity severity_);
     static int get_count(const char* msg_type_);
-    static int get_count(const char* msg_type_, 
-        sc_severity severity_);
+    static int get_count(const char* msg_type_, sc_severity severity_);
+
+    static int get_verbosity_level();
+    static int set_verbosity_level( int level );
+
 
     static void initialize(); // just reset counters
     static void release(); // initialize() needed for reports after it
@@ -149,6 +141,7 @@ protected:
     static sc_report*   last_global_report;
     static sc_actions   available_actions;
     static char*        log_file_name;
+    static int          verbosity_level;
 
     static msg_def_items*  messages;
     static msg_def_items   msg_terminator;
@@ -173,6 +166,28 @@ public:
 };
 
 } // namespace sc_core
+
+// $Log: sc_report_handler.h,v $
+// Revision 1.5  2011/08/26 20:46:19  acg
+//  Andy Goodrich: moved the modification log to the end of the file to
+//  eliminate source line number skew when check-ins are done.
+//
+// Revision 1.4  2011/03/23 16:16:49  acg
+//  Andy Goodrich: finish message verbosity support.
+//
+// Revision 1.3  2011/02/18 20:38:44  acg
+//  Andy Goodrich: Updated Copyright notice.
+//
+// Revision 1.2  2011/02/01 23:02:05  acg
+//  Andy Goodrich: IEEE 1666 2011 changes.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:06  acg
+// SystemC 2.3
+//
+// Revision 1.3  2006/01/13 18:53:11  acg
+// Andy Goodrich: Added $Log command so that CVS comments are reproduced in
+// the source.
+//
 
 #endif
 

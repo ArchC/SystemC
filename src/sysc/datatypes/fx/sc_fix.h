@@ -34,8 +34,11 @@
  *****************************************************************************/
 
 // $Log: sc_fix.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.2  2011/01/19 18:57:40  acg
+//  Andy Goodrich: changes for IEEE_1666_2011.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:04  acg
+// SystemC 2.3
 //
 // Revision 1.3  2006/01/13 18:53:57  acg
 // Andy Goodrich: added $Log command so that CVS comments are reproduced in
@@ -165,6 +168,7 @@ public:
     DECL_CTORS_T_A(unsigned int)
     DECL_CTORS_T_A(long)
     DECL_CTORS_T_A(unsigned long)
+    DECL_CTORS_T_A(float)
     DECL_CTORS_T_A(double)
     DECL_CTORS_T_A(const char*)
     DECL_CTORS_T_A(const sc_fxval&)
@@ -249,6 +253,7 @@ public:
     DECL_ASN_OP_T(op,unsigned int)                                            \
     DECL_ASN_OP_T(op,long)                                                    \
     DECL_ASN_OP_T(op,unsigned long)                                           \
+    DECL_ASN_OP_T(op,float)                                                  \
     DECL_ASN_OP_T(op,double)                                                  \
     DECL_ASN_OP_T(op,const char*)                                             \
     DECL_ASN_OP_T(op,const sc_fxval&)                                         \
@@ -398,6 +403,7 @@ public:
     DECL_CTORS_T_A(unsigned int)
     DECL_CTORS_T_A(long)
     DECL_CTORS_T_A(unsigned long)
+    DECL_CTORS_T_A(float)
     DECL_CTORS_T_A(double)
     DECL_CTORS_T_A(const char*)
     DECL_CTORS_T_A(const sc_fxval&)
@@ -473,6 +479,7 @@ public:
     DECL_ASN_OP_T(op,unsigned int)                                            \
     DECL_ASN_OP_T(op,long)                                                    \
     DECL_ASN_OP_T(op,unsigned long)                                           \
+    DECL_ASN_OP_T(op,float)                                                  \
     DECL_ASN_OP_T(op,double)                                                  \
     DECL_ASN_OP_T(op,const char*)                                             \
     DECL_ASN_OP_T(op,const sc_fxval&)                                         \
@@ -979,6 +986,7 @@ DEFN_CTORS_T_A(int)
 DEFN_CTORS_T_A(unsigned int)
 DEFN_CTORS_T_A(long)
 DEFN_CTORS_T_A(unsigned long)
+DEFN_CTORS_T_A(float)
 DEFN_CTORS_T_A(double)
 DEFN_CTORS_T_A(const char*)
 DEFN_CTORS_T_A(const sc_fxval&)
@@ -1141,6 +1149,7 @@ DEFN_ASN_OP_T(op,int)                                                         \
 DEFN_ASN_OP_T(op,unsigned int)                                                \
 DEFN_ASN_OP_T(op,long)                                                        \
 DEFN_ASN_OP_T(op,unsigned long)                                               \
+DEFN_ASN_OP_T(op,float)                                                      \
 DEFN_ASN_OP_T(op,double)                                                      \
 DEFN_ASN_OP_T(op,const char*)                                                 \
 DEFN_ASN_OP_T(op,const sc_fxval&)                                             \
@@ -1691,6 +1700,7 @@ DEFN_CTORS_T_A(int)
 DEFN_CTORS_T_A(unsigned int)
 DEFN_CTORS_T_A(long)
 DEFN_CTORS_T_A(unsigned long)
+DEFN_CTORS_T_A(float)
 DEFN_CTORS_T_A(double)
 DEFN_CTORS_T_A(const char*)
 DEFN_CTORS_T_A(const sc_fxval&)
@@ -1837,6 +1847,7 @@ DEFN_ASN_OP_T(op,int)                                                         \
 DEFN_ASN_OP_T(op,unsigned int)                                                \
 DEFN_ASN_OP_T(op,long)                                                        \
 DEFN_ASN_OP_T(op,unsigned long)                                               \
+DEFN_ASN_OP_T(op,float)                                                      \
 DEFN_ASN_OP_T(op,double)                                                      \
 DEFN_ASN_OP_T(op,const char*)                                                 \
 DEFN_ASN_OP_T(op,const sc_fxval&)                                             \

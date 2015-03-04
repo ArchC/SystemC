@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,35 +21,21 @@
 
   Original Author: Stan Y. Liao, Synopsys, Inc.
 
+  CHANGE LOG AT THE END OF THE FILE
  *****************************************************************************/
 
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-
- *****************************************************************************/
-
-// $Log: sc_object_manager.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:37  acg
-// SystemC 2.2
-//
-// Revision 1.3  2006/01/13 18:44:30  acg
-// Added $Log to record CVS changes into the source.
-//
 
 #ifndef SC_OBJECT_MANAGER_H
 #define SC_OBJECT_MANAGER_H
 
-#include "sysc/utils/sc_vector.h"
+#include <map>
+#include <vector>
 
 namespace sc_core {
 
+class sc_event;
+class sc_object;
 class sc_module_name;
-template <class K, class C> class sc_phash;
 
 
 // ----------------------------------------------------------------------------
@@ -60,16 +46,27 @@ template <class K, class C> class sc_phash;
 
 class sc_object_manager
 {
+    friend class sc_event;
+    friend class sc_object;
     friend class sc_simcontext;
 
-public:
+protected:
+    struct table_entry
+    {
+        table_entry() : m_event_p(NULL), m_object_p(NULL) {}
 
-    typedef sc_phash<const char*, sc_object*> object_table_type;
-    typedef sc_pvector<sc_object*>            object_vector_type;
-    typedef sc_plist<sc_object*>              object_hierarchy_type;
+	sc_event*  m_event_p;   // if non-null this is an sc_event.
+        sc_object* m_object_p;  // if non-null this is an sc_object.
+    };
+
+public:
+    typedef std::map<std::string,table_entry> instance_table_t;
+    typedef std::vector<sc_object*>           object_vector_t;
 
     sc_object_manager();
     ~sc_object_manager();
+
+    sc_event* find_event(const char* name);
 
     sc_object* find_object(const char* name);
     sc_object* first_object();
@@ -84,19 +81,57 @@ public:
     sc_module_name* pop_module_name();
     sc_module_name* top_of_module_name_stack();
 
-    void insert_object(const char* name, sc_object* obj);
-    void remove_object(const char* name);
+
+private:
+    std::string create_name( const char* leaf_name );
+    void insert_event(const std::string& name, sc_event* obj);
+    void insert_object(const std::string& name, sc_object* obj);
+    void remove_event(const std::string& name);
+    void remove_object(const std::string& name);
 
 private:
 
-    object_table_type*     m_object_table;
-    object_vector_type*    m_ordered_object_vector;
-    bool                   m_ordered_object_vector_dirty;
-    int                    m_next_object_index;
-    object_hierarchy_type* m_object_hierarchy;
-    sc_module_name*        m_module_name_stack;
+    instance_table_t::iterator m_event_it;          // event instance iterator.
+    bool                       m_event_walk_ok;     // true if can walk events.
+    instance_table_t           m_instance_table;    // table of instances.
+    sc_module_name*            m_module_name_stack; // sc_module_name stack.
+    instance_table_t::iterator m_object_it;         // object instance iterator.
+    object_vector_t            m_object_stack;      // sc_object stack.
+    bool                       m_object_walk_ok;    // true if can walk objects.
 };
 
 } // namespace sc_core
+
+// $Log: sc_object_manager.h,v $
+// Revision 1.9  2011/08/26 20:46:10  acg
+//  Andy Goodrich: moved the modification log to the end of the file to
+//  eliminate source line number skew when check-ins are done.
+//
+// Revision 1.8  2011/03/06 15:55:11  acg
+//  Andy Goodrich: Changes for named events.
+//
+// Revision 1.7  2011/03/05 19:44:20  acg
+//  Andy Goodrich: changes for object and event naming and structures.
+//
+// Revision 1.6  2011/03/05 01:39:21  acg
+//  Andy Goodrich: changes for named events.
+//
+// Revision 1.5  2011/02/18 20:27:14  acg
+//  Andy Goodrich: Updated Copyrights.
+//
+// Revision 1.4  2011/02/13 21:47:37  acg
+//  Andy Goodrich: update copyright notice.
+//
+// Revision 1.3  2010/07/22 20:02:33  acg
+//  Andy Goodrich: bug fixes.
+//
+// Revision 1.2  2008/05/22 17:06:26  acg
+//  Andy Goodrich: updated copyright notice to include 2008.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:05  acg
+// SystemC 2.3
+//
+// Revision 1.3  2006/01/13 18:44:30  acg
+// Added $Log to record CVS changes into the source.
 
 #endif

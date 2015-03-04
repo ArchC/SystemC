@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,34 +21,9 @@
 
   Original Author: Martin Janssen, Synopsys, Inc., 2001-05-21
 
+  CHANGE LOG IS AT THE END OF THE FILE
  *****************************************************************************/
 
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-    
- *****************************************************************************/
-//$Log: sc_signal_resolved.h,v $
-//Revision 1.1.1.1  2006/12/15 20:31:35  acg
-//SystemC 2.2
-//
-//Revision 1.2  2006/01/03 23:18:26  acg
-//Changed copyright to include 2006.
-//
-//Revision 1.1.1.1  2005/12/19 23:16:43  acg
-//First check in of SystemC 2.1 into its own archive.
-//
-//Revision 1.10  2005/09/15 23:01:52  acg
-//Added std:: prefix to appropriate methods and types to get around
-//issues with the Edison Front End.
-//
-//Revision 1.9  2005/06/10 22:43:55  acg
-//Added CVS change log annotation.
-//
 
 #ifndef SC_SIGNAL_RESOLVED_H
 #define SC_SIGNAL_RESOLVED_H
@@ -64,52 +39,34 @@ extern const sc_dt::sc_logic_value_t sc_logic_resolution_tbl[4][4];
 
 
 // ----------------------------------------------------------------------------
-//  CLASS : sc_logic_resolve
-//
-//  Resolution function for sc_dt::sc_logic.
-// ----------------------------------------------------------------------------
-
-class sc_logic_resolve
-{
-public:
-
-    // resolves sc_dt::sc_logic values and returns the resolved value
-    static void resolve(sc_dt::sc_logic&, const std::vector<sc_dt::sc_logic*>&);
-};
-
-
-// ----------------------------------------------------------------------------
 //  CLASS : sc_signal_resolved
 //
 //  The resolved signal class.
 // ----------------------------------------------------------------------------
 
 class sc_signal_resolved
-: public sc_signal<sc_dt::sc_logic>
+: public sc_signal<sc_dt::sc_logic,SC_MANY_WRITERS>
 {
 public:
 
     // typedefs
 
-    typedef sc_signal_resolved         this_type;
-    typedef sc_signal<sc_dt::sc_logic> base_type;
-    typedef sc_dt::sc_logic            data_type;
+    typedef sc_signal_resolved                         this_type;
+    typedef sc_signal<sc_dt::sc_logic,SC_MANY_WRITERS> base_type;
+    typedef sc_dt::sc_logic                            data_type;
 
 public:
 
     // constructors
 
-    sc_signal_resolved()
-        : base_type( sc_gen_unique_name( "signal_resolved" ) )
+    sc_signal_resolved() :
+        base_type( sc_gen_unique_name( "signal_resolved" ) ), m_proc_vec(), 
+	m_val_vec()
+        {}
+
+    explicit sc_signal_resolved( const char* name_ ): 
+        base_type( name_ ), m_proc_vec(), m_val_vec()
 	{}
-
-    explicit sc_signal_resolved( const char* name_ )
-        : base_type( name_ )
-	{}
-
-
-    // destructor
-    virtual ~sc_signal_resolved();
 
 
     // interface methods
@@ -140,7 +97,7 @@ protected:
 protected:
 
     std::vector<sc_process_b*> m_proc_vec; // processes writing this signal
-    std::vector<data_type*>       m_val_vec;  // new values written this signal
+    std::vector<data_type>     m_val_vec;  // new values written this signal
 
 private:
 
@@ -149,6 +106,40 @@ private:
 };
 
 } // namespace sc_core
+
+//$Log: sc_signal_resolved.h,v $
+//Revision 1.6  2011/08/26 20:45:44  acg
+// Andy Goodrich: moved the modification log to the end of the file to
+// eliminate source line number skew when check-ins are done.
+//
+//Revision 1.5  2011/08/24 22:05:36  acg
+// Torsten Maehne: initialization changes to remove warnings.
+//
+//Revision 1.4  2011/04/19 02:36:26  acg
+// Philipp A. Hartmann: new aysnc_update and mutex support.
+//
+//Revision 1.3  2011/02/18 20:23:45  acg
+// Andy Goodrich: Copyright update.
+//
+//Revision 1.2  2011/01/20 16:52:15  acg
+// Andy Goodrich: changes for IEEE 1666 2011.
+//
+//Revision 1.1.1.1  2006/12/15 20:20:04  acg
+//SystemC 2.3
+//
+//Revision 1.2  2006/01/03 23:18:26  acg
+//Changed copyright to include 2006.
+//
+//Revision 1.1.1.1  2005/12/19 23:16:43  acg
+//First check in of SystemC 2.1 into its own archive.
+//
+//Revision 1.10  2005/09/15 23:01:52  acg
+//Added std:: prefix to appropriate methods and types to get around
+//issues with the Edison Front End.
+//
+//Revision 1.9  2005/06/10 22:43:55  acg
+//Added CVS change log annotation.
+//
 
 #endif
 

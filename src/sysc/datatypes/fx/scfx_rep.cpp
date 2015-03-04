@@ -36,6 +36,18 @@
 
 
 // $Log: scfx_rep.cpp,v $
+// Revision 1.4  2011/08/24 22:05:43  acg
+//  Torsten Maehne: initialization changes to remove warnings.
+//
+// Revision 1.3  2011/08/15 16:43:24  acg
+//  Torsten Maehne: changes to remove unused argument warnings.
+//
+// Revision 1.2  2009/02/28 00:26:20  acg
+//  Andy Goodrich: bug fixes.
+//
+// Revision 1.2  2008/11/06 17:22:47  acg
+//  Andy Goodrich: bug fixes for 2.2.1.
+//
 // Revision 1.1.1.1  2006/12/15 20:31:36  acg
 // SystemC 2.2
 //
@@ -81,13 +93,15 @@ n_word( int x )
 // ----------------------------------------------------------------------------
 
 scfx_rep::scfx_rep()
-: m_mant( min_mant ), m_r_flag( false )
+: m_mant( min_mant ), m_wp(), m_sign(), m_state(), m_msw(), m_lsw(), 
+  m_r_flag( false )
 {
     set_zero();
 }
 
 scfx_rep::scfx_rep( int a )
-: m_mant( min_mant ), m_r_flag( false )
+: m_mant( min_mant ), m_wp(), m_sign(), m_state(), m_msw(), m_lsw(), 
+  m_r_flag( false )
 {
     if( a != 0 )
     {
@@ -110,7 +124,8 @@ scfx_rep::scfx_rep( int a )
 }
 
 scfx_rep::scfx_rep( unsigned int a )
-: m_mant( min_mant ), m_r_flag( false )
+: m_mant( min_mant ), m_wp(), m_sign(), m_state(), m_msw(), m_lsw(), 
+  m_r_flag( false )
 {
     if( a != 0 )
     {
@@ -125,7 +140,8 @@ scfx_rep::scfx_rep( unsigned int a )
 }
 
 scfx_rep::scfx_rep( long a )
-: m_mant( min_mant ), m_r_flag( false )
+: m_mant( min_mant ), m_wp(), m_sign(), m_state(), m_msw(), m_lsw(), 
+  m_r_flag( false )
 {
     if( a != 0 )
     {
@@ -158,7 +174,8 @@ scfx_rep::scfx_rep( long a )
 }
 
 scfx_rep::scfx_rep( unsigned long a )
-: m_mant( min_mant ), m_r_flag( false )
+: m_mant( min_mant ), m_wp(), m_sign(), m_state(), m_msw(), m_lsw(), 
+  m_r_flag( false )
 {
     if( a != 0 )
     {
@@ -183,8 +200,8 @@ scfx_rep::scfx_rep( unsigned long a )
 }
 
 scfx_rep::scfx_rep( double a )
-: m_mant( min_mant ), m_wp( 0 ), m_state( normal ), m_msw( 0 ), m_lsw( 0 ),
-  m_r_flag( false )
+: m_mant( min_mant ), m_wp( 0 ), m_sign(), m_state( normal ), m_msw( 0 ), 
+  m_lsw( 0 ), m_r_flag( false )
 {
     m_mant.clear();
 
@@ -211,7 +228,8 @@ scfx_rep::scfx_rep( double a )
 }
 
 scfx_rep::scfx_rep( int64 a )
-: m_mant( min_mant ), m_r_flag( false )
+: m_mant( min_mant ), m_wp(), m_sign(), m_state(), m_msw(), m_lsw(), 
+  m_r_flag( false )
 {
     if( a != 0 )
     {
@@ -237,7 +255,8 @@ scfx_rep::scfx_rep( int64 a )
 }
 
 scfx_rep::scfx_rep( uint64 a )
-: m_mant( min_mant ), m_r_flag( false )
+: m_mant( min_mant ), m_wp(), m_sign(), m_state(), m_msw(), m_lsw(), 
+  m_r_flag( false )
 {
     if( a != 0 )
     {
@@ -254,7 +273,8 @@ scfx_rep::scfx_rep( uint64 a )
 }
 
 scfx_rep::scfx_rep( const sc_signed& a )
-: m_mant( min_mant ), m_r_flag( false )
+: m_mant( min_mant ), m_wp(), m_sign(), m_state(), m_msw(), m_lsw(), 
+  m_r_flag( false )
 {
     if( a.iszero() )
 	set_zero();
@@ -296,7 +316,8 @@ scfx_rep::scfx_rep( const sc_signed& a )
 }
 
 scfx_rep::scfx_rep( const sc_unsigned& a )
-: m_mant( min_mant ), m_r_flag( false )
+: m_mant( min_mant ), m_wp(), m_sign(), m_state(), m_msw(), m_lsw(), 
+  m_r_flag( false )
 {
     if( a.iszero() )
 	set_zero();
@@ -1369,7 +1390,7 @@ add_scfx_rep( const scfx_rep& lhs, const scfx_rep& rhs, int max_wl )
 
 static inline
 int
-sub_with_index(       scfx_mant& a, int a_msw, int a_lsw,
+sub_with_index(       scfx_mant& a, int a_msw, int /*a_lsw*/,
 		const scfx_mant& b, int b_msw, int b_lsw )
 {
     unsigned carry = 0;
@@ -1522,8 +1543,8 @@ multiply( scfx_rep& result, const scfx_rep& lhs, const scfx_rep& rhs,
     //
 
     if( lhs.is_nan() || rhs.is_nan()
-    ||  lhs.is_inf() && rhs.is_zero()
-    ||  lhs.is_zero() && rhs.is_inf() )
+    ||  (lhs.is_inf() && rhs.is_zero())
+    ||  (lhs.is_zero() && rhs.is_inf()) )
     {
 	result.set_nan();
 	return;
@@ -1603,8 +1624,8 @@ div_scfx_rep( const scfx_rep& lhs, const scfx_rep& rhs, int div_wl )
     // check for special cases
     //
 
-    if( lhs.is_nan() || rhs.is_nan() || lhs.is_inf() && rhs.is_inf() ||
-	lhs.is_zero() && rhs.is_zero() )
+    if( lhs.is_nan() || rhs.is_nan() || (lhs.is_inf() && rhs.is_inf()) ||
+	(lhs.is_zero() && rhs.is_zero()) )
     {
 	result.set_nan();
 	return &result;
@@ -1976,7 +1997,7 @@ scfx_rep::quantization( const scfx_params& params, bool& q_flag )
 	    }
             case SC_RND_CONV:			// convergent rounding
 	    {
-		if( qb && ! qz || qb && qz && q_odd( x ) )
+		if( (qb && ! qz) || (qb && qz && q_odd( x )) )
 		    q_incr( x );
 		break;
 	    }
@@ -2046,7 +2067,7 @@ scfx_rep::overflow( const scfx_params& params, bool& o_flag )
 	    if( params.o_mode() == SC_SAT_SYM )
 		under = ( ! zero_left || bit_at );
 	    else
-		under = ( ! zero_left || zero_left && bit_at && ! zero_right );
+		under = (! zero_left || (zero_left && bit_at && ! zero_right));
 	}
 	else
 	    over = ( ! zero_left || bit_at );
@@ -2885,8 +2906,8 @@ scfx_rep::round( int wl )
 
     scfx_index x( wi, bi );
 
-    if( q_bit( x ) && ! q_zero( x ) ||
-	q_bit( x ) && q_zero( x ) && q_odd( x ) )
+    if( (q_bit( x ) && ! q_zero( x )) ||
+	(q_bit( x ) && q_zero( x ) && q_odd( x )) )
 	q_incr( x );
     q_clear( x );
 

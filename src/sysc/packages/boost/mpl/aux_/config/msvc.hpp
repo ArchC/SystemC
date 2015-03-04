@@ -1,6 +1,6 @@
 
-#ifndef BOOST_MPL_AUX_CONFIG_MSVC_HPP_INCLUDED
-#define BOOST_MPL_AUX_CONFIG_MSVC_HPP_INCLUDED
+#ifndef SC_BOOST_MPL_AUX_CONFIG_MSVC_HPP_INCLUDED
+#define SC_BOOST_MPL_AUX_CONFIG_MSVC_HPP_INCLUDED
 
 // Copyright Aleksey Gurtovoy 2002-2004
 //
@@ -10,12 +10,12 @@
 //
 // See http://www.boost.org/libs/mpl for documentation.
 
-// $Source: /Users/acg/CVSROOT/systemc-2.2/src/sysc/packages/boost/mpl/aux_/config/msvc.hpp,v $
-// $Date: 2006/12/15 20:31:38 $
-// $Revision: 1.1.1.1 $
+// $Source: /Users/acg/CVSROOT/systemc-2.3/src/sysc/packages/boost/mpl/aux_/config/msvc.hpp,v $
+// $Date: 2009/10/14 19:11:07 $
+// $Revision: 1.2 $
 
 
-// BOOST_MSVC is defined here:
+// SC_BOOST_MSVC is defined here:
 #include <sysc/packages/boost/config.hpp>
 
-#endif // BOOST_MPL_AUX_CONFIG_MSVC_HPP_INCLUDED
+#endif // SC_BOOST_MPL_AUX_CONFIG_MSVC_HPP_INCLUDED

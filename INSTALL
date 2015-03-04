@@ -1,5 +1,5 @@
-                INSTALL NOTES FOR SystemC Release 2.2.0
-                ---------------------------------------
+                INSTALL NOTES FOR SystemC Release 2.3
+                -------------------------------------
 
 Contents:
 
@@ -11,79 +11,62 @@ Contents:
 1. Installation Notes for Unix
 ------------------------------
 
+
 System Requirements
 ===================
 
-SystemC can be installed on the following UNIX platforms
+SystemC can be installed on the following UNIX, or UNIX-like platforms:
 
-  1. Sun Solaris 2.8 with GNU C++ compiler versions gcc-2.95.3, 
-     and gcc-3.2.3
+    o 32-bit Linux (x86) (RedHat Enterprise Linux 4, 5, 6; Fedora 14, 15;
+      Debian 5.0; Ubuntu 10.04LTS, 12.04LTS) with GNU C++ compiler versions
+      gcc-3.3.2 through gcc-4.7.0
+    o 32-bit Linux (x86) (Debian, Ubuntu 12.04LTS) with Clang C++ compiler
+      version clang-2.9 through clang-3.1
+    o 64-bit Linux (x86_64) (RedHat Enterprise Linux 4, 5, 6; Fedora 17;
+      Debian 5.0; Ubuntu 10.04LTS, 12.04LTS) with GNU C++ compiler versions
+      gcc-3.4.5 through gcc-4.7.0
+    o 64-bit Linux (x86_64) (Ubuntu 12.04LTS) with Clang C++ compiler
+      version clang-3.1
+    o 64-bit Linux (x86_64) (Debian 5.0) with 32-bit GNU C++ compiler version
+      gcc-4.1.1 through gcc-4.7.0 (./configure --target=i686-linux-gnu)
+    o Sun Solaris 9 (sparc32) with GNU C++ compiler version gcc-3.3.3
+      through gcc-4.4.6
+    o 32-bit Mac OS X (ppc, i386) (10.5 Leopard, 10.6 Snow Leopard, 10.7 Lion)
+      with GNU C++ compiler versions gcc-3.1 through gcc-4.2.1
+    o 64-bit Mac OS X (x86_64) (10.6 Snow Leopard, 10.7 Lion) with
+      GNU C++ compiler version gcc-4.2.1
+    o 32-bit FreeBSD 7.4 with GNU C++ compiler version gcc-4.2.1
+    o Windows 7 SP1, Microsoft Visual C++ 2005 SP1 (8.0)
+    o Windows 7 SP1, Microsoft Visual C++ 2008 SP1 (9.0)
+    o Windows 7 SP1, Microsoft Visual C++ 2010     (10.0)
+    o Windows XP Prof. SP3, with Microsoft Visual C++ 2010 (10.0)
+    o Windows XP Prof. SP3 (Cygwin 1.5.25) with GNU C++ compiler
+      version gcc-4.3.2
+    o Windows XP Prof. SP3 (Msys 1.0.16) with MinGW32
+      GNU C++ compiler version gcc-4.5.2 through gcc-4.6.2
 
-  2. Sun Solaris 2.8 with Sun Forte 10 C++ compiler (version 5.7). 
-
-  3. Linux (Redhat 6.2) with GNU C++ compiler versions gcc-2.95.3.
-
-  4. Linux (Redhat 7.2) with GNU C++ compiler version gcc-2.95.3.
-
-  5. Linux (Redhat 8.0) with GNU C++ compiler version gcc-2.95.3, 
-     and gcc-3.2.3.
-
-  6. Linux (Redhat 9.0) with GNU C++ compiler version gcc-3.2.2.
-  
-  7. Linux (2.6.9-34.EL kernel) with GNU C++ compiler versions gcc-3.4.5
-     and gcc-4.1.0
-
-  8. 64-bit Linux (Redhat EL) with GNU C++ compiler version gcc-3.4.4.
-
-  9. HP-UX 11.01 with HP C++ compiler version A.03.65.
-
-  10. MacOS X (Tiger) with GNU C++ compiler versions gcc-3.1, gcc-3.3,
-     and gcc-4.0
+An installation of SystemC on other, related platforms may be
+possible as well.
 
 
 Sources for Compilers and Related Tools
 =======================================
 
-To build, install, and use SystemC on UNIX platforms, you need the
-following tools:
+To build, install, and use SystemC on UNIX platforms, you need
+the following tools:
 
-  1. GNU C++ compiler version gcc-2.95.3:
-       gcc version 2.95.3 20010315 (release)
-
-     or GNU C++ compiler version gcc-3.2.2:
-       gcc version 3.2.2 20030222 (release)
-
-     or GNU C++ compiler version gcc-3.2.3:
-       
-     or GNU C++ compiler version gcc-3.4.5:
-       
-     or GNU C++ compiler version gcc-4.1.0:
-       
-
-     or GNU C++ compiler version gcc-3.1 for MacOS X:
-       gcc version 3.1 20020420 (prerelease)
-
-     or GNU C++ compiler version gcc-3.3 for MacOS X:
-       gcc version 3.3 20030304 (Apple Computer, Inc. build 1495)
-
-     or Sun C++ compiler version SC 6.1:
-       CC: Sun WorkShop 6 update 1 C++ 5.2 Patch 109508-07 2001/12/13
-
-     or Sun C++ compiler version SC6.2:
-       CC: Sun WorkShop 6 update 2 C++ 5.3 Patch 111685-05 2002/02/03
-
-     or Sun C++ compiler version Forte 7:
-       CC: Forte Developer 7 C++ 5.4 Patch 111715-05 2003/02/09
-
-     or HP C++ compiler version A.03.39:
-       aCC: HP ANSI C++ B3910B A.03.39
+  1. GNU C++ compiler, version 3.3.2 or later
+     or
+     Clang C++ compiler version clang-2.9 or later
 
   2. GNU Make (gmake)
 
-GCC and gmake are free software that you can
+GCC, Clang, and gmake are free software that you can
 obtain from the following sources:
 
   GCC           http://www.gnu.org/software/gcc/gcc.html
+
+  Clang         http://clang.llvm.org/
 
   gmake         http://www.gnu.org/software/make/make.html
 
@@ -93,7 +76,7 @@ Basic SystemC Installation
 
 To install SystemC on a UNIX system, do the following steps:
 
-  1. Change to the top level directory (systemc-2.2)
+  1. Change to the top level directory (systemc-2.3.0)
 
   2. Create a temporary directory, e.g.,
 
@@ -141,29 +124,43 @@ To install SystemC on a UNIX system, do the following steps:
      need to use the `sh ../configure' command instead of '../configure'.
      Otherwise, `csh' will attempt to `configure' itself.
 
-     SystemC 2.2 includes a fixed-point package that is always built.
+     SystemC 2.3 includes a fixed-point package that is always built.
      When compiling your applications with fixed-point types, you still have
      to use compiler flag -DSC_INCLUDE_FX. Note that compile times increase
      significantly when using this compiler flag.
 
      In case you want to install the package in another place than the
-     top level directory (systemc-2.2), configure the package e.g. as
+     top level directory (systemc-2.3.0), configure the package e.g. as
      follows:
 
-        > ../configure --prefix=/usr/local/systemc-2.2
+        > ../configure --prefix=/usr/local/systemc-2.3.0
 
      Note: make sure you have created the target directory before installing
            the package. Do _not_ use /usr/local as a prefix.
 
-  6. Compile the package.
+     Several options are available to the configure script to modify
+     the compiler configuration and the selection of certain features:
 
-     For an optimized SystemC library, enter:
+       --disable-shared        do not build shared library (libsystemc.so)
+       --enable-debug          include debugging symbols
+       --disable-optimize      disable compiler optimization
+       --disable-async-updates disable request_async_update support
+       --enable-pthreads       use POSIX threads for SystemC processes
+
+     See the section on the general usage of the configure script and
+     "../configure --help" for more information.
+
+     Note: if you change the configuration after having compiled the
+           package already, you should run a "gmake clean" before
+           recompiling.
+
+  6. Compile the package.
 
         > gmake
 
-     For a debug SystemC library, enter:
-
-        > gmake debug
+     Note: The explicit gmake targets "opt" and "debug", etc. have
+           been removed in this package.  Use the corresponding
+           options to the configure script instead.
 
   7. Install the package.
 
@@ -249,7 +246,7 @@ Note for (key) developers:
   `Makefile.am' files:
 
   - Use the `config/distclean' script to remove the generated `configure'
-    script, the generated `aclocal.m4' file and the generated `Makefile.am'
+    script, the generated `aclocal.m4' file and the generated `Makefile.in'
     files.
 
   - Use the `config/bootstrap' script to generate the `configure' script
@@ -272,26 +269,6 @@ Using a Bourne-compatible shell, the command line entry might be:
 Or, on systems that have the `env' program, the command line entry might be:
 
         > env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ../configure
-
-
-Optional Features
-=================
-
-To build optimized libraries (default), from the top level directory run:
-
-        > gmake opt
-
-To build libraries with debug information, from the top level directory run:
-
-        > gmake debug
-
-followed by gmake, and gmake install.
-
-e.g. the following command will rebuild the optimized library from scratch:
-
-        > gmake clean opt install
-
-By default, optimized libraries are built.
 
 
 Specifying the System Type
@@ -367,19 +344,22 @@ Other options that are rarely used are available in the `configure' script.
 Use the `--help' option to print a list.
 
 
-
 2. Installation Notes for Windows
 ---------------------------------
 
-Visual C++ 7.1
---------------
-The download directory contains two subdirectories: 'msvc71' and
+This release has been tested on Visual C++ 2005/2008/2010, Windows XP, and Windows 7.
+
+
+Microsoft Visual C++ 2005 (compiler version 8.0) or later
+---------------------------------------------------------
+
+The download directory contains two subdirectories: 'msvc80' and
 'examples'.
 
-The 'msvc71' directory contains the project and workspace files to
-compile the 'systemc.lib' library. Double-click on the 'SystemC.vcproj'
-file to launch Visual C++ 7.1 with the workspace file. The workspace file
-will have the proper switches set to compile for Visual C++ 7.1.
+The 'msvc80' directory contains the project and workspace files to
+compile the 'systemc.lib' library. Double-click on the 'SystemC.sln'
+file to launch Visual C++ 2005 with the workspace file. The workspace file
+will have the proper switches set to compile for Visual C++ 2005.
 Select `Build SystemC' under the Build menu or press F7 to build
 `systemc.lib'.
 
@@ -387,8 +367,9 @@ The `examples' directory contains the project and workspace files to
 compile the SystemC examples. Go to one of the examples subdirectories
 and double-click on the .vcproj file to launch Visual C++ with the
 workspace file. The workspace file will have the proper switches set
-to compile for Visual C++ 7.1. Select 'Build <example>.exe' under the
+to compile for Visual C++ 2005. Select 'Build <example>.exe' under the
 Build menu or press F7 to build the example executable.
+
 
 Creating SystemC Applications
 -----------------------------
@@ -422,21 +403,20 @@ Creating SystemC Applications
 
 
 Also make sure that the compiler and linker can find the SystemC header 
-and library files respectively. There are two ways to do this, both can
-refer to an environment variable pointing to the SystemC install path:
+and library files respectively. There are two ways to do this:
 
 To update the include file and library directory search paths for all
 projects:
 
-1. Select Tools -> Options . . . and the Projects -> VC++ Directories tab
+1. Select Tools -> Options... and the Projects -> VC++ Directories tab
    
 2. Select show directories for: Library files
 
-3. Select the 'New' icon and enter: $(SYSTEMC)\SystemC\Debug
+3. Select the 'New' icon and browse to: C:\systemc-2.3.0\msvc80\systemc\debug
 
 4. Select show directories for: Include files
 
-5. Select the 'New' icon and enter: $(SYSTEMC)\..\src
+5. Select the 'New' icon and browse to: C:\systemc-2.3.0\src
 
 To add the include file and library directory search paths for the current
 project only:
@@ -446,23 +426,11 @@ project only:
   
 2. From the C/C++ tab, select the General properties and type the path to the 
    SystemC 'src' directory in the text entry field labeled
-  'Additional include directories' (e.g. the examples use '$(SYSTEMC)\..\src').
+  'Additional include directories' (e.g. the examples use '..\..\..\src').
 
 3. From the Linker tab, select the General properties and type the path to 
-   the SystemC library in the text entry field labeled 
-   'Additional Library Directories 
-   (e.g. the examples use '$(SYSTEMC)\SystemC\Debug').
-   
-4. From the Linker tab, select the Input properties and enter 'systemc.lib'
-   in the 'Additional Dependencies' text entry field.
+   the SystemC library:   ...\systemc-2.3.0\msvc80\systemc\debug'systemc.lib' 
+   in the 'Additional Library Directories:' box.
 
-5. Click OK
-
-To set the SYSTEMC environment variable, right-click on the 'My Computer' icon
-and select the properties menu. Select the 'Advanced' tab from the 
-'System Properties' page and click the 'Environment Variables' button. Create
-a new environment variable named 'SYSTEMC' with a variable value that contains
-the path to the SystemC install (e.g. 'C:\apps\systemc-2.2\msvc71').
-Click OK to save the environment variable (note the environment variable must
-be set before starting Visual C++).
+9. Click OK
   

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,42 +21,8 @@
 
   Original Author: Martin Janssen, Synopsys, Inc., 2001-05-21
 
+  CHANGE LOG IS AT THE END OF THE FILE
  *****************************************************************************/
-
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-    
- *****************************************************************************/
-//$Log: sc_fifo.h,v $
-//Revision 1.1.1.1  2006/12/15 20:31:35  acg
-//SystemC 2.2
-//
-//Revision 1.4  2006/01/24 20:46:31  acg
-//Andy Goodrich: changes to eliminate use of deprecated features. For instance,
-//using notify(SC_ZERO_TIME) in place of notify_delayed().
-//
-//Revision 1.3  2006/01/13 20:41:59  acg
-//Andy Goodrich: Changes to add port registration to the things that are
-//checked when SC_NO_WRITE_CHECK is not defined.
-//
-//Revision 1.2  2006/01/03 23:18:26  acg
-//Changed copyright to include 2006.
-//
-//Revision 1.1.1.1  2005/12/19 23:16:43  acg
-//First check in of SystemC 2.1 into its own archive.
-//
-//Revision 1.12  2005/09/15 23:01:51  acg
-//Added std:: prefix to appropriate methods and types to get around
-//issues with the Edison Front End.
-//
-//Revision 1.11  2005/06/10 22:43:55  acg
-//Added CVS change log annotation.
-//
 
 #ifndef SC_FIFO_H
 #define SC_FIFO_H
@@ -90,11 +56,19 @@ public:
     // constructors
 
     explicit sc_fifo( int size_ = 16 )
-	: sc_prim_channel( sc_gen_unique_name( "fifo" ) )
+	: sc_prim_channel( sc_gen_unique_name( "fifo" ) ),
+	  m_data_read_event(
+	      (std::string(SC_KERNEL_EVENT_PREFIX)+"_read_event").c_str()),
+	  m_data_written_event(
+	      (std::string(SC_KERNEL_EVENT_PREFIX)+"_write_event").c_str())
 	{ init( size_ ); }
 
     explicit sc_fifo( const char* name_, int size_ = 16 )
-	: sc_prim_channel( name_ )
+	: sc_prim_channel( name_ ),
+	  m_data_read_event(
+	      (std::string(SC_KERNEL_EVENT_PREFIX)+"_read_event").c_str()),
+	  m_data_written_event(
+	      (std::string(SC_KERNEL_EVENT_PREFIX)+"_write_event").c_str())
 	{ init( size_ ); }
 
 
@@ -214,18 +188,27 @@ sc_fifo<T>::register_port( sc_port_base& port_,
 			    const char* if_typename_ )
 {
     std::string nm( if_typename_ );
-    if( nm == typeid( sc_fifo_in_if<T> ).name() ) {
+    if( nm == typeid( sc_fifo_in_if<T> ).name() ||
+        nm == typeid( sc_fifo_blocking_in_if<T> ).name() 
+    ) {
 	// only one reader can be connected
 	if( m_reader != 0 ) {
 	    SC_REPORT_ERROR( SC_ID_MORE_THAN_ONE_FIFO_READER_, 0 );
 	}
 	m_reader = &port_;
-    } else {  // nm == typeid( sc_fifo_out_if<T> ).name()
+    } else if( nm == typeid( sc_fifo_out_if<T> ).name() ||
+               nm == typeid( sc_fifo_blocking_out_if<T> ).name()
+    ) {
 	// only one writer can be connected
 	if( m_writer != 0 ) {
 	    SC_REPORT_ERROR( SC_ID_MORE_THAN_ONE_FIFO_WRITER_, 0 );
 	}
 	m_writer = &port_;
+    }
+    else
+    {
+        SC_REPORT_ERROR( SC_ID_BIND_IF_TO_PORT_, 
+	                 "sc_fifo<T> port not recognized" );
     }
 }
 
@@ -427,6 +410,7 @@ sc_fifo<T>::buf_read( T& val_ )
 	return false;
     }
     val_ = m_buf[m_ri];
+    m_buf[m_ri] = T(); // clear entry for boost::shared_ptr, et al.
     m_ri = ( m_ri + 1 ) % m_size;
     m_free ++;
     return true;
@@ -445,6 +429,49 @@ operator << ( ::std::ostream& os, const sc_fifo<T>& a )
 }
 
 } // namespace sc_core
+
+//$Log: sc_fifo.h,v $
+//Revision 1.6  2011/08/26 20:45:40  acg
+// Andy Goodrich: moved the modification log to the end of the file to
+// eliminate source line number skew when check-ins are done.
+//
+//Revision 1.5  2011/03/23 16:17:22  acg
+// Andy Goodrich: hide the sc_events that are kernel related.
+//
+//Revision 1.4  2011/02/18 20:23:45  acg
+// Andy Goodrich: Copyright update.
+//
+//Revision 1.3  2009/10/14 19:05:40  acg
+// Andy Goodrich: added check for blocking interfaces in addition to the
+// combined blocking/nonblocking interface.
+//
+//Revision 1.2  2009/05/22 16:06:24  acg
+// Andy Goodrich: process control updates.
+//
+//Revision 1.1.1.1  2006/12/15 20:20:04  acg
+//SystemC 2.3
+//
+//Revision 1.4  2006/01/24 20:46:31  acg
+//Andy Goodrich: changes to eliminate use of deprecated features. For instance,
+//using notify(SC_ZERO_TIME) in place of notify_delayed().
+//
+//Revision 1.3  2006/01/13 20:41:59  acg
+//Andy Goodrich: Changes to add port registration to the things that are
+//checked when SC_NO_WRITE_CHECK is not defined.
+//
+//Revision 1.2  2006/01/03 23:18:26  acg
+//Changed copyright to include 2006.
+//
+//Revision 1.1.1.1  2005/12/19 23:16:43  acg
+//First check in of SystemC 2.1 into its own archive.
+//
+//Revision 1.12  2005/09/15 23:01:51  acg
+//Added std:: prefix to appropriate methods and types to get around
+//issues with the Edison Front End.
+//
+//Revision 1.11  2005/06/10 22:43:55  acg
+//Added CVS change log annotation.
+//
 
 #endif
 

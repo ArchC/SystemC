@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -22,38 +22,8 @@
   Original Author: Alex Riesen, Synopsys, Inc.
   see also sc_report.cpp
 
+  CHANGE LOG AT END OF FILE
  *****************************************************************************/
-
-/*****************************************************************************
-
-  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
-  changes you are making here.
-
-      Name, Affiliation, Date:
-  Description of Modification:
-
- *****************************************************************************/
-
-// $Log: sc_report_handler.cpp,v $
-// Revision 1.1.1.1  2006/12/15 20:31:39  acg
-// SystemC 2.2
-//
-// Revision 1.6  2006/03/21 00:00:37  acg
-//   Andy Goodrich: changed name of sc_get_current_process_base() to be
-//   sc_get_current_process_b() since its returning an sc_process_b instance.
-//
-// Revision 1.5  2006/01/31 21:42:07  acg
-//  Andy Goodrich: Added checks for SC_DEPRECATED_WARNINGS being defined as
-//  DISABLED. If so, we turn off the /IEEE_Std_1666/deprecated message group.
-//
-// Revision 1.4  2006/01/26 21:08:17  acg
-//  Andy Goodrich: conversion to use sc_is_running instead of deprecated
-//  sc_simcontext::is_running()
-//
-// Revision 1.3  2006/01/13 18:53:11  acg
-// Andy Goodrich: Added $Log command so that CVS comments are reproduced in
-// the source.
-//
 
 #include "sysc/utils/sc_iostream.h"
 #include "sysc/kernel/sc_process.h"
@@ -65,6 +35,8 @@
 namespace std {}
 
 namespace sc_core {
+
+int sc_report_handler::verbosity_level = SC_MEDIUM;
 
 // not documented, but available
 const std::string sc_report_compose_message(const sc_report& rep)
@@ -165,8 +137,12 @@ void sc_report_handler::default_handler(const sc_report& rep,
     if ( actions & SC_ABORT )
 	abort();
 
-    if ( actions & SC_THROW )
-	throw rep; 
+    if ( actions & SC_THROW ) {
+        sc_process_b* proc_p = sc_get_current_process_b();
+        if( proc_p && proc_p->is_unwinding() )
+            proc_p->clear_unwinding();
+        throw rep; 
+    }
 }
 
 // not documented, but available
@@ -276,6 +252,35 @@ sc_actions sc_report_handler::execute(sc_msg_def* md, sc_severity severity_)
     return actions;
 }
 
+void sc_report_handler::report( sc_severity severity_, 
+                                const char* msg_type_, 
+				const char* msg_, 
+				int verbosity_, 
+				const char* file_, 
+				int line_ )
+{
+    sc_msg_def * md = mdlookup(msg_type_);
+
+    // If the severity of the report is SC_INFO and the specified verbosity 
+    // level is greater than the maximum verbosity level of the simulator then 
+    // return without any action.
+
+    if ( (severity_ == SC_INFO) && (verbosity_ > verbosity_level) ) return;
+
+    // Process the report:
+
+    if ( !md )
+	md = add_msg_type(msg_type_);
+
+    sc_actions actions = execute(md, severity_);
+    sc_report rep(severity_, md, msg_, file_, line_, verbosity_);
+
+    if ( actions & SC_CACHE_REPORT )
+	cache_report(rep);
+
+    handler(rep, actions);
+}
+
 void sc_report_handler::report(sc_severity severity_,
 			       const char * msg_type_,
 			       const char * msg_,
@@ -283,6 +288,14 @@ void sc_report_handler::report(sc_severity severity_,
 			       int line_)
 {
     sc_msg_def * md = mdlookup(msg_type_);
+
+    // If the severity of the report is SC_INFO and the maximum verbosity
+    // level is less than SC_MEDIUM return without any action.
+
+    if ( (severity_ == SC_INFO) && (SC_MEDIUM > verbosity_level) ) return;
+
+    // Process the report:
+
 
     if ( !md )
 	md = add_msg_type(msg_type_);
@@ -343,8 +356,7 @@ void sc_report_handler::initialize()
 // clear last_global_report.
 void sc_report_handler::release()
 {
-    if ( last_global_report )
-	delete last_global_report;
+    delete last_global_report;
     last_global_report = 0;
     sc_report_close_default_log();
 
@@ -377,6 +389,7 @@ void sc_report_handler::release()
 sc_msg_def * sc_report_handler::add_msg_type(const char * msg_type_)
 {
     sc_msg_def * md = mdlookup(msg_type_);
+    int          msg_type_len;
 
     if ( md )
 	return md;
@@ -395,10 +408,14 @@ sc_msg_def * sc_report_handler::add_msg_type(const char * msg_type_)
 	return 0;
     }
     memset(items->md, 0, sizeof(sc_msg_def) * items->count);
-    items->md->msg_type_data = strdup(msg_type_);
-    items->md->id = -1; // backward compatibility with 2.0+
-
-    if ( !items->md->msg_type_data )
+    msg_type_len = strlen(msg_type_);
+    if ( msg_type_len > 0 )
+    {
+	items->md->msg_type_data = (char*) malloc(msg_type_len+1);
+	strcpy( items->md->msg_type_data, msg_type_ );
+	items->md->id = -1; // backward compatibility with 2.0+
+    }
+    else
     {
 	delete items->md;
 	delete items;
@@ -459,7 +476,7 @@ int sc_report_handler::stop_after(sc_severity severity_, int limit)
 {
     int old = sev_limit[severity_];
 
-    sev_limit[severity_] = limit < 0 ? UINT_MAX: limit;
+    sev_limit[severity_] = limit < 0 ? UINT_MAX: (unsigned) limit;
 
     return old;
 }
@@ -552,8 +569,7 @@ void sc_report_handler::clear_cached_report()
 	proc->set_last_report(0);
     else
     {
-	if ( last_global_report )
-	    delete last_global_report;
+	delete last_global_report;
 	last_global_report = 0;
     }
 }
@@ -582,7 +598,8 @@ bool sc_report_handler::set_log_file_name(const char* name_)
     if ( log_file_name )
 	return false;
 
-    log_file_name = strdup(name_);
+    log_file_name = (char*)malloc(strlen(name_)+1);
+    strcpy(log_file_name, name_);
     return true;
 }
 
@@ -598,8 +615,7 @@ void sc_report_handler::cache_report(const sc_report& rep)
 	proc->set_last_report(new sc_report(rep));
     else
     {
-	if ( last_global_report )
-	    delete last_global_report;
+	delete last_global_report;
 	last_global_report = new sc_report(rep);
     }
 }
@@ -617,6 +633,15 @@ sc_msg_def * sc_report_handler::mdlookup(int id)
 		return item->md + i;
     }
     return 0;
+}
+
+int sc_report_handler::get_verbosity_level() { return verbosity_level; }
+
+int sc_report_handler::set_verbosity_level( int level )
+{
+    int result = verbosity_level;
+    verbosity_level = level;
+    return result;
 }
 
 //
@@ -703,5 +728,54 @@ sc_report_handler::msg_def_items sc_report_handler::msg_terminator =
 };
 
 } // namespace sc_core
+
+// $Log: sc_report_handler.cpp,v $
+// Revision 1.9  2011/08/29 18:04:32  acg
+//  Philipp A. Hartmann: miscellaneous clean ups.
+//
+// Revision 1.8  2011/08/26 20:46:19  acg
+//  Andy Goodrich: moved the modification log to the end of the file to
+//  eliminate source line number skew when check-ins are done.
+//
+// Revision 1.7  2011/08/07 19:08:08  acg
+//  Andy Goodrich: moved logs to end of file so line number synching works
+//  better between versions.
+//
+// Revision 1.6  2011/08/07 18:56:03  acg
+//  Philipp A. Hartmann: added cast to ? : to eliminate clang warning message.
+//
+// Revision 1.5  2011/03/23 16:16:49  acg
+//  Andy Goodrich: finish message verbosity support.
+//
+// Revision 1.4  2011/02/18 20:38:44  acg
+//  Andy Goodrich: Updated Copyright notice.
+//
+// Revision 1.3  2011/02/11 13:25:55  acg
+//  Andy Goodrich: Philipp's changes for sc_unwind_exception.
+//
+// Revision 1.2  2011/02/01 23:02:05  acg
+//  Andy Goodrich: IEEE 1666 2011 changes.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:06  acg
+// SystemC 2.3
+//
+// Revision 1.7  2006/05/26 20:35:52  acg
+//  Andy Goodrich: removed debug message that should not have been left in.
+//
+// Revision 1.6  2006/03/21 00:00:37  acg
+//   Andy Goodrich: changed name of sc_get_current_process_base() to be
+//   sc_get_current_process_b() since its returning an sc_process_b instance.
+//
+// Revision 1.5  2006/01/31 21:42:07  acg
+//  Andy Goodrich: Added checks for SC_DEPRECATED_WARNINGS being defined as
+//  DISABLED. If so, we turn off the /IEEE_Std_1666/deprecated message group.
+//
+// Revision 1.4  2006/01/26 21:08:17  acg
+//  Andy Goodrich: conversion to use sc_is_running instead of deprecated
+//  sc_simcontext::is_running()
+//
+// Revision 1.3  2006/01/13 18:53:11  acg
+// Andy Goodrich: Added $Log command so that CVS comments are reproduced in
+// the source.
 
 // Taf!

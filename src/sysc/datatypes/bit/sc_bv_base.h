@@ -34,8 +34,14 @@
  *****************************************************************************/
 
 // $Log: sc_bv_base.h,v $
-// Revision 1.1.1.1  2006/12/15 20:31:36  acg
-// SystemC 2.2
+// Revision 1.3  2011/08/26 22:32:00  acg
+//  Torsten Maehne: added parentheses to make opearator ordering more obvious.
+//
+// Revision 1.2  2011/08/15 16:43:24  acg
+//  Torsten Maehne: changes to remove unused argument warnings.
+//
+// Revision 1.1.1.1  2006/12/15 20:20:04  acg
+// SystemC 2.3
 //
 // Revision 1.3  2006/01/13 18:53:53  acg
 // Andy Goodrich: added $Log command so that CVS comments are reproduced in
@@ -128,7 +134,7 @@ public:
     // destructor
 
     virtual ~sc_bv_base()
-	{ if( m_data != 0 ) delete [] m_data; }
+	{ delete [] m_data; }
 
 
     // assignment operators
@@ -234,7 +240,7 @@ public:
     void set_word( int i, sc_digit w )
 	{ m_data[i] = w; }
 
-    sc_digit get_cword( int i ) const
+    sc_digit get_cword( int /*i*/ ) const
 	{ return SC_DIGIT_ZERO; }
 
     void set_cword( int i, sc_digit w );
@@ -291,7 +297,7 @@ sc_bv_base::get_bit( int i ) const
 {
     int wi = i / SC_DIGIT_SIZE;
     int bi = i % SC_DIGIT_SIZE;
-    return sc_logic_value_t( m_data[wi] >> bi & SC_DIGIT_ONE );
+    return sc_logic_value_t( (m_data[wi] >> bi) & SC_DIGIT_ONE );
 }
 
 inline
@@ -308,7 +314,7 @@ sc_bv_base::set_bit( int i, sc_logic_value_t value )
 
 inline
 void
-sc_bv_base::set_cword( int i, sc_digit w )
+sc_bv_base::set_cword( int /*i*/, sc_digit w )
 {
     if( w ) {
 	SC_REPORT_WARNING( sc_core::SC_ID_SC_BV_CANNOT_CONTAIN_X_AND_Z_, 0 );

@@ -1,11 +1,11 @@
 /*****************************************************************************
 
   The following code is derived, directly or indirectly, from the SystemC
-  source code Copyright (c) 1996-2006 by all Contributors.
+  source code Copyright (c) 1996-2011 by all Contributors.
   All Rights reserved.
 
   The contents of this file are subject to the restrictions and limitations
-  set forth in the SystemC Open Source License Version 2.4 (the "License");
+  set forth in the SystemC Open Source License Version 3.0 (the "License");
   You may not use this file except in compliance with such restrictions and
   limitations. You may obtain instructions on how to receive a copy of the
   License at http://www.systemc.org/. Software distributed by Contributors
@@ -21,17 +21,16 @@
 
   Original Author: Martin Janssen, Synopsys, Inc., 2001-05-21
 
-  Modification log appears at the end of the file
+  CHANGE LOG IS AT THE END OF THE FILE
  *****************************************************************************/
-
 
 #ifndef SC_SIGNAL_H
 #define SC_SIGNAL_H
 
-
 #include "sysc/communication/sc_port.h"
 #include "sysc/communication/sc_prim_channel.h"
 #include "sysc/communication/sc_signal_ifs.h"
+#include "sysc/communication/sc_writer_policy.h"
 #include "sysc/utils/sc_string.h"
 #include "sysc/kernel/sc_event.h"
 #include "sysc/kernel/sc_process.h"
@@ -49,11 +48,19 @@ extern void sc_deprecated_get_data_ref();
 extern void sc_deprecated_get_new_value();
 extern void sc_deprecated_trace();
 
-extern
-void
-sc_signal_invalid_writer(
-    sc_object* target, sc_object* first_writer, sc_object* second_writer );
-
+inline
+bool
+sc_writer_policy_check_write::check_write( sc_object* target, bool )
+{
+  sc_object* writer_p = sc_get_curr_simcontext()->get_current_writer();
+  if( SC_UNLIKELY_(m_writer_p == 0) ) {
+       m_writer_p = writer_p;
+  } else if( SC_UNLIKELY_(m_writer_p != writer_p && writer_p != 0) ) {
+       sc_signal_invalid_writer( target, m_writer_p, writer_p, m_check_delta );
+       return false;
+  }
+  return true;
+}
 
 // ----------------------------------------------------------------------------
 //  CLASS : sc_signal<T>
@@ -61,31 +68,35 @@ sc_signal_invalid_writer(
 //  The sc_signal<T> primitive channel class.
 // ----------------------------------------------------------------------------
 
-template <class T>
+template< class T, sc_writer_policy POL /* = SC_ONE_WRITER */ >
 class sc_signal
-: public sc_signal_inout_if<T>,
-  public sc_prim_channel
+  : public    sc_signal_inout_if<T>
+  , public    sc_prim_channel
+  , protected sc_writer_policy_check<POL>
 {
-  public: // constructors and destructor:
+protected:
+    typedef sc_signal_inout_if<T>       if_type;
+    typedef sc_signal<T,POL>            this_type;
+    typedef sc_writer_policy_check<POL> policy_type;
+
+public: // constructors and destructor:
 
     sc_signal()
 	: sc_prim_channel( sc_gen_unique_name( "signal" ) ),
 	  m_change_event_p( 0 ), m_cur_val( T() ), 
-	  m_delta( ~sc_dt::UINT64_ONE ), m_new_val( T() ), m_output( 0 ), 
-	  m_writer( 0 ) 
+	  m_change_stamp( ~sc_dt::UINT64_ONE ), m_new_val( T() )
 	{}
 
-    explicit sc_signal( const char* name_ )
+    explicit sc_signal( const char* name_)
 	: sc_prim_channel( name_ ),
 	  m_change_event_p( 0 ), m_cur_val( T() ), 
-	  m_delta( ~sc_dt::UINT64_ONE ), m_new_val( T() ), m_output( 0 ), 
-	  m_writer( 0 ) 
+	  m_change_stamp( ~sc_dt::UINT64_ONE ), m_new_val( T() )
     {}
 
 
     virtual ~sc_signal()
 	{
-	    if ( !m_change_event_p ) delete m_change_event_p;
+	    delete m_change_event_p;
 	}
 
 
@@ -93,11 +104,18 @@ class sc_signal
 
     virtual void register_port( sc_port_base&, const char* );
 
+    virtual sc_writer_policy get_writer_policy() const
+      { return POL; }
 
     // get the default event
     virtual const sc_event& default_event() const
 	{ 
-	    if ( !m_change_event_p ) m_change_event_p = new sc_event; 
+	    if ( !m_change_event_p ) 
+	    {
+	        m_change_event_p = new sc_event( 
+		    (std::string(SC_KERNEL_EVENT_PREFIX)+
+		    "_value_changed_event").c_str());; 
+	    }
 	    return *m_change_event_p; 
 	}
 
@@ -105,7 +123,12 @@ class sc_signal
     // get the value changed event
     virtual const sc_event& value_changed_event() const
 	{ 
-	    if ( !m_change_event_p ) m_change_event_p = new sc_event; 
+	    if ( !m_change_event_p ) 
+	    {
+	        m_change_event_p = new sc_event( 
+		    (std::string(SC_KERNEL_EVENT_PREFIX)+
+		    "_value_changed_event").c_str());; 
+	    }
 	    return *m_change_event_p; 
 	}
 
@@ -121,7 +144,7 @@ class sc_signal
 
     // was there an event?
     virtual bool event() const
-        { return simcontext()->event_occurred(m_delta); }
+        { return simcontext()->event_occurred(m_change_stamp); }
 
     // write the new value
     virtual void write( const T& );
@@ -133,10 +156,13 @@ class sc_signal
 	{ return read(); }
 
 
-    sc_signal<T>& operator = ( const T& a )
+    this_type& operator = ( const T& a )
 	{ write( a ); return *this; }
 
-    sc_signal<T>& operator = ( const sc_signal<T>& a )
+    this_type& operator = ( const sc_signal_in_if<T>& a )
+	{ write( a.read() ); return *this; }
+
+    this_type& operator = ( const this_type& a )
 	{ write( a.read() ); return *this; }
 
 
@@ -149,6 +175,8 @@ class sc_signal
 	    sc_deprecated_trace();
 #           ifdef DEBUG_SYSTEMC
 	        sc_trace( tf, read(), name() ); 
+#           else
+                if ( tf ) {}
 #	    endif
 	}
 
@@ -167,75 +195,61 @@ protected:
 
     mutable sc_event*  m_change_event_p;
     T                  m_cur_val;
-    sc_dt::uint64      m_delta;   // delta of last event
+    sc_dt::uint64      m_change_stamp;   // delta of last event
     T                  m_new_val;
-    sc_port_base*      m_output; // used for static design rule checking
-    sc_object*         m_writer; // used for dynamic design rule checking
-
-
 
 private:
 
     // disabled
-    sc_signal( const sc_signal<T>& );
+    sc_signal( const this_type& );
 };
 
 
 // IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
 
-template <class T>
+template< class T, sc_writer_policy POL >
 inline
 void
-sc_signal<T>::register_port( sc_port_base& port_, const char* if_typename_ )
+sc_signal<T,POL>::register_port( sc_port_base& port_
+                               , const char* if_typename_ )
 {
-    if ( sc_get_curr_simcontext()->write_check() )
-    {
-	std::string nm( if_typename_ );
-	if( nm == typeid( sc_signal_inout_if<T> ).name() ) {
-	    // an out or inout port; only one can be connected
-	    if( m_output != 0) {
-		sc_signal_invalid_writer( this, m_output, &port_ );
-	    }
-	    m_output = &port_;
-	}
-    }
+
+    bool is_output = std::string( if_typename_ ) == typeid(if_type).name();
+    if( !policy_type::check_port( this, &port_, is_output ) )
+       ((void)0); // fallback? error has been suppressed ...
 }
 
 
 // write the new value
 
-template <class T>
+template< class T, sc_writer_policy POL >
 inline
 void
-sc_signal<T>::write( const T& value_ )
+sc_signal<T,POL>::write( const T& value_ )
 {
-    sc_object* writer = sc_get_curr_simcontext()->get_current_writer();
-    if( m_writer == 0 ) {
-	m_writer = writer;
-    } else if( m_writer != writer ) {
-	sc_signal_invalid_writer( this, m_writer, writer );
-    }
+    bool value_changed = !( m_cur_val == value_ );
+    if ( !policy_type::check_write(this, value_changed) )
+        return;
 
     m_new_val = value_;
-    if( !( m_new_val == m_cur_val ) ) {
-	request_update();
+    if( value_changed ) {
+        request_update();
     }
 }
 
 
-template <class T>
+template< class T, sc_writer_policy POL >
 inline
 void
-sc_signal<T>::print( ::std::ostream& os ) const
+sc_signal<T,POL>::print( ::std::ostream& os ) const
 {
     os << m_cur_val;
 }
 
-template <class T>
-inline
+template< class T, sc_writer_policy POL >
 void
-sc_signal<T>::dump( ::std::ostream& os ) const
+sc_signal<T,POL>::dump( ::std::ostream& os ) const
 {
     os << "     name = " << name() << ::std::endl;
     os << "    value = " << m_cur_val << ::std::endl;
@@ -243,15 +257,15 @@ sc_signal<T>::dump( ::std::ostream& os ) const
 }
 
 
-template <class T>
-inline
+template< class T, sc_writer_policy POL >
 void
-sc_signal<T>::update()
+sc_signal<T,POL>::update()
 {
+    policy_type::update();
     if( !( m_new_val == m_cur_val ) ) {
 	m_cur_val = m_new_val;
 	if ( m_change_event_p ) m_change_event_p->notify_next_delta();
-	m_delta = delta_count();
+	m_change_stamp = simcontext()->change_stamp();
     }
 }
 
@@ -264,37 +278,39 @@ sc_signal<T>::update()
 
 class sc_reset;
 
-template <>
-class sc_signal<bool>
-: public sc_signal_inout_if<bool>,
-  public sc_prim_channel
+template< sc_writer_policy POL >
+class sc_signal<bool,POL>
+  : public    sc_signal_inout_if<bool>
+  , public    sc_prim_channel
+  , protected sc_writer_policy_check<POL>
 {
+protected:
+    typedef sc_signal_inout_if<bool>    if_type;
+    typedef sc_signal<bool,POL>         this_type;
+    typedef sc_writer_policy_check<POL> policy_type;
+
 public: // constructors and destructor:
 
     sc_signal()
 	: sc_prim_channel( sc_gen_unique_name( "signal" ) ),
 	  m_change_event_p( 0 ),
           m_cur_val( false ),
-          m_delta( ~sc_dt::UINT64_ONE ),
+          m_change_stamp( ~sc_dt::UINT64_ONE ),
 	  m_negedge_event_p( 0 ),
           m_new_val( false ),
-          m_output( 0 ),
 	  m_posedge_event_p( 0 ),
-          m_reset_p( 0 ),
-          m_writer( 0 )
+          m_reset_p( 0 )
 	{}
 
     explicit sc_signal( const char* name_ )
 	: sc_prim_channel( name_ ),
 	  m_change_event_p( 0 ),
           m_cur_val( false ),
-          m_delta( ~sc_dt::UINT64_ONE ),
+          m_change_stamp( ~sc_dt::UINT64_ONE ),
 	  m_negedge_event_p( 0 ),
           m_new_val( false ),
-          m_output( 0 ),
 	  m_posedge_event_p( 0 ),
-          m_reset_p( 0 ),
-          m_writer( 0 )
+          m_reset_p( 0 )
 	{}
 
     virtual ~sc_signal();
@@ -304,11 +320,18 @@ public: // constructors and destructor:
 
     virtual void register_port( sc_port_base&, const char* );
 
+    virtual sc_writer_policy get_writer_policy() const
+        { return POL; }
 
     // get the default event
     virtual const sc_event& default_event() const
 	{ 
-	    if ( !m_change_event_p ) m_change_event_p = new sc_event; 
+	    if ( !m_change_event_p ) 
+	    {
+	        m_change_event_p = new sc_event(
+		    (std::string(SC_KERNEL_EVENT_PREFIX)+
+		    "_value_changed_event").c_str());; 
+	    }
 	    return *m_change_event_p; 
 	}
 
@@ -316,7 +339,12 @@ public: // constructors and destructor:
     // get the value changed event
     virtual const sc_event& value_changed_event() const
 	{ 
-	    if ( !m_change_event_p ) m_change_event_p = new sc_event; 
+	    if ( !m_change_event_p ) 
+	    {
+	        m_change_event_p = new sc_event( 
+		    (std::string(SC_KERNEL_EVENT_PREFIX)+
+		    "_value_changed_event").c_str());; 
+	    }
 	    return *m_change_event_p; 
 	}
 
@@ -324,7 +352,11 @@ public: // constructors and destructor:
     virtual const sc_event& posedge_event() const
 	{ 
 	    if ( !m_posedge_event_p )
-	        m_posedge_event_p = new sc_event; 
+	    {
+	        m_posedge_event_p = new sc_event(
+		    (std::string(SC_KERNEL_EVENT_PREFIX)+
+		    "_posedge_event").c_str());; 
+	    }
 	    return *m_posedge_event_p; 
 	}
 
@@ -332,7 +364,11 @@ public: // constructors and destructor:
     virtual const sc_event& negedge_event() const
 	{ 
 	    if ( !m_negedge_event_p )
-	        m_negedge_event_p = new sc_event; 
+	    {
+	        m_negedge_event_p = new sc_event(
+		    (std::string(SC_KERNEL_EVENT_PREFIX)+
+		    "_negedge_event").c_str());; 
+	    }
 	    return *m_negedge_event_p; 
 	}
 
@@ -348,7 +384,7 @@ public: // constructors and destructor:
 
     // was there a value changed event?
     virtual bool event() const
-        { return simcontext()->event_occurred(m_delta); }
+        { return simcontext()->event_occurred(m_change_stamp); }
 
     // was there a positive edge event?
     virtual bool posedge() const
@@ -357,10 +393,6 @@ public: // constructors and destructor:
     // was there a negative edge event?
     virtual bool negedge() const
 	{ return ( event() && ! m_cur_val ); }
-
-    // reset creation
-
-    virtual sc_reset* is_reset() const;
 
     // write the new value
     virtual void write( const bool& );
@@ -371,10 +403,13 @@ public: // constructors and destructor:
 	{ return read(); }
 
 
-    sc_signal<bool>& operator = ( const bool& a )
+    this_type& operator = ( const bool& a )
 	{ write( a ); return *this; }
 
-    sc_signal<bool>& operator = ( const sc_signal<bool>& a )
+    this_type& operator = ( const sc_signal_in_if<bool>& a )
+	{ write( a.read() ); return *this; }
+
+    this_type& operator = ( const this_type& a )
 	{ write( a.read() ); return *this; }
 
 
@@ -387,6 +422,8 @@ public: // constructors and destructor:
 	    sc_deprecated_trace();
 #           ifdef DEBUG_SYSTEMC
 	        sc_trace( tf, read(), name() ); 
+#           else
+                if ( tf ) {}
 #           endif
 	}
 
@@ -406,71 +443,61 @@ protected:
 protected:
     mutable sc_event* m_change_event_p;  // value change event if present.
     bool              m_cur_val;         // current value of object.
-    sc_dt::uint64     m_delta;           // delta of last event
+    sc_dt::uint64     m_change_stamp;    // delta of last event
     mutable sc_event* m_negedge_event_p; // negative edge event if present.
     bool              m_new_val;         // next value of object.
-    sc_port_base*     m_output;          // used for static design rule checking
     mutable sc_event* m_posedge_event_p; // positive edge event if present.
     mutable sc_reset* m_reset_p;         // reset mechanism if present.
-    sc_object*        m_writer;          // process writing this object's value.
 
 private:
 
+    // reset creation
+    virtual sc_reset* is_reset() const;
+
     // disabled
-    sc_signal( const sc_signal<bool>& );
+    sc_signal( const this_type& );
 };
 
 
 // IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
-inline
+template< sc_writer_policy POL >
 void
-sc_signal<bool>::register_port( sc_port_base& port_, const char* if_typename_ )
+sc_signal<bool,POL>::register_port( sc_port_base& port_,
+                                    const char* if_typename_ )
 {
-    if ( sc_get_curr_simcontext()->write_check() )
-    {
-	std::string nm( if_typename_ );
-	if( nm == typeid( sc_signal_inout_if<bool> ).name() ) {
-	    // an out or inout port; only one can be connected
-	    if( m_output != 0 ) {
-		sc_signal_invalid_writer( this, m_output, &port_ );
-	    }
-	    m_output = &port_;
-	}
-    }
+    bool is_output = std::string( if_typename_ ) == typeid(if_type).name();
+    if( !policy_type::check_port( this, &port_, is_output ) )
+       ((void)0); // fallback? error has been suppressed ...
 }
 
 
 // write the new value
 
-inline
+template< sc_writer_policy POL >
 void
-sc_signal<bool>::write( const bool& value_ )
+sc_signal<bool,POL>::write( const bool& value_ )
 {
-    sc_object* writer = sc_get_curr_simcontext()->get_current_writer();
-    if( m_writer == 0 ) {
-	m_writer = writer;
-    } else if( m_writer != writer ) {
-	sc_signal_invalid_writer( this, m_writer, writer );
-    }
-
+    bool value_changed = !( m_cur_val == value_ );
+    if ( !policy_type::check_write(this, value_changed) )
+        return;
     m_new_val = value_;
-    if( !( m_new_val == m_cur_val ) ) {
-	request_update();
+    if( value_changed ) {
+        request_update();
     }
 }
 
-
+template< sc_writer_policy POL >
 inline
 void
-sc_signal<bool>::print( ::std::ostream& os ) const
+sc_signal<bool,POL>::print( ::std::ostream& os ) const
 {
     os << m_cur_val;
 }
 
-inline
+template< sc_writer_policy POL >
 void
-sc_signal<bool>::dump( ::std::ostream& os ) const
+sc_signal<bool,POL>::dump( ::std::ostream& os ) const
 {
     os << "     name = " << name() << ::std::endl;
     os << "    value = " << m_cur_val << ::std::endl;
@@ -478,10 +505,11 @@ sc_signal<bool>::dump( ::std::ostream& os ) const
 }
 
 
-inline
+template< sc_writer_policy POL >
 void
-sc_signal<bool>::update()
+sc_signal<bool,POL>::update()
 {
+    policy_type::update();
     if( !( m_new_val == m_cur_val ) ) {
         // order of execution below is important, the notify_processes() call
         // must come after the update of m_cur_val for things to work properly!
@@ -494,8 +522,31 @@ sc_signal<bool>::update()
         } else {
             if ( m_negedge_event_p ) m_negedge_event_p->notify_next_delta();
         }
-        m_delta = delta_count();
+        m_change_stamp = simcontext()->change_stamp();
     }
+}
+
+// reset support:
+
+template< sc_writer_policy POL >
+sc_reset*
+sc_signal<bool,POL>::is_reset() const
+{
+    sc_reset* result_p;
+    if ( !m_reset_p ) m_reset_p = new sc_reset( this );
+    result_p = m_reset_p;
+    return result_p;
+}
+
+// destructor
+
+template< sc_writer_policy POL >
+sc_signal<bool,POL>::~sc_signal()
+{
+    delete m_change_event_p;
+    delete m_negedge_event_p;
+    delete m_posedge_event_p;
+    delete m_reset_p;
 }
 
 
@@ -505,42 +556,44 @@ sc_signal<bool>::update()
 //  Specialization of sc_signal<T> for type sc_dt::sc_logic.
 // ----------------------------------------------------------------------------
 
-template <>
-class sc_signal<sc_dt::sc_logic>
-: public sc_signal_inout_if<sc_dt::sc_logic>,
-  public sc_prim_channel
+template< sc_writer_policy POL >
+class sc_signal<sc_dt::sc_logic,POL>
+  : public    sc_signal_inout_if<sc_dt::sc_logic>
+  , public    sc_prim_channel
+  , protected sc_writer_policy_check<POL>
 {
-  public: // constructors and destructor:
+protected:
+    typedef sc_signal_inout_if<sc_dt::sc_logic> if_type;
+    typedef sc_signal<sc_dt::sc_logic,POL>      this_type;
+    typedef sc_writer_policy_check<POL>         policy_type;
+
+public: // constructors and destructor:
 
     sc_signal()
 	: sc_prim_channel( sc_gen_unique_name( "signal" ) ),
 	  m_change_event_p( 0 ),
 	  m_cur_val(),
-          m_delta( ~sc_dt::UINT64_ONE ),
+          m_change_stamp( ~sc_dt::UINT64_ONE ),
 	  m_negedge_event_p( 0 ),
 	  m_new_val(),
-          m_output( 0 ),
-	  m_posedge_event_p( 0 ),
-	  m_writer( 0 )
+	  m_posedge_event_p( 0 )
 	{}
 
     explicit sc_signal( const char* name_ )
 	: sc_prim_channel( name_ ),
 	  m_change_event_p( 0 ),
 	  m_cur_val(),
-          m_delta( ~sc_dt::UINT64_ONE ),
+          m_change_stamp( ~sc_dt::UINT64_ONE ),
 	  m_negedge_event_p( 0 ),
 	  m_new_val(),
-          m_output( 0 ),
-	  m_posedge_event_p( 0 ),
-	  m_writer( 0 )
+	  m_posedge_event_p( 0 )
 	{}
 
     virtual ~sc_signal()
 	{
-	    if ( !m_change_event_p ) delete m_change_event_p;
-	    if ( !m_negedge_event_p ) delete m_negedge_event_p;
-	    if ( !m_posedge_event_p ) delete m_posedge_event_p;
+	    delete m_change_event_p;
+	    delete m_negedge_event_p;
+	    delete m_posedge_event_p;
 	}
 
 
@@ -548,11 +601,18 @@ class sc_signal<sc_dt::sc_logic>
 
     virtual void register_port( sc_port_base&, const char* );
 
+    virtual sc_writer_policy get_writer_policy() const
+        { return POL; }
 
     // get the default event
     virtual const sc_event& default_event() const
 	{ 
-	    if ( !m_change_event_p ) m_change_event_p = new sc_event; 
+	    if ( !m_change_event_p ) 
+	    {
+	        m_change_event_p = new sc_event( 
+		    (std::string(SC_KERNEL_EVENT_PREFIX)+
+		    "_value_changed_event").c_str());; 
+	    }
 	    return *m_change_event_p; 
 	}
 
@@ -560,7 +620,12 @@ class sc_signal<sc_dt::sc_logic>
     // get the value changed event
     virtual const sc_event& value_changed_event() const
 	{ 
-	    if ( !m_change_event_p ) m_change_event_p = new sc_event; 
+	    if ( !m_change_event_p ) 
+	    {
+	        m_change_event_p = new sc_event( 
+		    (std::string(SC_KERNEL_EVENT_PREFIX)+
+		    "_value_changed_event").c_str());; 
+	    }
 	    return *m_change_event_p; 
 	}
 
@@ -568,7 +633,11 @@ class sc_signal<sc_dt::sc_logic>
     virtual const sc_event& posedge_event() const
 	{ 
 	    if ( !m_posedge_event_p )
-	        m_posedge_event_p = new sc_event; 
+	    {
+	        m_posedge_event_p = new sc_event(
+		    (std::string(SC_KERNEL_EVENT_PREFIX)+
+		    "_posedge_event").c_str());; 
+	    }
 	    return *m_posedge_event_p; 
 	}
 
@@ -576,7 +645,11 @@ class sc_signal<sc_dt::sc_logic>
     virtual const sc_event& negedge_event() const
 	{ 
 	    if ( !m_negedge_event_p )
-	        m_negedge_event_p = new sc_event; 
+	    {
+	        m_negedge_event_p = new sc_event(
+		    (std::string(SC_KERNEL_EVENT_PREFIX)+
+		    "_negedge_event").c_str());; 
+	    }
 	    return *m_negedge_event_p; 
 	}
 
@@ -592,7 +665,7 @@ class sc_signal<sc_dt::sc_logic>
 
     // was there an event?
     virtual bool event() const
-        { return simcontext()->event_occurred(m_delta); }
+        { return simcontext()->event_occurred(m_change_stamp); }
 
     // was there a positive edge event?
     virtual bool posedge() const
@@ -613,10 +686,13 @@ class sc_signal<sc_dt::sc_logic>
 	{ return read(); }
 
 
-    sc_signal<sc_dt::sc_logic>& operator = ( const sc_dt::sc_logic& a )
+    this_type& operator = ( const sc_dt::sc_logic& a )
 	{ write( a ); return *this; }
 
-    sc_signal<sc_dt::sc_logic>& operator = (const sc_signal<sc_dt::sc_logic>& a)
+    this_type& operator = ( const sc_signal_in_if<sc_dt::sc_logic>& a )
+	{ write( a.read() ); return *this; }
+
+    this_type& operator = (const this_type& a)
 	{ write( a.read() ); return *this; }
 
 
@@ -629,6 +705,8 @@ class sc_signal<sc_dt::sc_logic>
 	    sc_deprecated_trace();
 #           ifdef DEBUG_SYSTEMC
 	        sc_trace( tf, read(), name() ); 
+#           else
+                if ( tf ) {}
 #           endif
 	}
 
@@ -646,71 +724,59 @@ protected:
 
     mutable sc_event* m_change_event_p;  // value change event if present.
     sc_dt::sc_logic   m_cur_val;         // current value of object.
-    sc_dt::uint64     m_delta;           // delta of last event
+    sc_dt::uint64     m_change_stamp;    // delta of last event
     mutable sc_event* m_negedge_event_p; // negative edge event if present.
     sc_dt::sc_logic   m_new_val;         // next value of object.
-    sc_port_base*     m_output;          // used for static design rule checking
     mutable sc_event* m_posedge_event_p; // positive edge event if present.
-    sc_object*        m_writer;          // process writing this object's value.
 
 private:
 
     // disabled
-    sc_signal( const sc_signal<sc_dt::sc_logic>& );
+    sc_signal( const this_type& );
 };
 
 
 // IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
-inline
+template< sc_writer_policy POL >
 void
-sc_signal<sc_dt::sc_logic>::register_port( sc_port_base& port_,
-				    const char* if_typename_ )
+sc_signal<sc_dt::sc_logic,POL>::register_port( sc_port_base& port_,
+                                               const char* if_typename_ )
 {
-    if ( sc_get_curr_simcontext()->write_check() )
-    {
-	std::string nm( if_typename_ );
-	if( nm == typeid( sc_signal_inout_if<sc_dt::sc_logic> ).name() ) {
-	    // an out or inout port; only one can be connected
-	    if( m_output != 0 ) {
-		sc_signal_invalid_writer( this, m_output, &port_ );
-	    }
-	    m_output = &port_;
-	}
-    }
+    bool is_output = std::string( if_typename_ ) == typeid(if_type).name();
+    if( !policy_type::check_port( this, &port_, is_output ) )
+       ((void)0); // fallback? error has been suppressed ...
 }
 
 
 // write the new value
 
+template< sc_writer_policy POL >
 inline
 void
-sc_signal<sc_dt::sc_logic>::write( const sc_dt::sc_logic& value_ )
+sc_signal<sc_dt::sc_logic,POL>::write( const sc_dt::sc_logic& value_ )
 {
-    sc_object* writer = sc_get_curr_simcontext()->get_current_writer();
-    if( m_writer == 0 ) {
-	m_writer = writer;
-    } else if( m_writer != writer ) {
-	sc_signal_invalid_writer( this, m_writer, writer );
-    }
+    bool value_changed = !( m_cur_val == value_ );
+    if ( !policy_type::check_write(this, value_changed) )
+        return;
 
     m_new_val = value_;
-    if( !( m_new_val == m_cur_val ) ) {
-	request_update();
+    if( value_changed ) {
+        request_update();
     }
 }
 
-
+template< sc_writer_policy POL >
 inline
 void
-sc_signal<sc_dt::sc_logic>::print( ::std::ostream& os ) const
+sc_signal<sc_dt::sc_logic,POL>::print( ::std::ostream& os ) const
 {
     os << m_cur_val;
 }
 
-inline
+template< sc_writer_policy POL >
 void
-sc_signal<sc_dt::sc_logic>::dump( ::std::ostream& os ) const
+sc_signal<sc_dt::sc_logic,POL>::dump( ::std::ostream& os ) const
 {
     os << "     name = " << name() << ::std::endl;
     os << "    value = " << m_cur_val << ::std::endl;
@@ -718,10 +784,11 @@ sc_signal<sc_dt::sc_logic>::dump( ::std::ostream& os ) const
 }
 
 
-inline
+template< sc_writer_policy POL >
 void
-sc_signal<sc_dt::sc_logic>::update()
+sc_signal<sc_dt::sc_logic,POL>::update()
 {
+    policy_type::update();
     if( !( m_new_val == m_cur_val ) ) {
 	m_cur_val = m_new_val;
 	if ( m_change_event_p ) m_change_event_p->notify_next_delta();
@@ -730,16 +797,16 @@ sc_signal<sc_dt::sc_logic>::update()
 	} else if( m_negedge_event_p && (m_cur_val == sc_dt::SC_LOGIC_0) ) {
 	    m_negedge_event_p->notify_next_delta();
 	}
-	m_delta = delta_count();
+	m_change_stamp = simcontext()->change_stamp();
     }
 }
 
 // ----------------------------------------------------------------------------
 
-template <class T>
+template< typename T, sc_writer_policy POL >
 inline
 ::std::ostream&
-operator << ( ::std::ostream& os, const sc_signal<T>& a )
+operator << ( ::std::ostream& os, const sc_signal<T,POL>& a )
 {
     return ( os << a.read() );
 }
@@ -756,8 +823,62 @@ operator << ( ::std::ostream& os, const sc_signal<T>& a )
     
  *****************************************************************************/
 //$Log: sc_signal.h,v $
-//Revision 1.1.1.1  2006/12/15 20:31:35  acg
-//SystemC 2.2
+//Revision 1.16  2011/08/26 20:45:42  acg
+// Andy Goodrich: moved the modification log to the end of the file to
+// eliminate source line number skew when check-ins are done.
+//
+//Revision 1.15  2011/08/15 16:43:24  acg
+// Torsten Maehne: changes to remove unused argument warnings.
+//
+//Revision 1.14  2011/06/25 17:08:38  acg
+// Andy Goodrich: Jerome Cornet's changes to use libtool to build the
+// library.
+//
+//Revision 1.13  2011/04/13 02:59:09  acg
+// Andy Goodrich: made events internal to signals into kernel events.
+//
+//Revision 1.12  2011/04/08 18:22:46  acg
+// Philipp A. Hartmann: use the context of the primitive channel to get
+// the change stamp value.
+//
+//Revision 1.11  2011/04/05 20:48:09  acg
+// Andy Goodrich: changes to make sure that event(), posedge() and negedge()
+// only return true if the clock has not moved.
+//
+//Revision 1.10  2011/04/05 07:10:55  acg
+// Andy Goodrich: added line that I dropped in sc_signal<sc_dt::sc_logic>.
+//
+//Revision 1.9  2011/04/05 06:15:18  acg
+// Philipp A. Hartmann: sc_writer_policy: ignore no-ops in delta check.
+//
+//Revision 1.8  2011/03/23 16:17:22  acg
+// Andy Goodrich: hide the sc_events that are kernel related.
+//
+//Revision 1.7  2011/03/06 15:55:08  acg
+// Andy Goodrich: Changes for named events.
+//
+//Revision 1.6  2011/02/18 20:23:45  acg
+// Andy Goodrich: Copyright update.
+//
+//Revision 1.5  2011/02/07 19:16:50  acg
+// Andy Goodrich: changes for handling multiple writers.
+//
+//Revision 1.4  2011/01/25 20:50:37  acg
+// Andy Goodrich: changes for IEEE 1666 2011.
+//
+//Revision 1.3  2010/12/07 19:50:37  acg
+// Andy Goodrich: addition of writer policies, courtesy of Philipp Hartmann.
+//
+//Revision 1.1.1.1  2006/12/15 20:20:04  acg
+//SystemC 2.3
+//
+//Revision 1.14  2006/05/08 17:52:47  acg
+// Andy Goodrich:
+//   (1) added David Long's forward declarations for friend functions,
+//       methods, and operators to keep the Microsoft compiler happy.
+//   (2) Added delta_count() method to sc_prim_channel for use by
+//       sc_signal so that the friend declaration in sc_simcontext.h
+//	   can be for a non-templated class (i.e., sc_prim_channel.)
 //
 //Revision 1.12  2006/04/11 23:11:57  acg
 //  Andy Goodrich: Changes for reset support that only includes

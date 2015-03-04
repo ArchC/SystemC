@@ -30,6 +30,8 @@
 ##
 ## ****************************************************************************
 
+include $(top_srcdir)/config/Make-rules.examples
+
 H_FILES = \
 	fft.h \
 	sink.h \
@@ -67,7 +69,7 @@ fft_LDADD = -L$(prefix)/lib-$(TARGET_ARCH) -lsystemc -lm
 
 check_PROGRAMS = fft
 
-INCLUDES = -I$(prefix)/include
+TESTS=$(check_PROGRAMS)
 
 fft_INSTALLS = $(IMAGE_FILES) $(fft_SOURCES)
 

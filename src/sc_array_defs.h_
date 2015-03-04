@@ -1,0 +1,617 @@
+/******************************************************************************
+    Copyright (c) 1996-2001 Synopsys, Inc.    ALL RIGHTS RESERVED
+
+  The contents of this file are subject to the restrictions and limitations
+  set forth in the SystemC Open Community License Software Download and
+  Use License Version 1.2 (the "License"); you may not use this file except
+  in compliance with such restrictions and limitations. You may obtain
+  instructions on how to receive a copy of the License at
+  http://www.systemc.org/. Software distributed by Original Contributor
+  under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
+  ANY KIND, either express or implied. See the License for the specific
+  language governing rights and limitations under the License.
+
+******************************************************************************/
+
+/******************************************************************************
+
+    sc_array_defs.h -- definitions for the template class sc_array<T>
+
+    Original Author: Stan Y. Liao. Synopsys, Inc. (stanliao@synopsys.com)
+
+******************************************************************************/
+
+/******************************************************************************
+
+    MODIFICATION LOG - modifiers, enter your name, affliation and
+    changes you are making here:
+
+    Modifier Name & Affiliation:
+    Description of Modification:
+    
+
+******************************************************************************/
+
+
+#ifndef SC_ARRAY_DEFS_H
+#define SC_ARRAY_DEFS_H
+
+#include "sc_templ.h"
+//#include "sc_err_handler.h"
+
+#ifdef WIN32
+#include "sc_cmnhdr.h"
+#endif
+
+/****************************************************************************
+    is_subarray() returns true if the present array was formed by the
+    sub() method on some other array.
+****************************************************************************/
+inline bool
+sc_array_base::is_subarray() const
+{
+    return (m_parent != 0);
+}
+
+inline int
+sc_array_base::length() const
+{
+    return length_;
+}
+
+/******************************************************************************
+         DEFINITIONS OF PRIVATE AND PROTECTED MEMBER FUNCTIONS
+******************************************************************************/
+
+/******************************************************************************
+    sc_array<T>::vctor( sc_array<T>* p, int l, int r )
+    The "virtual" constructor.  Because sc_array<T> will be inherited by
+    others, notably sc_logic_vector and sc_bool_vector, which have additional
+    members, a virtual constructor is required, as is a virtual
+    destructor (see declaration of destructor).
+******************************************************************************/
+template< class T >
+sc_array_base*
+sc_array<T>::vctor( const sc_array_base* p, int l, int r ) const
+{
+    return new sc_array<T>( p, l, r );
+}
+
+/******************************************************************************
+    sc_array<T>::sc_array( sc_array<T>* p, int l, int r )  
+    private constructor for the sc_array, which is used by sub() to
+    create subarrays that share the underlying data storage.  Note
+    that no allocation is performed.  Thus, the destructor needs to
+    check is_subarray() in order to determine whether deallocation is
+    necessary.
+******************************************************************************/
+template< class T >
+sc_array<T>::sc_array( const sc_array_base* p, int l, int r )
+    : sc_array_base( p, l, r )
+{
+    int len = length();
+    sc_array<T>* q = (sc_array<T>*) p;
+    data = 0;
+    pdata = new T*[len];
+    if (r < l) {
+        for (int i = len - 1; i >= 0; --i) {
+            pdata[i] = q->pdata[l--];
+        }
+    } else {
+        for (int i = len - 1; i >= 0; --i) {
+            pdata[i] = q->pdata[l++];
+        }
+    }
+}
+
+
+/******************************************************************************
+                   DEFINITION OF PUBLIC MEMBER FUNCTIONS
+******************************************************************************/
+#if defined(__BCPLUSPLUS__)
+#pragma warn -8027
+#endif
+inline bool*
+sc_array_val_init(bool* z, int len)
+{
+    for (int i = len - 1; i >= 0; --i) {
+        z[i] &= true;  // make sure we have a meaningful (albeit garbage) value
+    }
+    return z;
+}
+
+template< class T >
+inline T*
+sc_array_val_init(T* z, int)
+{
+    return z;
+}
+
+//
+// g++ generated an internal error unless we use this "typeless" function and provide
+// type-specific array constructors and assignment operator.  See sc_templ.h for more
+// info.
+//
+extern void sc_array_init(void** data_p, void*** pdata_p, int len, const void* init, int sizeT,
+                          void* (*ac_fn)(size_t), void (*as_fn)(void*, const void*));
+
+/****************************************************************************
+    sc_array<T>::sc_array(len)
+    creates an array of `len' elements of type `T'.  The left bound is
+    (len - 1), and the right bound is 0.
+****************************************************************************/
+template< class T >
+sc_array<T>::sc_array( int len )
+    : sc_array_base(len)
+{
+    if (len > 0) {
+        sc_templ_struct* fns = sc_templ_struct_fns<T>::get_fns();
+        sc_array_init( (void**) &data, (void***) &pdata, len,
+                       (const void*) 0, sizeof(T), fns->ac, fns->as );
+        sc_array_val_init( data, len );
+    } else {
+        data = 0;
+        pdata = 0;
+    }
+}
+
+template< class T >
+sc_array<T>::sc_array( int len, const sc_array<T>& ref )
+    : sc_array_base( len, ref )
+{
+    data = 0;
+    pdata = new T*[len];
+    for (int i = len - 1; i >= 0; --i) {
+        pdata[i] = ref.pdata[i];
+    }
+}
+
+template< class T >
+sc_array<T>::sc_array( const sc_array<T>& a )
+    : sc_array_base(a)
+{
+    int len = length();
+    if (len > 0) {
+        sc_templ_struct* fns = sc_templ_struct_fns<T>::get_fns();
+        sc_array_init( (void**) &data, (void***) &pdata, len,
+                       (const void*) 0, sizeof(T), fns->ac, fns->as );
+        this->operator=(a);
+    } else {
+        data = 0;
+        pdata = 0;
+    }
+}
+
+/******************************************************************************
+    sc_array<T>::~sc_array() - destructor
+    Responsible for cleaning up the dynamic storage allocated, including
+    the subarrays that were created by others (which were kept in the
+    `kids' list.
+******************************************************************************/
+template< class T >
+sc_array<T>::~sc_array()
+{
+    delete[] data;
+    delete[] pdata;
+}
+
+/******************************************************************************
+    sc_array<T>::assign_help( int& index, const T& nv ) puts the value
+    'nv' into the data array indexed by physical index `phys_index'.
+******************************************************************************/
+template< class T >
+inline void
+sc_array<T>::assign_help( int phys_index, const T& nv )
+{
+    *(pdata[phys_index]) = nv;
+}
+
+template< class T >
+inline void
+sc_array<T>::set_data_raw( const T* new_value_array )
+{
+    int len = length();
+    /* Must use the = operator since T may be an aggregate class with
+       a user-defined assignment operator */
+    if (! use_pdata()) {
+        /* Hope this is faster - saves a memory reference */
+        for( int i = len - 1; i >= 0; --i ) {
+            data[i] = new_value_array[i];
+        }
+    } else {
+        for( int i = len - 1; i >= 0; --i ) {
+            *(pdata[i]) = new_value_array[i];
+        }
+    }
+}
+#if defined(__BCPLUSPLUS__)
+#pragma warn .8027
+#endif
+
+/******************************************************************************
+    sc_array<T>::get_data_ptr( int phys_index )
+******************************************************************************/
+template< class T >
+inline const T*
+sc_array<T>::get_data_ptr( int phys_index ) const
+{
+    return pdata[phys_index];
+}
+
+template< class T >
+inline T*
+sc_array<T>::get_data_ptr( int phys_index )
+{
+    return pdata[phys_index];
+}
+
+//
+//  Returns true if (possibly) overlaps with `other'.  However, if `this' and
+//  `other' are the same object, return false.
+//
+template< class T >
+bool
+sc_array<T>::overlapp( const sc_array<T>& other ) const
+{
+    return (use_pdata() || other.use_pdata());
+}
+
+template< class T >
+void
+sc_array<T>::to_cpp_array( T dst[] ) const
+{
+    int len = length();
+    if (! use_pdata()) {
+        for (int i = len - 1; i >= 0; --i) {
+            dst[i] = data[i];
+        }
+    } else {
+        for (int i = len - 1; i >= 0; --i) {
+            dst[i] = *(pdata[i]);
+        }
+    }
+}
+
+/******************************************************************************
+    sc_array<T>::operator=( const sc_array<T>& nv )
+    Copies the contents of array `nv' into the current sc_array
+******************************************************************************/
+template< class T >
+sc_array<T>&
+sc_array<T>::operator=( const sc_array<T>& nv )
+{
+    if (&nv == this)
+        return *this;
+
+    int len = nv.length();
+    check_length(len);
+
+    // Two arrays may overlap if any of the following holds:
+    // (1) Either array is formed by concatenation.
+    // (2) `nv' is a subarray of `this', or vice versa
+    // (3) `nv' and `this' have the same parent (nonzero)
+   
+    if (overlapp(nv)) {  // possible overlap
+        T* tmp = new T[len];
+        nv.to_cpp_array(tmp);
+        this->operator=(tmp);
+        delete[] tmp;
+    } else { // no overlap - both must have nonnull `data' array
+        for(int i = len - 1; i >= 0; --i) {
+            data[i] = nv.data[i];
+        }
+    }
+    return *this;
+}
+
+/******************************************************************************
+    sc_array<T>::operator=( const T* nv )
+    Copies the contents of the "vanilla" array pointed to by `nv' into
+    the current sc_array
+******************************************************************************/
+template< class T >
+sc_array<T>&
+sc_array<T>::operator=( const T* nv )
+{
+    int len = length();
+    if (! use_pdata()) {
+        for (int i = len - 1; i >= 0; --i) {
+            data[i] = nv[i];
+        }
+    } else {
+        for (int i = len - 1; i >= 0; --i) {
+            *(pdata[i]) = nv[i];
+        }
+    }
+    return *this;
+}
+
+/******************************************************************************
+    sc_array<T>::operator==(...)
+    Returns true if the contents of the current sc_array is equal to the
+    supplied sc_array, sc_signal_array, or vanilla array
+******************************************************************************/
+template< class T >
+bool
+sc_array<T>::operator==( const sc_array<T>& rhs ) const
+{
+    int len = length();
+    if (len != rhs.length())
+        return false;
+
+    if (! use_pdata()) {
+        if (! rhs.use_pdata()) {
+            for (int i = len - 1; i >= 0; --i) {
+                if (data[i] != rhs.data[i]) 
+                    return false;
+            }
+        } else {
+            for (int i = len - 1; i >= 0; --i)  {
+                if (data[i] != *(rhs.pdata[i])) 
+                    return false;
+            }
+        }
+    } else {
+        if (! rhs.use_pdata()) {
+            for (int i = len - 1; i >= 0; --i) {
+                if (*(pdata[i]) != rhs.data[i])
+                    return false;
+            }
+        } else {
+            for (int i = len - 1; i >= 0; --i) {
+                if (*(pdata[i]) != *(rhs.pdata[i]))
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+
+template< class T >
+bool
+sc_array<T>::operator==( const T* rhs ) const
+{
+    int len = length();
+    if (! use_pdata()) {
+        for (int i = len - 1; i >= 0; --i) {
+            if (data[i] != rhs[i])
+                return false;
+        }
+    } else {
+        for (int i = len - 1; i >= 0; --i) {
+            if (*(pdata[i]) != rhs[i])
+                return false;
+        }
+    }
+    return true;
+}
+
+template< class T >
+inline bool
+sc_array<T>::operator!=( const sc_array<T>& rhs ) const
+{
+    return !(operator==(rhs));
+}
+
+template< class T >
+inline bool
+sc_array<T>::operator!=( const T* rhs ) const
+{
+    return !(operator==(rhs));
+}
+
+/******************************************************************************
+    operator[](int i) returns the element indexed by `i', where `i' must be
+    between left() and right()
+******************************************************************************/
+template< class T >
+inline T&
+sc_array<T>::operator[]( int i )
+{
+    check_bounds(i);
+    return *(pdata[i]);
+}
+
+/******************************************************************************
+    sc_array<T>::sub( int i, int j ) returns the subarray indicated by `i'
+    and `j', which become the `left' and `right' values of the subarray.  Note
+    that the underlying data storage is shared.  The subarray is managed by
+    its parent, and should not be explicitly destroyed.
+******************************************************************************/
+template< class T >
+inline sc_array<T>&
+sc_array<T>::sub( int i, int j )
+{
+    return dynamic_cast<sc_array<T>&>( sc_array_base::sub(i,j));
+}
+
+template< class T >
+sc_array<T>*
+sc_array<T>::get_concat_array( sc_array<T>* x, sc_array<T>* y )
+{
+    return (sc_array<T>*) sc_array_base::get_concat_array( x, y, new_array_vv );
+}
+
+template< class T >
+sc_array<T>*
+sc_array<T>::get_concat_array( sc_array<T>* x, T* y )
+{
+    return (sc_array<T>*) sc_array_base::get_concat_array( x, (void*) y, new_array_vs );
+}
+
+template< class T >
+sc_array<T>*
+sc_array<T>::get_concat_array( T* x, sc_array<T>* y )
+{
+    return (sc_array<T>*) sc_array_base::get_concat_array( (void*) x, y, new_array_sv );
+}
+
+template< class T >
+sc_array<T>*
+sc_array<T>::get_concat_array( T* x, T* y )
+{
+    return (sc_array<T>*) sc_array_base::get_concat_array( (void*) x, (void*) y, new_array_ss );
+}
+
+template< class T >
+sc_array_base*
+sc_array<T>::new_array_vv( sc_array_base* x, sc_array_base* y )
+{
+    return new sc_array<T>( (sc_array<T>*) x, (sc_array<T>*) y );
+}
+
+template< class T >
+sc_array_base*
+sc_array<T>::new_array_vs( sc_array_base* x, void* y )
+{
+    return new sc_array<T>( (sc_array<T>*) x, (T*) y );
+}
+
+template< class T >
+sc_array_base*
+sc_array<T>::new_array_sv( void* x, sc_array_base* y )
+{
+    return new sc_array<T>( (T*) x, (sc_array<T>*) y );
+}
+
+template< class T >
+sc_array_base*
+sc_array<T>::new_array_ss( void* x, void* y )
+{
+    return new sc_array<T>( (T*) x, (T*) y );
+}
+
+
+
+template< class T >
+sc_array<T>::sc_array( T* initialized_data, int len )
+    : sc_array_base( len )
+{
+    data = initialized_data;
+    pdata = new T*[len];
+    for (int i = len - 1; i >= 0; --i) {
+        pdata[i] = &data[i];
+    }
+}
+
+template< class T >
+sc_array<T>::sc_array( T** data_ptrs, int len )
+    : sc_array_base( len )
+{
+    data = 0;
+    pdata = data_ptrs;
+}
+
+template< class T >
+void
+sc_array<T>::set_data_ptrs( T** data_ptrs )
+{
+    pdata = data_ptrs;
+}
+
+
+/******************************************************************************
+   Now we come to the constructors responsible for creating concatenated
+   arrays ... Notice that since only sc_bool_vector and sc_logic_vector
+   may be concatenated, the indices are "reversed".
+******************************************************************************/
+
+template< class T >
+sc_array<T>::sc_array( sc_array<T>* a1, sc_array<T>* a2 )
+    : sc_array_base( a1->length() + a2->length() )
+{
+    const int a2_len = a2->length();
+    const int len = length();
+    int i;
+
+    data = 0;
+    pdata = new T*[len];
+    T** pdata_skewed = pdata + a2_len;
+
+    for (i = a1->length() - 1; i >= 0; --i) {
+        pdata_skewed[i] = a1->pdata[i];
+    }
+    for (i = a2_len - 1; i >= 0; --i) {
+        pdata[i] = a2->pdata[i];
+    }
+}
+
+template< class T >
+sc_array<T>::sc_array( sc_array<T>* a1, T* a2 )
+    : sc_array_base( a1->length() + 1 )
+{
+    const int len = length();
+    int i;
+    data = 0;
+    pdata = new T*[len];
+    T** pdata_skewed = pdata + 1;
+
+    for (i = a1->length() - 1; i >= 0; --i) {
+        pdata_skewed[i] = a1->pdata[i];
+    }
+    pdata[0] = a2;
+}
+
+template< class T >
+sc_array<T>::sc_array( T* a1, sc_array<T>* a2 )
+    : sc_array_base( a2->length() + 1 )
+{
+    const int len = length();
+    int j;
+    data = 0;
+    pdata = new T*[len];
+
+    j = len - 1;
+    pdata[j--] = a1;
+    for ( ; j >= 0; --j) {
+        pdata[j] = a2->pdata[j];
+    }
+}
+
+template< class T >
+sc_array<T>::sc_array( T* a1, T* a2 )
+    : sc_array_base(2)
+{
+    data = 0;
+    pdata = new T*[2];
+
+    pdata[1] = a1;
+    pdata[0] = a2;
+}
+
+template< class T >
+ostream&
+operator<<(ostream& os, const sc_array<T>& ar)
+{
+    int i;
+    int len = ar.length();
+    os << "{ ";
+    for (i = 0; i < len - 1; ++i) {
+        os << ar[i] << ", ";
+    }
+    os << ar[i] << "}";
+    return os;
+}
+
+#ifdef DEBUG_SYSTEMC
+template< class T >
+void
+sc_array<T>::print(ostream& os) const
+{
+    os << *this;
+}
+
+template< class T >
+void
+sc_array<T>::dump(ostream& os) const
+{
+    sc_array_base::dump(os);
+    os << "value = ";
+    print(os);
+    os << endl;
+}
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+#endif

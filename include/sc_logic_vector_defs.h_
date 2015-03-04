@@ -1,0 +1,120 @@
+/******************************************************************************
+    Copyright (c) 1996-2001 Synopsys, Inc.    ALL RIGHTS RESERVED
+
+  The contents of this file are subject to the restrictions and limitations
+  set forth in the SystemC Open Community License Software Download and
+  Use License Version 1.2 (the "License"); you may not use this file except
+  in compliance with such restrictions and limitations. You may obtain
+  instructions on how to receive a copy of the License at
+  http://www.systemc.org/. Software distributed by Original Contributor
+  under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
+  ANY KIND, either express or implied. See the License for the specific
+  language governing rights and limitations under the License.
+
+******************************************************************************/
+
+/******************************************************************************
+
+    sc_logic_vector_defs.h_ - miscellaneous defintions for sc_logic_vector
+
+    Original Author: Stan Y. Liao. Synopsys, Inc. (stanliao@synopsys.com)
+
+******************************************************************************/
+
+/******************************************************************************
+
+    MODIFICATION LOG - modifiers, enter your name, affliation and
+    changes you are making here:
+
+    Modifier Name & Affiliation:
+    Description of Modification:
+    
+
+******************************************************************************/
+
+
+#ifdef SC_LOGIC_VECTOR_H
+#ifndef SC_LOGIC_VECTOR_DEFS_H
+#define SC_LOGIC_VECTOR_DEFS_H
+
+/******************************************************************************
+    inline functions for sc_logic_vector
+******************************************************************************/
+
+inline bool sulv::operator==( const sulv& rhs ) const
+{
+    return sc_array<sc_logic>::operator==(rhs);  
+}
+
+inline bool sulv::operator!=( const sulv& rhs ) const
+{
+    return sc_array<sc_logic>::operator!=(rhs);   
+}
+
+inline bool sulv::operator!=( const char* rhs ) const
+{
+    return ! operator==(rhs);
+}
+
+inline bool
+sc_logic_vector::operator!=( const sc_bool_vector& rhs ) const
+{
+    return ! operator==(rhs);
+}
+
+/******************************************************************************
+    bitwise operators to work on sc_logic_vector, sc_signal_logic_vector,
+    and char*
+******************************************************************************/
+
+class sc_bool_vector;
+
+extern sulv operator&( const sulv& a, const sulv& b );
+extern sulv operator&( const sulv& a, const char* b );
+inline sulv operator&( const char* a, const sulv& b ) {
+    return operator&( b, a );
+}
+
+extern sulv operator&( const sulv& a, const sc_bool_vector& b );
+inline sulv operator&( const sc_bool_vector& a, const sulv& b )
+{
+    return operator&( b, a ); 
+}
+
+extern sulv operator|( const sulv& a, const sulv& b );
+extern sulv operator|( const sulv& a, const char* b );
+inline sulv operator|( const char* a, const sulv& b ) {
+    return operator|( b, a );
+}
+
+extern sulv operator|( const sulv& a, const sc_bool_vector& b );
+inline sulv operator|( const sc_bool_vector& a, const sulv& b )
+{
+    return operator|( b, a ); 
+}
+
+extern sulv operator^( const sulv& a, const sulv& b );
+extern sulv operator^( const sulv& a, const char* b );
+inline sulv operator^( const char* a, const sulv& b ) {
+    return operator^( b, a );
+}
+
+extern sulv operator^( const sulv& a, const sc_bool_vector& b );
+inline sulv operator^( const sc_bool_vector& a, const sulv& b )
+{
+    return operator^( b, a ); 
+}
+
+extern sulv operator~( const sulv& a );
+
+#define DEFINE_REDUCE(red) inline sc_logic red( const sc_logic_vector& a ) { return a.red(); }
+DEFINE_REDUCE(and_reduce);
+DEFINE_REDUCE(nand_reduce);
+DEFINE_REDUCE(or_reduce);
+DEFINE_REDUCE(nor_reduce);
+DEFINE_REDUCE(xor_reduce);
+DEFINE_REDUCE(xnor_reduce);
+#undef DEFINE_REDUCE
+
+#endif
+#endif

@@ -1,0 +1,393 @@
+# Makefile.in generated automatically by automake 1.4 from Makefile.am
+
+# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# This Makefile.in is free software; the Free Software Foundation
+# gives unlimited permission to copy and/or distribute it,
+# with or without modifications, as long as this notice is preserved.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY, to the extent permitted by law; without
+# even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+# PARTICULAR PURPOSE.
+
+
+SHELL = @SHELL@
+
+srcdir = @srcdir@
+top_srcdir = @top_srcdir@
+VPATH = @srcdir@
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+
+bindir = @bindir@
+sbindir = @sbindir@
+libexecdir = @libexecdir@
+datadir = @datadir@
+sysconfdir = @sysconfdir@
+sharedstatedir = @sharedstatedir@
+localstatedir = @localstatedir@
+libdir = @libdir@
+infodir = @infodir@
+mandir = @mandir@
+includedir = @includedir@
+oldincludedir = /usr/include
+
+DESTDIR =
+
+pkgdatadir = $(datadir)/@PACKAGE@
+pkglibdir = $(libdir)/@PACKAGE@
+pkgincludedir = $(includedir)/@PACKAGE@
+
+top_builddir = ..
+
+ACLOCAL = @ACLOCAL@
+AUTOCONF = @AUTOCONF@
+AUTOMAKE = @AUTOMAKE@
+AUTOHEADER = @AUTOHEADER@
+
+INSTALL = @INSTALL@
+INSTALL_PROGRAM = @INSTALL_PROGRAM@ $(AM_INSTALL_PROGRAM_FLAGS)
+INSTALL_DATA = @INSTALL_DATA@
+INSTALL_SCRIPT = @INSTALL_SCRIPT@
+transform = @program_transform_name@
+
+NORMAL_INSTALL = :
+PRE_INSTALL = :
+POST_INSTALL = :
+NORMAL_UNINSTALL = :
+PRE_UNINSTALL = :
+POST_UNINSTALL = :
+build_alias = @build_alias@
+build_triplet = @build@
+host_alias = @host_alias@
+host_triplet = @host@
+target_alias = @target_alias@
+target_triplet = @target@
+CC = @CC@
+CXX = @CXX@
+DEBUG_CXXFLAGS = @DEBUG_CXXFLAGS@
+EXTRA_CXXFLAGS = @EXTRA_CXXFLAGS@
+FX_DIR = @FX_DIR@
+MAKEINFO = @MAKEINFO@
+OPT_CXXFLAGS = @OPT_CXXFLAGS@
+PACKAGE = @PACKAGE@
+RANLIB = @RANLIB@
+TARGET_ARCH = @TARGET_ARCH@
+VERSION = @VERSION@
+
+MODULE = libsystemc.a
+
+noinst_LIBRARIES = $(MODULE) 
+
+HFILES = sc_bool_vector.h 	sc_cmnhdr.h 	sc_isdb_trace.h 	sc_old.h 	sc_2d.h 	sc_aproc.h 	sc_array.h 	sc_array_concat.h 	sc_async.h 	sc_channel.h 	sc_channel_array.h 	sc_clock.h 	sc_clock_int.h 	sc_context_switch.h 	sc_dump.h 	sc_except.h 	sc_hash.h 	sc_lambda.h 	sc_list.h 	sc_logic.h 	sc_logic_vector.h 	sc_macros.h 	sc_measure.h 	sc_mempool.h 	sc_module.h 	sc_module_int.h 	sc_object.h 	sc_object_manager.h 	sc_pq.h 	sc_reslv.h 	sc_reslv_vector.h 	sc_resolved.h 	sc_resolved_array.h 	sc_signal.h 	sc_signal_optimize.h 	sc_signal_array.h 	sc_signal_delay.h 	sc_signal_deval.h 	sc_simcontext.h 	sc_stl.h 	sc_string.h 	sc_sync.h 	sc_templ.h 	sc_vector.h 	sc_ver.h 	sc_write_macros.h 	systemc.h 	sc_externs.h 	sc_trace.h 	sc_vcd_trace.h 	sc_wif_trace.h 	sc_sensitive.h 	sc_helpers.h 	sc_bit.h 	sc_bvrep.h 	sc_macros_int.h 	sc_port.h 	sc_port_sc_bit.h 	sc_polarity.h 	sc_port_clk.h 	sc_module_name.h 	sc_simcontext_int.h 	sc_process_int.h 	sc_port_manager.h 	sc_bv.h 	sc_lv.h 	sc_module_prm.h 	sc_signal_rv.h 	sc_constants.h 	sc_process.h 	sc_ptr.h 	sc_signal_sc_bit.h 	sc_wait.h 	sc_exception.h 	sc_proxy.h 	sc_bit_proxies.h 	sc_iostream.h
+
+
+H_FILES = sc_bool_vector_defs.h_ 	sc_2d_defs.h_ 	sc_array_defs.h_ 	sc_channel_array_defs.h_ 	sc_channel_defs.h_ 	sc_lambda_defs.h_ 	sc_lambda_exps.h_ 	sc_lambda_friends.h_ 	sc_logic_macros.h_ 	sc_logic_vector_defs.h_ 	sc_resolved_array_defs.h_ 	sc_resolved_defs.h_ 	sc_signal_array_defs.h_ 	sc_signal_defs.h_ 	sc_signal_delay_defs.h_ 	sc_signal_spec.h_		sc_port_spec.h_ 	sc_port_defs.h_
+
+
+M4FILES = 
+
+CXXFILES = sc_array.cpp 	sc_array_concat.cpp 	sc_clock.cpp 	sc_simcontext.cpp 	sc_context_switch.cpp 	sc_signal.cpp 	sc_signal_optimize.cpp 	sc_signal_array.cpp 	sc_signal_edgy.cpp 	sc_lambda.cpp 	sc_module.cpp 	sc_sync_process.cpp 	sc_async_process.cpp 	sc_aproc_process.cpp 	sc_sync_opt.cpp 	sc_async.cpp 	sc_aproc.cpp 	sc_logic.cpp 	sc_logic_vector.cpp 	sc_bool_vector.cpp 	sc_string.cpp 	sc_list.cpp 	sc_hash.cpp 	sc_pq.cpp 	sc_vector.cpp 	sc_dump.cpp 	sc_object.cpp 	sc_object_manager.cpp 	sc_measure.cpp 	sc_mempool.cpp 	sc_trace.cpp 	sc_vcd_trace.cpp 	sc_wif_trace.cpp 	sc_isdb_trace.cpp 	sc_channel_array.cpp 	sc_ver.cpp 	sc_sync_noopt.cpp 	sc_main.cpp 	sc_reslv.cpp 	sc_reslv_vector.cpp 	sc_sensitive.cpp 	sc_wait.cpp 	sc_port.cpp 	sc_port_manager.cpp 	sc_module_name.cpp 	sc_bv.cpp 	sc_lv.cpp 	sc_module_prm.cpp 	sc_signal_rv.cpp 	sc_bit.cpp 	sc_exception.cpp
+
+
+noinst_HEADERS = $(HFILES) 		  $(H_FILES)  
+
+
+libsystemc_a_SOURCES = $(HFILES) 		       $(H_FILES) 		       $(CXXFILES) 		       $(M4FILES)
+
+
+SUBDIRS = numeric_bit
+
+INCLUDES = -I@top_srcdir@/include
+
+EXTRA_DIST = sc_bool_vector_and.inc sc_bool_vector_or.inc sc_bool_vector_xor.inc sc_logic_vector_and.inc sc_logic_vector_or.inc sc_logic_vector_xor.inc
+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+CONFIG_CLEAN_FILES = 
+LIBRARIES =  $(noinst_LIBRARIES)
+
+
+DEFS = @DEFS@ -I. -I$(srcdir) 
+CPPFLAGS = @CPPFLAGS@
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+libsystemc_a_LIBADD = 
+libsystemc_a_OBJECTS =  sc_array.o sc_array_concat.o sc_clock.o \
+sc_simcontext.o sc_context_switch.o sc_signal.o sc_signal_optimize.o \
+sc_signal_array.o sc_signal_edgy.o sc_lambda.o sc_module.o \
+sc_sync_process.o sc_async_process.o sc_aproc_process.o sc_sync_opt.o \
+sc_async.o sc_aproc.o sc_logic.o sc_logic_vector.o sc_bool_vector.o \
+sc_string.o sc_list.o sc_hash.o sc_pq.o sc_vector.o sc_dump.o \
+sc_object.o sc_object_manager.o sc_measure.o sc_mempool.o sc_trace.o \
+sc_vcd_trace.o sc_wif_trace.o sc_isdb_trace.o sc_channel_array.o \
+sc_ver.o sc_sync_noopt.o sc_main.o sc_reslv.o sc_reslv_vector.o \
+sc_sensitive.o sc_wait.o sc_port.o sc_port_manager.o sc_module_name.o \
+sc_bv.o sc_lv.o sc_module_prm.o sc_signal_rv.o sc_bit.o sc_exception.o
+AR = ar
+CXXFLAGS = @CXXFLAGS@
+CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
+CXXLD = $(CXX)
+CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $@
+CFLAGS = @CFLAGS@
+COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
+CCLD = $(CC)
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
+HEADERS =  $(noinst_HEADERS)
+
+DIST_COMMON =  Makefile.am Makefile.in
+
+
+DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
+
+TAR = gtar
+GZIP_ENV = --best
+SOURCES = $(libsystemc_a_SOURCES)
+OBJECTS = $(libsystemc_a_OBJECTS)
+
+all: all-redirect
+.SUFFIXES:
+.SUFFIXES: .S .c .cpp .o .s
+$(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.in $(ACLOCAL_M4) 
+	cd $(top_srcdir) && $(AUTOMAKE) --gnu --include-deps src/Makefile
+
+Makefile: $(srcdir)/Makefile.in  $(top_builddir)/config.status
+	cd $(top_builddir) \
+	  && CONFIG_FILES=$(subdir)/$@ CONFIG_HEADERS= $(SHELL) ./config.status
+
+
+mostlyclean-noinstLIBRARIES:
+
+clean-noinstLIBRARIES:
+	-test -z "$(noinst_LIBRARIES)" || rm -f $(noinst_LIBRARIES)
+
+distclean-noinstLIBRARIES:
+
+maintainer-clean-noinstLIBRARIES:
+
+.c.o:
+	$(COMPILE) -c $<
+
+.s.o:
+	$(COMPILE) -c $<
+
+.S.o:
+	$(COMPILE) -c $<
+
+mostlyclean-compile:
+	-rm -f *.o core *.core
+
+clean-compile:
+
+distclean-compile:
+	-rm -f *.tab.c
+
+maintainer-clean-compile:
+
+libsystemc.a: $(libsystemc_a_OBJECTS) $(libsystemc_a_DEPENDENCIES)
+	-rm -f libsystemc.a
+	$(AR) cru libsystemc.a $(libsystemc_a_OBJECTS) $(libsystemc_a_LIBADD)
+	$(RANLIB) libsystemc.a
+.cpp.o:
+	$(CXXCOMPILE) -c $<
+
+# This directory's subdirectories are mostly independent; you can cd
+# into them and run `make' without going through this Makefile.
+# To change the values of `make' variables: instead of editing Makefiles,
+# (1) if the variable is set in `config.status', edit `config.status'
+#     (which will cause the Makefiles to be regenerated when you run `make');
+# (2) otherwise, pass the desired values on the `make' command line.
+
+@SET_MAKE@
+
+all-recursive install-data-recursive install-exec-recursive \
+installdirs-recursive install-recursive uninstall-recursive  \
+check-recursive installcheck-recursive info-recursive dvi-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	target=`echo $@ | sed s/-recursive//`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    dot_seen=yes; \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done; \
+	if test "$$dot_seen" = "no"; then \
+	  $(MAKE) $(AM_MAKEFLAGS) "$$target-am" || exit 1; \
+	fi; test -z "$$fail"
+
+mostlyclean-recursive clean-recursive distclean-recursive \
+maintainer-clean-recursive:
+	@set fnord $(MAKEFLAGS); amf=$$2; \
+	dot_seen=no; \
+	rev=''; list='$(SUBDIRS)'; for subdir in $$list; do \
+	  rev="$$subdir $$rev"; \
+	  test "$$subdir" = "." && dot_seen=yes; \
+	done; \
+	test "$$dot_seen" = "no" && rev=". $$rev"; \
+	target=`echo $@ | sed s/-recursive//`; \
+	for subdir in $$rev; do \
+	  echo "Making $$target in $$subdir"; \
+	  if test "$$subdir" = "."; then \
+	    local_target="$$target-am"; \
+	  else \
+	    local_target="$$target"; \
+	  fi; \
+	  (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) $$local_target) \
+	   || case "$$amf" in *=*) exit 1;; *k*) fail=yes;; *) exit 1;; esac; \
+	done && test -z "$$fail"
+tags-recursive:
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+	  test "$$subdir" = . || (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) tags); \
+	done
+
+tags: TAGS
+
+ID: $(HEADERS) $(SOURCES) $(LISP)
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	here=`pwd` && cd $(srcdir) \
+	  && mkid -f$$here/ID $$unique $(LISP)
+
+TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
+	tags=; \
+	here=`pwd`; \
+	list='$(SUBDIRS)'; for subdir in $$list; do \
+   if test "$$subdir" = .; then :; else \
+	    test -f $$subdir/TAGS && tags="$$tags -i $$here/$$subdir/TAGS"; \
+   fi; \
+	done; \
+	list='$(SOURCES) $(HEADERS)'; \
+	unique=`for i in $$list; do echo $$i; done | \
+	  awk '    { files[$$0] = 1; } \
+	       END { for (i in files) print i; }'`; \
+	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
+
+mostlyclean-tags:
+
+clean-tags:
+
+distclean-tags:
+	-rm -f TAGS ID
+
+maintainer-clean-tags:
+
+distdir = $(top_builddir)/$(PACKAGE)-$(VERSION)/$(subdir)
+
+subdir = src
+
+distdir: $(DISTFILES)
+	@for file in $(DISTFILES); do \
+	  d=$(srcdir); \
+	  if test -d $$d/$$file; then \
+	    cp -pr $$d/$$file $(distdir)/$$file; \
+	  else \
+	    test -f $(distdir)/$$file \
+	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
+	    || cp -p $$d/$$file $(distdir)/$$file || :; \
+	  fi; \
+	done
+	for subdir in $(SUBDIRS); do \
+	  if test "$$subdir" = .; then :; else \
+	    test -d $(distdir)/$$subdir \
+	    || mkdir $(distdir)/$$subdir \
+	    || exit 1; \
+	    chmod 777 $(distdir)/$$subdir; \
+	    (cd $$subdir && $(MAKE) $(AM_MAKEFLAGS) top_distdir=../$(top_distdir) distdir=../$(distdir)/$$subdir distdir) \
+	      || exit 1; \
+	  fi; \
+	done
+info-am:
+info: info-recursive
+dvi-am:
+dvi: dvi-recursive
+check-am: all-am
+check: check-recursive
+installcheck-am:
+installcheck: installcheck-recursive
+install-exec-am:
+install-exec: install-exec-recursive
+
+install-data-am: install-data-local
+install-data: install-data-recursive
+
+install-am: all-am
+	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
+install: install-recursive
+uninstall-am: uninstall-local
+uninstall: uninstall-recursive
+all-am: Makefile $(LIBRARIES) $(HEADERS)
+all-redirect: all-recursive
+install-strip:
+	$(MAKE) $(AM_MAKEFLAGS) AM_INSTALL_PROGRAM_FLAGS=-s install
+installdirs: installdirs-recursive
+installdirs-am:
+
+
+mostlyclean-generic:
+
+clean-generic:
+
+distclean-generic:
+	-rm -f Makefile $(CONFIG_CLEAN_FILES)
+	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
+
+maintainer-clean-generic:
+mostlyclean-am:  mostlyclean-noinstLIBRARIES mostlyclean-compile \
+		mostlyclean-tags mostlyclean-generic
+
+mostlyclean: mostlyclean-recursive
+
+clean-am:  clean-noinstLIBRARIES clean-compile clean-tags clean-generic \
+		mostlyclean-am
+
+clean: clean-recursive
+
+distclean-am:  distclean-noinstLIBRARIES distclean-compile \
+		distclean-tags distclean-generic clean-am
+
+distclean: distclean-recursive
+
+maintainer-clean-am:  maintainer-clean-noinstLIBRARIES \
+		maintainer-clean-compile maintainer-clean-tags \
+		maintainer-clean-generic distclean-am
+	@echo "This command is intended for maintainers to use;"
+	@echo "it deletes files that may require special tools to rebuild."
+
+maintainer-clean: maintainer-clean-recursive
+
+.PHONY: mostlyclean-noinstLIBRARIES distclean-noinstLIBRARIES \
+clean-noinstLIBRARIES maintainer-clean-noinstLIBRARIES \
+mostlyclean-compile distclean-compile clean-compile \
+maintainer-clean-compile install-data-recursive \
+uninstall-data-recursive install-exec-recursive \
+uninstall-exec-recursive installdirs-recursive uninstalldirs-recursive \
+all-recursive check-recursive installcheck-recursive info-recursive \
+dvi-recursive mostlyclean-recursive distclean-recursive clean-recursive \
+maintainer-clean-recursive tags tags-recursive mostlyclean-tags \
+distclean-tags clean-tags maintainer-clean-tags distdir info-am info \
+dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
+install-exec install-data-local install-data-am install-data install-am \
+install uninstall-local uninstall-am uninstall all-redirect all-am all \
+installdirs-am installdirs mostlyclean-generic distclean-generic \
+clean-generic maintainer-clean-generic clean mostlyclean distclean \
+maintainer-clean
+
+
+install-data-local: 
+	@$(NORMAL_INSTALL)
+	$(INSTALL_DATA) $(MODULE) @top_srcdir@/lib-$(TARGET_ARCH)/$(MODULE)
+
+uninstall-local:
+	@$(NORMAL_UNINSTALL)
+	rm -f @top_srcdir@/lib-$(TARGET_ARCH)/$(MODULE)
+
+# Tell versions [3.59,3.63) of GNU make to not export all variables.
+# Otherwise a system limit (for SysV at least) may be exceeded.
+.NOEXPORT:

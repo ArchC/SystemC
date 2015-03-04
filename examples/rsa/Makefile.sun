@@ -1,0 +1,13 @@
+TARGET_ARCH = sparcOS5
+
+CC = CC
+OPT    = -O3
+DEBUG  =    
+CFLAGS = $(DEBUG) $(OPT) -pto
+
+
+MODULE = run
+SRCS = rsa.cpp
+OBJS = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs

@@ -1,0 +1,526 @@
+/******************************************************************************
+    Copyright (c) 1996-2001 Synopsys, Inc.    ALL RIGHTS RESERVED
+
+  The contents of this file are subject to the restrictions and limitations
+  set forth in the SystemC Open Community License Software Download and
+  Use License Version 1.2 (the "License"); you may not use this file except
+  in compliance with such restrictions and limitations. You may obtain
+  instructions on how to receive a copy of the License at
+  http://www.systemc.org/. Software distributed by Original Contributor
+  under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
+  ANY KIND, either express or implied. See the License for the specific
+  language governing rights and limitations under the License.
+
+******************************************************************************/
+
+/******************************************************************************
+
+    sc_lambda_exps.h_ -- macro expansions for available lambda expressions
+
+    Original Author: Stan Y. Liao. Synopsys, Inc. (stanliao@synopsys.com)
+
+******************************************************************************/
+
+/******************************************************************************
+
+    MODIFICATION LOG - modifiers, enter your name, affliation and
+    changes you are making here:
+
+    Modifier Name & Affiliation:
+    Description of Modification:
+    
+
+******************************************************************************/
+
+/******************************************************************************
+
+    This header file is included by sc_lambda_defs.h_ and sc_lambda_friends.h_
+    The former defines the code for the inline functions, whereas the latter
+    declare friendship for the classes sc_lambda, sc_lambda_ptr, and
+    sc_lambda_rator.  By using macros, consistency among these files will be
+    more easily maintained, as well as amount of typing is reduced.
+
+******************************************************************************/
+
+#ifdef L_DECL1
+
+#ifndef NO_INTEGER_LAMBDA
+L_DECL2(==, SC_LAMBDA_INT_EQ, const sc_signal_int_deval&, const sc_signal_int_deval&, s1, s2)
+L_DECL2(==, SC_LAMBDA_INT_EQ, const sc_signal_int_deval&, int,               s1, s2 )
+L_DECL2(==, SC_LAMBDA_INT_EQ, int,               const sc_signal_int_deval&, s1, s2 )
+
+L_DECL2(==, SC_LAMBDA_INT_EQ,  const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(==, SC_LAMBDA_INT_EQ,  const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+#endif
+
+L_DECL2(==, SC_LAMBDA_BOOL_EQ, const sc_signal_edgy_deval&, const sc_signal_edgy_deval&,   s1, s2)
+L_DECL2(==, SC_LAMBDA_BOOL_EQ, const sc_signal_edgy_deval&, bool,                          s1, s2)
+L_DECL2(==, SC_LAMBDA_BOOL_EQ, bool,                        const sc_signal_edgy_deval&,   s1, s2)
+L_DECL2(==, SC_LAMBDA_BOOL_EQ, const sc_lambda_ptr&,        const sc_signal_edgy_deval&,   s1, s2)
+L_DECL2(==, SC_LAMBDA_BOOL_EQ, const sc_signal_edgy_deval&, const sc_lambda_ptr&,          s1, s2)
+
+L_DECL2SPEC(==, const sc_lambda_ptr&, const sc_lambda_ptr&,
+    if (s1->is_sc_logic()) {
+        assert( s2->is_sc_logic() );
+        return new sc_lambda( SC_LAMBDA_SUL_EQ,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+    else if (s1->is_bool()) {
+        assert( s2->is_bool() );
+        return new sc_lambda( SC_LAMBDA_BOOL_EQ,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+    else {
+        assert( s2->is_int() );
+        return new sc_lambda( SC_LAMBDA_INT_EQ,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+)
+
+#ifndef NO_INTEGER_LAMBDA
+L_DECL2SPEC(==, const sc_lambda_ptr&, int,
+    if (s1->is_bool()) {
+        return new sc_lambda( SC_LAMBDA_BOOL_EQ,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand((bool) (s2 & 1)));
+    }
+    else {
+        assert(s1->is_int());
+        return new sc_lambda( SC_LAMBDA_INT_EQ,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+)
+
+L_DECL2SPEC(==, int, const sc_lambda_ptr&,
+    if (s2->is_bool()) {
+        return new sc_lambda( SC_LAMBDA_BOOL_EQ,
+                              new sc_lambda_rand((bool) (s1 & 1)),
+                              new sc_lambda_rand(s2) );
+    }
+    else {
+        assert( s2->is_int() );
+        return new sc_lambda( SC_LAMBDA_INT_EQ,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+)
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(==, SC_LAMBDA_SUL_EQ, const sc_signal_sc_logic_deval&, const sc_lambda_ptr&,                 s1, s2)
+L_DECL2(==, SC_LAMBDA_SUL_EQ, const sc_lambda_ptr&,              const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(==, SC_LAMBDA_SUL_EQ, const sc_signal_sc_logic_deval&, const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(==, SC_LAMBDA_SUL_EQ, const sc_signal_sc_logic_deval&, const sc_logic&,                    s1, s2)
+L_DECL2(==, SC_LAMBDA_SUL_EQ, const sc_logic&,                 const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(==, SC_LAMBDA_SUL_EQ, const sc_signal_sc_logic_deval&, char,                     s1, sc_logic(s2))
+L_DECL2(==, SC_LAMBDA_SUL_EQ, char,                  const sc_signal_sc_logic_deval&,    sc_logic(s1), s2)
+L_DECL2(==, SC_LAMBDA_SUL_EQ, const sc_lambda_ptr&, char,                                  s1, sc_logic(s2))
+L_DECL2(==, SC_LAMBDA_SUL_EQ, char,                 const sc_lambda_ptr&,                  sc_logic(s1), s2)
+
+/*---------------------------------------------------------------------------*/
+
+#if 0
+L_DECL2(==, SC_LAMBDA_SUL_EQ, const signal_sl& ,    const sc_lambda_ptr&, s1, s2)
+L_DECL2(==, SC_LAMBDA_SUL_EQ, const sc_lambda_ptr&, const signal_sl& ,    s1, s2)
+L_DECL2(==, SC_LAMBDA_SUL_EQ, const signal_sl& ,    const signal_sl& ,    s1, s2)
+L_DECL2(==, SC_LAMBDA_SUL_EQ, const signal_sl& ,    const sc_logic&,    s1, s2)
+L_DECL2(==, SC_LAMBDA_SUL_EQ, const sc_logic&,    const signal_sl& ,    s1, s2)
+L_DECL2(==, SC_LAMBDA_SUL_EQ, const signal_sl& ,    char,                 s1, sc_logic(s2))
+L_DECL2(==, SC_LAMBDA_SUL_EQ, char,                 const signal_sl& ,    sc_logic(s1), s2)
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+// Overloading operator!=() clashes with STL.  Should look for a way around
+// this, since STL has become a standard library for ANSI C++
+
+#ifndef NO_INTEGER_LAMBDA
+L_DECL2(!=, SC_LAMBDA_INT_NE, const sc_signal_int_deval&, const sc_signal_int_deval&, s1, s2 )
+L_DECL2(!=, SC_LAMBDA_INT_NE, const sc_signal_int_deval&, int,               s1, s2 )
+L_DECL2(!=, SC_LAMBDA_INT_NE, int,               const sc_signal_int_deval&, s1, s2 )
+
+L_DECL2(!=, SC_LAMBDA_INT_NE,  const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(!=, SC_LAMBDA_INT_NE,  const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+#endif
+
+L_DECL2(!=, SC_LAMBDA_BOOL_NE, const sc_signal_edgy_deval&,   const sc_signal_edgy_deval&,   s1, s2)
+L_DECL2(!=, SC_LAMBDA_BOOL_NE, const sc_signal_edgy_deval&,   bool,                          s1, s2)
+L_DECL2(!=, SC_LAMBDA_BOOL_NE, bool,                          const sc_signal_edgy_deval&,   s1, s2)
+L_DECL2(!=, SC_LAMBDA_BOOL_NE, const sc_lambda_ptr&,          const sc_signal_edgy_deval&,   s1, s2)
+L_DECL2(!=, SC_LAMBDA_BOOL_NE, const sc_signal_edgy_deval&,   const sc_lambda_ptr&,          s1, s2)
+
+L_DECL2SPEC(!=, const sc_lambda_ptr&, const sc_lambda_ptr&,
+    if (s1->is_sc_logic()) {
+        assert( s2->is_sc_logic() );
+        return new sc_lambda( SC_LAMBDA_SUL_NE,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+    else if (s1->is_bool()) {
+        assert( s2->is_bool() );
+        return new sc_lambda( SC_LAMBDA_BOOL_NE,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+    else {
+        assert( s2->is_int() );
+        return new sc_lambda( SC_LAMBDA_INT_NE,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+)
+
+#ifndef NO_INTEGER_LAMBDA
+L_DECL2SPEC(!=, const sc_lambda_ptr&, int,
+    if (s1->is_bool()) {
+        return new sc_lambda( SC_LAMBDA_BOOL_NE,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand((bool) (s2 & 1)));
+    }
+    else {
+        assert(s1->is_int());
+        return new sc_lambda( SC_LAMBDA_INT_NE,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+)
+
+L_DECL2SPEC(!=, int, const sc_lambda_ptr&,
+    if (s2->is_bool()) {
+        return new sc_lambda( SC_LAMBDA_BOOL_NE,
+                              new sc_lambda_rand((bool) (s1 & 1)),
+                              new sc_lambda_rand(s2) );
+    }
+    else {
+        assert( s2->is_int() );
+        return new sc_lambda( SC_LAMBDA_INT_NE,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+)
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(!=, SC_LAMBDA_SUL_NE, const sc_signal_sc_logic_deval&,    const sc_lambda_ptr&,                 s1, s2)
+L_DECL2(!=, SC_LAMBDA_SUL_NE, const sc_lambda_ptr&,                 const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(!=, SC_LAMBDA_SUL_NE, const sc_signal_sc_logic_deval&,    const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(!=, SC_LAMBDA_SUL_NE, const sc_signal_sc_logic_deval&,    const sc_logic&,                    s1, s2)
+L_DECL2(!=, SC_LAMBDA_SUL_NE, const sc_logic&,                    const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(!=, SC_LAMBDA_SUL_NE, const sc_signal_sc_logic_deval&,    char,                     s1, sc_logic(s2))
+L_DECL2(!=, SC_LAMBDA_SUL_NE, char,                     const sc_signal_sc_logic_deval&,    sc_logic(s1), s2)
+L_DECL2(!=, SC_LAMBDA_SUL_NE, const sc_lambda_ptr&,     char,                                 s1, sc_logic(s2))
+L_DECL2(!=, SC_LAMBDA_SUL_NE, char,                     const sc_lambda_ptr&,                 sc_logic(s1), s2)
+
+/*---------------------------------------------------------------------------*/
+
+#if 0
+L_DECL2(!=, SC_LAMBDA_SUL_NE, const signal_sl& ,    const sc_lambda_ptr&, s1, s2)
+L_DECL2(!=, SC_LAMBDA_SUL_NE, const sc_lambda_ptr&, const signal_sl& ,    s1, s2)
+L_DECL2(!=, SC_LAMBDA_SUL_NE, const signal_sl& ,    const signal_sl& ,    s1, s2)
+L_DECL2(!=, SC_LAMBDA_SUL_NE, const signal_sl& ,    const sc_logic&,    s1, s2)
+L_DECL2(!=, SC_LAMBDA_SUL_NE, const sc_logic&,    const signal_sl& ,    s1, s2)
+L_DECL2(!=, SC_LAMBDA_SUL_NE, const signal_sl& ,    char,                 s1, sc_logic(s2))
+L_DECL2(!=, SC_LAMBDA_SUL_NE, char,                 const signal_sl& ,    sc_logic(s1), s2)
+#endif
+
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+#ifndef NO_INTEGER_LAMBDA
+
+L_DECL2(<=, SC_LAMBDA_INT_LE, const sc_signal_int_deval&,    const sc_signal_int_deval&,    s1, s2)
+L_DECL2(<=, SC_LAMBDA_INT_LE, const sc_signal_int_deval&,    int,                  s1, s2)
+L_DECL2(<=, SC_LAMBDA_INT_LE, int,                  const sc_signal_int_deval&,    s1, s2)
+L_DECL2(<=, SC_LAMBDA_INT_LE, const sc_lambda_ptr&, const sc_lambda_ptr&, s1, s2)
+L_DECL2(<=, SC_LAMBDA_INT_LE, const sc_lambda_ptr&, int,                  s1, s2)
+L_DECL2(<=, SC_LAMBDA_INT_LE, int,                  const sc_lambda_ptr&, s1, s2)
+L_DECL2(<=, SC_LAMBDA_INT_LE, const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(<=, SC_LAMBDA_INT_LE, const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(>=, SC_LAMBDA_INT_GE, const sc_signal_int_deval&,    const sc_signal_int_deval&,    s1, s2)
+L_DECL2(>=, SC_LAMBDA_INT_GE, const sc_signal_int_deval&,    int,                  s1, s2)
+L_DECL2(>=, SC_LAMBDA_INT_GE, int,                  const sc_signal_int_deval&,    s1, s2)
+L_DECL2(>=, SC_LAMBDA_INT_GE, const sc_lambda_ptr&, const sc_lambda_ptr&, s1, s2)
+L_DECL2(>=, SC_LAMBDA_INT_GE, const sc_lambda_ptr&, int,                  s1, s2)
+L_DECL2(>=, SC_LAMBDA_INT_GE, int,                  const sc_lambda_ptr&, s1, s2)
+L_DECL2(>=, SC_LAMBDA_INT_GE, const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(>=, SC_LAMBDA_INT_GE, const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(<, SC_LAMBDA_INT_LT, const sc_signal_int_deval&,    const sc_signal_int_deval&,    s1, s2)
+L_DECL2(<, SC_LAMBDA_INT_LT, const sc_signal_int_deval&,    int,                  s1, s2)
+L_DECL2(<, SC_LAMBDA_INT_LT, int,                  const sc_signal_int_deval&,    s1, s2)
+L_DECL2(<, SC_LAMBDA_INT_LT, const sc_lambda_ptr&, const sc_lambda_ptr&, s1, s2)
+L_DECL2(<, SC_LAMBDA_INT_LT, const sc_lambda_ptr&, int,                  s1, s2)
+L_DECL2(<, SC_LAMBDA_INT_LT, int,                  const sc_lambda_ptr&, s1, s2)
+L_DECL2(<, SC_LAMBDA_INT_LT, const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(<, SC_LAMBDA_INT_LT, const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(>, SC_LAMBDA_INT_GT, const sc_signal_int_deval&,    const sc_signal_int_deval&,    s1, s2)
+L_DECL2(>, SC_LAMBDA_INT_GT, const sc_signal_int_deval&,    int,                  s1, s2)
+L_DECL2(>, SC_LAMBDA_INT_GT, int,                  const sc_signal_int_deval&,    s1, s2)
+L_DECL2(>, SC_LAMBDA_INT_GT, const sc_lambda_ptr&, const sc_lambda_ptr&, s1, s2)
+L_DECL2(>, SC_LAMBDA_INT_GT, const sc_lambda_ptr&, int,                  s1, s2)
+L_DECL2(>, SC_LAMBDA_INT_GT, int,                  const sc_lambda_ptr&, s1, s2)
+L_DECL2(>, SC_LAMBDA_INT_GT, const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(>, SC_LAMBDA_INT_GT, const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(+, SC_LAMBDA_INT_ADD, const sc_signal_int_deval&,    const sc_signal_int_deval&,    s1, s2)
+L_DECL2(+, SC_LAMBDA_INT_ADD, const sc_signal_int_deval&,    int,                  s1, s2)
+L_DECL2(+, SC_LAMBDA_INT_ADD, int,                  const sc_signal_int_deval&,    s1, s2)
+L_DECL2(+, SC_LAMBDA_INT_ADD, const sc_lambda_ptr&, const sc_lambda_ptr&, s1, s2)
+L_DECL2(+, SC_LAMBDA_INT_ADD, const sc_lambda_ptr&, int,                  s1, s2)
+L_DECL2(+, SC_LAMBDA_INT_ADD, int,                  const sc_lambda_ptr&, s1, s2)
+L_DECL2(+, SC_LAMBDA_INT_ADD, const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(+, SC_LAMBDA_INT_ADD, const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(-, SC_LAMBDA_INT_SUB, const sc_signal_int_deval&,    const sc_signal_int_deval&,    s1, s2)
+L_DECL2(-, SC_LAMBDA_INT_SUB, const sc_signal_int_deval&,    int,                  s1, s2)
+L_DECL2(-, SC_LAMBDA_INT_SUB, int,                  const sc_signal_int_deval&,    s1, s2)
+L_DECL2(-, SC_LAMBDA_INT_SUB, const sc_lambda_ptr&, const sc_lambda_ptr&, s1, s2)
+L_DECL2(-, SC_LAMBDA_INT_SUB, const sc_lambda_ptr&, int,                  s1, s2)
+L_DECL2(-, SC_LAMBDA_INT_SUB, int,                  const sc_lambda_ptr&, s1, s2)
+L_DECL2(-, SC_LAMBDA_INT_SUB, const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(-, SC_LAMBDA_INT_SUB, const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(*, SC_LAMBDA_INT_MUL, const sc_signal_int_deval&,    const sc_signal_int_deval&,    s1, s2)
+L_DECL2(*, SC_LAMBDA_INT_MUL, const sc_signal_int_deval&,    int,                  s1, s2)
+L_DECL2(*, SC_LAMBDA_INT_MUL, int,                  const sc_signal_int_deval&,    s1, s2)
+L_DECL2(*, SC_LAMBDA_INT_MUL, const sc_lambda_ptr&, const sc_lambda_ptr&, s1, s2)
+L_DECL2(*, SC_LAMBDA_INT_MUL, const sc_lambda_ptr&, int,                  s1, s2)
+L_DECL2(*, SC_LAMBDA_INT_MUL, int,                  const sc_lambda_ptr&, s1, s2)
+L_DECL2(*, SC_LAMBDA_INT_MUL, const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(*, SC_LAMBDA_INT_MUL, const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(/, SC_LAMBDA_INT_DIV, const sc_signal_int_deval&,    const sc_signal_int_deval&,    s1, s2)
+L_DECL2(/, SC_LAMBDA_INT_DIV, const sc_signal_int_deval&,    int,                  s1, s2)
+L_DECL2(/, SC_LAMBDA_INT_DIV, int,                  const sc_signal_int_deval&,    s1, s2)
+L_DECL2(/, SC_LAMBDA_INT_DIV, const sc_lambda_ptr&, const sc_lambda_ptr&, s1, s2)
+L_DECL2(/, SC_LAMBDA_INT_DIV, const sc_lambda_ptr&, int,                  s1, s2)
+L_DECL2(/, SC_LAMBDA_INT_DIV, int,                  const sc_lambda_ptr&, s1, s2)
+L_DECL2(/, SC_LAMBDA_INT_DIV, const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(/, SC_LAMBDA_INT_DIV, const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(%, SC_LAMBDA_INT_REM, const sc_signal_int_deval&,    const sc_signal_int_deval&,    s1, s2)
+L_DECL2(%, SC_LAMBDA_INT_REM, const sc_signal_int_deval&,    int,                  s1, s2)
+L_DECL2(%, SC_LAMBDA_INT_REM, int,                  const sc_signal_int_deval&,    s1, s2)
+L_DECL2(%, SC_LAMBDA_INT_REM, const sc_lambda_ptr&, const sc_lambda_ptr&, s1, s2)
+L_DECL2(%, SC_LAMBDA_INT_REM, const sc_lambda_ptr&, int,                  s1, s2)
+L_DECL2(%, SC_LAMBDA_INT_REM, int,                  const sc_lambda_ptr&, s1, s2)
+L_DECL2(%, SC_LAMBDA_INT_REM, const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(%, SC_LAMBDA_INT_REM, const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(&, SC_LAMBDA_INT_BITAND, const sc_signal_int_deval&,    const sc_signal_int_deval&,     s1, s2)
+L_DECL2(&, SC_LAMBDA_INT_BITAND, const sc_signal_int_deval&,    int,                  s1, s2)
+L_DECL2(&, SC_LAMBDA_INT_BITAND, int,                  const sc_signal_int_deval&,    s1, s2)
+L_DECL2(&, SC_LAMBDA_INT_BITAND, const sc_lambda_ptr&, int,                  s1, s2)
+L_DECL2(&, SC_LAMBDA_INT_BITAND, int,                  const sc_lambda_ptr&, s1, s2)
+L_DECL2(&, SC_LAMBDA_INT_BITAND, const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(&, SC_LAMBDA_INT_BITAND, const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+
+#endif
+
+L_DECL2SPEC(&, const sc_lambda_ptr&, const sc_lambda_ptr&,
+    if (s1->is_sc_logic()) {
+        assert( s2->is_sc_logic() );
+        return new sc_lambda( SC_LAMBDA_SUL_BITAND,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+    else {
+        assert( ! s2->is_sc_logic() );
+        return new sc_lambda( SC_LAMBDA_INT_BITAND,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+)
+
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, const sc_signal_sc_logic_deval&,    const sc_lambda_ptr&, s1, s2)
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, const sc_lambda_ptr&, const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, const sc_signal_sc_logic_deval&,    const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, const sc_signal_sc_logic_deval&,    const sc_logic&,    s1, s2)
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, const sc_signal_sc_logic_deval&,    char,                 s1, sc_logic(s2))
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, const sc_logic&,    const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, char,                 const sc_signal_sc_logic_deval&,    sc_logic(s1), s2)
+
+/*---------------------------------------------------------------------------*/
+
+#if 0
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, const signal_sl&,     const sc_lambda_ptr&, s1, s2)
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, const sc_lambda_ptr&, const signal_sl&,     s1, s2)
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, const signal_sl&,     const signal_sl&,     s1, s2)
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, const signal_sl&,     const sc_logic&,    s1, s2)
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, const signal_sl&,     char,                 s1, sc_logic(s2))
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, const sc_logic&,    const signal_sl&,     s1, s2)
+L_DECL2(&, SC_LAMBDA_SUL_BITAND, char,                 const signal_sl&,     sc_logic(s1), s2)
+#endif
+
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+#ifndef NO_INTEGER_LAMBDA
+L_DECL2(|, SC_LAMBDA_INT_BITOR, const sc_signal_int_deval&,    const sc_signal_int_deval&,     s1, s2)
+L_DECL2(|, SC_LAMBDA_INT_BITOR, const sc_signal_int_deval&,    int,                  s1, s2)
+L_DECL2(|, SC_LAMBDA_INT_BITOR, int,                  const sc_signal_int_deval&,    s1, s2)
+L_DECL2(|, SC_LAMBDA_INT_BITOR, const sc_lambda_ptr&, int,                  s1, s2)
+L_DECL2(|, SC_LAMBDA_INT_BITOR, int,                  const sc_lambda_ptr&, s1, s2)
+L_DECL2(|, SC_LAMBDA_INT_BITOR, const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(|, SC_LAMBDA_INT_BITOR, const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+#endif
+
+L_DECL2SPEC(|, const sc_lambda_ptr&, const sc_lambda_ptr&,
+    if (s1->is_sc_logic()) {
+        assert( s2->is_sc_logic() );
+        return new sc_lambda( SC_LAMBDA_SUL_BITOR,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+    else {
+        assert( ! s2->is_sc_logic() );
+        return new sc_lambda( SC_LAMBDA_INT_BITOR,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+)
+
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, const sc_signal_sc_logic_deval&,    const sc_lambda_ptr&, s1, s2)
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, const sc_lambda_ptr&, const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, const sc_signal_sc_logic_deval&,    const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, const sc_signal_sc_logic_deval&,    const sc_logic&,    s1, s2)
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, const sc_signal_sc_logic_deval&,    char,                 s1, sc_logic(s2))
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, const sc_logic&,    const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, char,                 const sc_signal_sc_logic_deval&,    sc_logic(s1), s2)
+
+/*---------------------------------------------------------------------------*/
+
+#if 0
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, const signal_sl&,     const sc_lambda_ptr&, s1, s2)
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, const sc_lambda_ptr&, const signal_sl&,     s1, s2)
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, const signal_sl&,     const signal_sl&,     s1, s2)
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, const signal_sl&,     const sc_logic&,    s1, s2)
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, const signal_sl&,     char,                 s1, sc_logic(s2))
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, const sc_logic&,    const signal_sl&,     s1, s2)
+L_DECL2(|, SC_LAMBDA_SUL_BITOR, char,                 const signal_sl&,     sc_logic(s1), s2)
+#endif
+
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+#ifndef NO_INTEGER_LAMBDA
+L_DECL1(~, SC_LAMBDA_INT_BITNOT, const sc_signal_int_deval&, s1)
+#endif
+
+L_DECL1(~, SC_LAMBDA_SUL_BITNOT, const sc_signal_sc_logic_deval&, s1)
+#if 0
+L_DECL1(~, SC_LAMBDA_SUL_BITNOT, const signal_sl&, s1)
+#endif
+
+L_DECL1SPEC(~, const sc_lambda_ptr&,
+    if (s1->is_sc_logic()) {
+        return new sc_lambda( SC_LAMBDA_SUL_BITNOT,
+                              new sc_lambda_rand(s1) );
+    }
+    else {
+        return new sc_lambda( SC_LAMBDA_INT_BITNOT,
+                              new sc_lambda_rand(s1) );
+    }
+)
+
+/*---------------------------------------------------------------------------*/
+
+#ifndef NO_INTEGER_LAMBDA
+L_DECL2(^, SC_LAMBDA_INT_BITXOR, const sc_signal_int_deval&,    const sc_signal_int_deval&,     s1, s2)
+L_DECL2(^, SC_LAMBDA_INT_BITXOR, const sc_signal_int_deval&,    int,                  s1, s2)
+L_DECL2(^, SC_LAMBDA_INT_BITXOR, int,                  const sc_signal_int_deval&,    s1, s2)
+L_DECL2(^, SC_LAMBDA_INT_BITXOR, const sc_lambda_ptr&, int,                  s1, s2)
+L_DECL2(^, SC_LAMBDA_INT_BITXOR, int,                  const sc_lambda_ptr&, s1, s2)
+L_DECL2(^, SC_LAMBDA_INT_BITXOR, const sc_lambda_ptr&, const sc_signal_int_deval&,    s1, s2)
+L_DECL2(^, SC_LAMBDA_INT_BITXOR, const sc_signal_int_deval&,    const sc_lambda_ptr&, s1, s2)
+#endif
+
+L_DECL2SPEC(^, const sc_lambda_ptr&, const sc_lambda_ptr&,
+    if (s1->is_sc_logic()) {
+        assert( s2->is_sc_logic() );
+        return new sc_lambda( SC_LAMBDA_SUL_BITXOR,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+    else {
+        assert( ! s2->is_sc_logic() );
+        return new sc_lambda( SC_LAMBDA_INT_BITXOR,
+                              new sc_lambda_rand(s1),
+                              new sc_lambda_rand(s2) );
+    }
+)
+
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, const sc_signal_sc_logic_deval&,    const sc_lambda_ptr&, s1, s2)
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, const sc_lambda_ptr&, const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, const sc_signal_sc_logic_deval&,    const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, const sc_signal_sc_logic_deval&,    const sc_logic&,    s1, s2)
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, const sc_signal_sc_logic_deval&,    char,                 s1, sc_logic(s2))
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, const sc_logic&,    const sc_signal_sc_logic_deval&,    s1, s2)
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, char,                 const sc_signal_sc_logic_deval&,    sc_logic(s1), s2)
+
+/*---------------------------------------------------------------------------*/
+
+#if 0
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, const signal_sl&,     const sc_lambda_ptr&, s1, s2)
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, const sc_lambda_ptr&, const signal_sl&,     s1, s2)
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, const signal_sl&,     const signal_sl&,     s1, s2)
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, const signal_sl&,     const sc_logic&,    s1, s2)
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, const signal_sl&,     char,                 s1, sc_logic(s2))
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, const sc_logic&,    const signal_sl&,     s1, s2)
+L_DECL2(^, SC_LAMBDA_SUL_BITXOR, char,                 const signal_sl&,     sc_logic(s1), s2)
+#endif
+
+/*---------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
+
+L_DECL2(||, SC_LAMBDA_OR,   const sc_lambda_ptr&,   const sc_lambda_ptr&,   s1, s2 )
+L_DECL2(||, SC_LAMBDA_OR,   const sc_signal_edgy_deval&, const sc_signal_edgy_deval&, s1, s2 )
+L_DECL2(||, SC_LAMBDA_OR,   const sc_signal_edgy_deval&, bool,                   s1, s2 )
+L_DECL2(||, SC_LAMBDA_OR,   bool,                   const sc_signal_edgy_deval&, s1, s2 )
+L_DECL2(||, SC_LAMBDA_OR,   const sc_signal_edgy_deval&, const sc_lambda_ptr&,   s1, s2 )
+L_DECL2(||, SC_LAMBDA_OR,   const sc_lambda_ptr&,   const sc_signal_edgy_deval&, s1, s2 )
+
+L_DECL2(&&, SC_LAMBDA_AND,  const sc_lambda_ptr&,   const sc_lambda_ptr&,   s1, s2 )
+L_DECL2(&&, SC_LAMBDA_AND,  const sc_signal_edgy_deval&, const sc_signal_edgy_deval&, s1, s2 )
+L_DECL2(&&, SC_LAMBDA_AND,  const sc_signal_edgy_deval&, bool,                   s1, s2 )
+L_DECL2(&&, SC_LAMBDA_AND,  bool,                   const sc_signal_edgy_deval&, s1, s2 )
+L_DECL2(&&, SC_LAMBDA_AND,  const sc_signal_edgy_deval&, const sc_lambda_ptr&,   s1, s2 )
+L_DECL2(&&, SC_LAMBDA_AND,  const sc_lambda_ptr&,   const sc_signal_edgy_deval&, s1, s2 )
+
+L_DECL1(!,  SC_LAMBDA_NOT,  const sc_lambda_ptr&,   s1)
+L_DECL1(!,  SC_LAMBDA_NOT,  const sc_signal_edgy_deval&,     s1)
+
+#endif

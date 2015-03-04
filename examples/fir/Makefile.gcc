@@ -1,0 +1,12 @@
+TARGET_ARCH = gccsparcOS5
+CC = g++
+OPT    = -O3
+DEBUG  =    
+CFLAGS = $(DEBUG) $(OPT) -fexceptions
+
+MODULE = demo 
+SRCS = stimulus.cpp display.cpp fir.cpp main.cpp
+OBJS = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs
+

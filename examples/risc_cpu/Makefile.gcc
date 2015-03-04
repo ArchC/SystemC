@@ -1,0 +1,11 @@
+TARGET_ARCH = gccsparcOS5
+CC = g++
+OPT    = -O3
+DEBUG  =    
+CFLAGS = $(DEBUG) $(OPT) -fexceptions
+
+MODULE = demo
+SRCS = paging.cpp icache.cpp mmxu.cpp pic.cpp floating.cpp dcache.cpp fetch.cpp bios.cpp exec.cpp decode.cpp main.cpp 
+OBJS = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs

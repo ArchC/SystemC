@@ -1,0 +1,12 @@
+TARGET_ARCH = linux
+
+CC = g++
+OPT    = -O3
+DEBUG  =    
+CFLAGS = $(DEBUG) $(OPT) -fexceptions -Wall
+
+MODULE = run
+SRCS = fifo.cpp sender.cpp switch_clk.cpp switch.cpp receiver.cpp main.cpp 
+OBJS = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs

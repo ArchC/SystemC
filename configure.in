@@ -1,0 +1,78 @@
+AC_INIT(src/sc_aproc.cpp)
+
+AC_CANONICAL_SYSTEM
+
+AM_INIT_AUTOMAKE(systemc,1.0.2)
+
+AC_ARG_WITH( fx_types,	[  --with-fx-types         include fixed-point data types [no]], with_fx_types=$withval, with_fx_types="no" )
+
+AC_PROG_CC
+AC_PROG_CXX
+
+FX_DIR=""
+if test "x$with_fx_types" = "xyes"; then
+    FX_DIR="fx"
+fi
+
+AC_SUBST(EXTRA_CXXFLAGS)
+AC_SUBST(DEBUG_CXXFLAGS)
+AC_SUBST(OPT_CXXFLAGS)
+AC_SUBST(TARGET_ARCH)
+AC_SUBST(FX_DIR)
+
+case "$target" in
+    sparc-sun-solaris*) 
+        case "$CXX" in
+            CC)
+                EXTRA_CXXFLAGS="-pto"
+                DEBUG_CXXFLAGS="-g "
+                OPT_CXXFLAGS="-O3"
+                TARGET_ARCH=sparcOS5
+                ;;
+            c++ | g++)
+                EXTRA_CXXFLAGS="-Wall"
+                DEBUG_CXXFLAGS="-g "
+                OPT_CXXFLAGS="-O3"
+                TARGET_ARCH=gccsparcOS5
+                ;;
+        esac
+        ;;
+    *linux*)
+        EXTRA_CXXFLAGS="-Wall"
+        DEBUG_CXXFLAGS="-g "
+        OPT_CXXFLAGS="-O3"
+        TARGET_ARCH=linux
+        ;;
+    *hpux10*)
+        case "$CXX" in
+            aCC)
+                EXTRA_CXXFLAGS="+DAportable"
+#               EXTRA_CXXFLAGS="+DA1.1 +DS2.0"
+                DEBUG_CXXFLAGS="-g "
+                OPT_CXXFLAGS="+O3"
+                TARGET_ARCH=hpux10
+                ;;
+            c++ | g++)
+                EXTRA_CXXFLAGS=-Wall
+                DEBUG_CXXFLAGS="-g "
+                OPT_CXXFLAGS="-O3"
+                TARGET_ARCH=gcchpux10
+                ;;
+        esac
+        ;;
+    default)
+        echo "sorry...currently do not support this architecture"
+        ;;
+esac 
+
+if test "x$with_fx_types" = "xyes"; then
+    EXTRA_CXXFLAGS="$EXTRA_CXXFLAGS -DSC_INCLUDE_FX"
+    echo EXTRA_CXXFLAGS= $EXTRA_CXXFLAGS
+fi
+
+CXXFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
+
+AC_PROG_INSTALL
+AC_PROG_RANLIB
+
+AC_OUTPUT(Makefile src/Makefile src/numeric_bit/Makefile src/numeric_bit/fx/Makefile examples/Makefile) 

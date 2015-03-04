@@ -1,0 +1,12 @@
+TARGET_ARCH = sparcOS5
+
+CC = CC
+OPT    = -O3
+DEBUG  =    
+CFLAGS = $(DEBUG) $(OPT) -pto
+
+MODULE = demo 
+SRCS = stimulus.cpp display.cpp fir.cpp main.cpp
+OBJS = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs

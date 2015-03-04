@@ -1,0 +1,191 @@
+/******************************************************************************
+    Copyright (c) 1996-2001 Synopsys, Inc.    ALL RIGHTS RESERVED
+
+  The contents of this file are subject to the restrictions and limitations
+  set forth in the SystemC Open Community License Software Download and
+  Use License Version 1.2 (the "License"); you may not use this file except
+  in compliance with such restrictions and limitations. You may obtain
+  instructions on how to receive a copy of the License at
+  http://www.systemc.org/. Software distributed by Original Contributor
+  under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
+  ANY KIND, either express or implied. See the License for the specific
+  language governing rights and limitations under the License.
+
+******************************************************************************/
+
+/******************************************************************************
+
+    sc_port_spec.h_ -- Port class specialization for bool.
+
+    Original Author: Stan Y. Liao. Synopsys, Inc. (stanliao@synopsys.com)
+
+******************************************************************************/
+
+/******************************************************************************
+
+    MODIFICATION LOG - modifiers, enter your name, affliation and
+    changes you are making here:
+
+    Modifier Name & Affiliation: Ali Dasdan. Synopsys, Inc. (dasdan@synopsys.com)
+    Description of Modification: 
+    - Implementation of operator= for sc_out and sc_inout when the
+    right side is an sc_signal.
+    - Implementation of operator() for binding.
+
+    Modifier Name & Affiliation: 
+    Description of Modification:
+    
+
+******************************************************************************/
+
+#ifndef SC_PORT_SPEC_H_
+#define SC_PORT_SPEC_H_
+
+class sc_port_edgy : public sc_port_b {
+protected:
+    sc_port_edgy(const sc_port_vtable* vt, PORT_TYINFO ty)
+        : sc_port_b(vt, (ty | PORT_TYINFO_ISEDGY)) { }
+    sc_port_edgy(sc_signal_base& sig, const sc_port_vtable* vt, PORT_TYINFO ty)
+        : sc_port_b(sig, vt, (ty | PORT_TYINFO_ISEDGY)) { }
+    sc_port_edgy(const sc_port_b& p, const sc_port_vtable* vt, PORT_TYINFO ty)
+        : sc_port_b(p, vt, (ty | PORT_TYINFO_ISEDGY)) { } 
+    ~sc_port_edgy() { }
+};
+
+/* SPECIALIZATION FOR BOOL */
+
+
+template<>
+class sc_port<bool> : public sc_port_edgy {
+private:
+    sc_port<bool>& operator=(const sc_port<bool>&); /* never defined */
+    static bool type_check_sgnl(const sc_signal_base* sig);
+    static bool type_check_port(const sc_port_typecheck* tc);
+    static const sc_port_vtable* port_vtfn();
+
+#if defined(SC_HDL_COSIM)
+public:
+#else
+protected:
+#endif
+    const sc_signal<bool>* const_signal() const
+    {
+        return (const sc_signal<bool>*) src_signal;
+    }
+    sc_signal<bool>* nonconst_signal() const
+    {
+        return (sc_signal<bool>*) src_signal;
+    }
+
+    BIND_STATUS bind(const sc_signal<bool>& sig);
+    BIND_STATUS bind(const sc_port<bool>& p);
+
+    BIND_STATUS operator()(const sc_signal<bool>& sig) { return bind(sig); }
+    BIND_STATUS operator()(const sc_port<bool>& p)     { return bind(p); }
+
+    sc_port(PORT_TYINFO ty)
+        : sc_port_edgy(port_vtfn(), ty)
+    {
+    }
+    sc_port(const sc_signal<bool>& sig, PORT_TYINFO ty)
+        : sc_port_edgy((sc_signal_base&) sig, port_vtfn(), ty)
+    {
+    }
+    sc_port(const sc_port<bool>& p, PORT_TYINFO ty)
+        : sc_port_edgy(p, port_vtfn(), ty)
+    {
+    }
+    ~sc_port()
+    {
+    }
+public:
+  friend  ostream& operator<<(ostream& os,const sc_port<bool>& port)
+    { return os<<*port.const_signal(); }
+};
+
+class sc_readable_bool_port : public sc_port<bool> {
+private:
+    sc_readable_bool_port& operator=(const sc_readable_bool_port&);
+
+protected:
+    /* IMPORTANT NOTE:
+       The ISBOOL bit in PORT_TYINFO is not exactly right.  It is
+       set for sc_in<bool> and sc_inout<bool>.  This should be
+       sufficient for our purpose because we can't be sensitive
+       to outports, nor can we do watching on outports. */
+
+    sc_readable_bool_port(PORT_TYINFO rw)
+        : sc_port<bool>(rw) { }
+    sc_readable_bool_port(const sc_signal<bool>& sig, PORT_TYINFO rw)
+        : sc_port<bool>(sig, rw) { }
+    sc_readable_bool_port(const sc_readable_bool_port& p, PORT_TYINFO rw)
+        : sc_port<bool>(p, rw) { }
+    ~sc_readable_bool_port() { }
+
+public:
+    const bool& read() const     { return const_signal()->read();    }
+    operator const bool&() const { return const_signal()->read();    }
+    bool event()   const  { return const_signal()->event();   }
+    bool posedge() const  { return const_signal()->posedge(); }
+    bool negedge() const  { return const_signal()->negedge(); }
+    const sc_signal_edgy_deval& delayed() const { return const_signal()->delayed(); }
+    // gcc 2.95.2 bug creates ambiguity when comparison is made
+    // provide explicit comparison operator
+    bool operator== (bool t) {return const_signal()->read()==t;}
+    bool operator!= (bool t) {return const_signal()->read()!=t;}
+};
+
+template<>
+class sc_inout<bool> : public sc_readable_bool_port {
+public:
+    sc_inout<bool>& write(const bool d)
+    {
+        nonconst_signal()->write(d);
+        return *this;
+    }
+    sc_inout<bool>& operator=(const bool d)
+    {
+        nonconst_signal()->write(d);
+        return *this;
+    }
+    sc_inout<bool>& operator=(const sc_inout<bool>& d)
+    {
+        nonconst_signal()->write(d.read());
+        return *this;
+    }
+
+    BIND_STATUS bind(const sc_signal<bool>& sig) { return sc_port<bool>::bind(sig); }
+    BIND_STATUS bind(const sc_inout<bool>& p)    { return sc_port<bool>::bind(p); }
+
+    BIND_STATUS operator()(const sc_signal<bool>& sig) { return bind(sig); }
+    BIND_STATUS operator()(const sc_inout<bool>& p)    { return bind(p); }
+
+    sc_inout();
+    sc_inout(sc_signal<bool>& sig);
+    sc_inout(const sc_inout<bool>& p);
+    ~sc_inout();
+};
+
+
+template<>
+class sc_in<bool> : public sc_readable_bool_port {
+private:
+    sc_in<bool>& operator=(const sc_in<bool>&);
+
+public:
+    BIND_STATUS bind(const sc_signal<bool>& sig) { return sc_port<bool>::bind(sig); }
+    BIND_STATUS bind(const sc_in<bool>& p)       { return sc_port<bool>::bind(p); }
+    BIND_STATUS bind(const sc_inout<bool>& p)    { return sc_port<bool>::bind(p); }
+
+    BIND_STATUS operator()(const sc_signal<bool>& sig) { return bind(sig); }
+    BIND_STATUS operator()(const sc_in<bool>& p)       { return bind(p); }
+    BIND_STATUS operator()(const sc_inout<bool>& p)    { return bind(p); }
+
+    sc_in();
+    sc_in(const sc_signal<bool>& sig);
+    sc_in(const sc_in<bool>& p);
+    sc_in(const sc_inout<bool>& p);
+    ~sc_in();
+};
+
+#endif

@@ -1,0 +1,13 @@
+TARGET_ARCH = hpux10
+
+CC = aCC
+OPT    = +O3
+DEBUG  =    
+CFLAGS = $(DEBUG) $(OPT) +DAportable +p
+
+MODULE = demo 
+SRCS = stimulus.cpp display.cpp fir.cpp main.cpp
+OBJS = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs
+

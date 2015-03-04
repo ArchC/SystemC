@@ -1,0 +1,329 @@
+/******************************************************************************
+    Copyright (c) 1996-2001 Synopsys, Inc.    ALL RIGHTS RESERVED
+
+  The contents of this file are subject to the restrictions and limitations
+  set forth in the SystemC Open Community License Software Download and
+  Use License Version 1.2 (the "License"); you may not use this file except
+  in compliance with such restrictions and limitations. You may obtain
+  instructions on how to receive a copy of the License at
+  http://www.systemc.org/. Software distributed by Original Contributor
+  under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
+  ANY KIND, either express or implied. See the License for the specific
+  language governing rights and limitations under the License.
+
+******************************************************************************/
+
+/******************************************************************************
+
+    sc_signal_defs.h_ - Template definitions for sc_signal
+
+    Original Author: Stan Y. Liao. Synopsys, Inc. (stanliao@synopsys.com)
+
+******************************************************************************/
+
+/******************************************************************************
+
+    MODIFICATION LOG - modifiers, enter your name, affliation and
+    changes you are making here:
+
+    Modifier Name & Affiliation:
+    Description of Modification:
+    
+
+******************************************************************************/
+
+
+#ifndef SC_SIGNAL_DEFS_H
+#define SC_SIGNAL_DEFS_H
+
+#include "sc_dump.h"
+
+inline bool*
+sc_signal_init(bool* z)
+{
+    //*z &= true; // make sure we have a meaningful (i.e., 0 or 1, but garbage)
+    // can't do that - undefined behavior
+    *z = false;
+    return z;
+}
+
+template< class T >
+inline T*
+sc_signal_init(T* z)
+{
+    return z;
+}
+
+template< class T >
+inline void
+sc_signal<T>::init()
+{
+    sc_signal_init(&cur_value);
+    sc_signal_init(&new_value);
+    sc_signal_init(&old_value);
+
+    update_func = update_prop_none;
+}
+
+// GCC 2.95.2 bug when using enum def. init., it tries to convert int->enum
+// Same with BCB4 but it's reduced to warning
+// using slower method - create temporaries
+template< class T >
+inline
+sc_signal<T>::sc_signal()
+    : sc_signal_base(this), cur_value(T()), new_value(T()), old_value(T())
+{
+    init();
+}
+
+template< class T >
+inline
+sc_signal<T>::sc_signal(char init_value)
+    : sc_signal_base(this)
+{
+    cur_value = new_value = old_value = init_value;
+    init();
+}
+
+template< class T >
+inline
+sc_signal<T>::sc_signal( const char* nm )
+    : sc_signal_base(nm, this), cur_value(T()), new_value(T()), old_value(T())
+{
+    init();
+}
+
+template< class T >
+inline
+sc_signal<T>::sc_signal( sc_object* created_by )
+    : sc_signal_base( created_by ), cur_value(T()), new_value(T()), old_value(T())
+{
+    init();
+}
+
+template< class T >
+inline
+sc_signal<T>::~sc_signal()
+{
+
+}
+
+template< class T >
+inline
+sc_signal<T>::operator const T&() const
+{
+    return cur_value;
+}
+
+template< class T >
+inline const T&
+sc_signal<T>::read() const
+{
+    return cur_value;
+}
+
+template< class T >
+inline T*
+sc_signal<T>::get_data_ptr()
+{
+    return &cur_value;
+}
+
+template< class T >
+inline const T*
+sc_signal<T>::get_data_ptr() const
+{
+    return &cur_value;
+}
+
+template< class T >
+sc_signal<T>&
+sc_signal<T>::operator=( const T& nv )
+{
+    new_value = nv;
+    submit_update();
+    return *this;
+}
+
+template< class T >
+sc_signal<T>&
+sc_signal<T>::write(const T& nv)
+{
+    new_value = nv;
+    submit_update();
+    return *this;
+}
+
+// remove this conditional when VC++ fixes these bugs
+#if !defined(_MSC_VER) && !defined(__SUNPRO_CC)
+template<class T> template<class X>
+sc_signal<T>& sc_signal<T>::operator=(const X& nv)
+{
+    new_value = nv;
+    submit_update();
+    return *this;
+}
+
+template<class T> template<class X>
+sc_signal<T>& sc_signal<T>::write(const X& nv)
+{
+    new_value = nv;
+    submit_update();
+    return *this;
+}
+#else
+/*
+template<class T>
+sc_signal<T>& sc_signal<T>::operator=(const sc_bv_ns::sc_bv_base& nv)
+{
+    new_value = nv;
+    submit_update();
+    return *this;
+}
+
+template<class T>
+sc_signal<T>& sc_signal<T>::write(const sc_bv_ns::sc_bv_base& nv)
+{
+    new_value = nv;
+    submit_update();
+    return *this;
+}
+template<class T>
+sc_signal<T>& sc_signal<T>::operator=(const sc_bv_ns::sc_lv_base& nv)
+{
+    new_value = nv;
+    submit_update();
+    return *this;
+}
+
+template<class T>
+sc_signal<T>& sc_signal<T>::write(const sc_bv_ns::sc_lv_base& nv)
+{
+    new_value = nv;
+    submit_update();
+    return *this;
+}
+*/
+#endif
+
+template< class T >
+inline bool
+sc_signal<T>::event() const
+{
+    return !(cur_value == old_value);
+}
+
+template< class T >
+void
+sc_signal<T>::update()
+{
+  if(!(new_value == cur_value))
+  {
+    cur_value = new_value;
+    add_dependent_procs_to_queue_default();
+  }
+}
+
+template< class T >
+void
+sc_signal<T>::update_old()
+{
+    old_value = cur_value;
+}
+
+template< class T >
+void
+sc_signal<T>::update_prop_none(sc_signal_base* me)
+{
+    sc_signal<T>* Tme = static_cast<sc_signal<T>*>(me);
+    Tme->cur_value = Tme->new_value;
+    /* no need to propagate */
+}
+
+template< class T >
+void
+sc_signal<T>::update_prop_async(sc_signal_base* me)
+{
+    sc_signal<T>* Tme = static_cast<sc_signal<T>*>(me);
+    if(!(Tme->new_value == Tme->cur_value))
+    {
+      Tme->cur_value = Tme->new_value;
+      Tme->prop_asyncs_only();
+    }
+}
+
+template< class T >
+void
+sc_signal<T>::update_prop_aproc(sc_signal_base* me)
+{
+    sc_signal<T>* Tme = static_cast<sc_signal<T>*>(me);
+    if(!(Tme->new_value == Tme->cur_value))
+    {
+      Tme->cur_value = Tme->new_value;
+      Tme->prop_aprocs_only();
+    }
+}
+
+template< class T >
+void
+sc_signal<T>::update_prop_both(sc_signal_base* me)
+{
+    sc_signal<T>* Tme = static_cast<sc_signal<T>*>(me);
+    if(!(Tme->new_value == Tme->cur_value))
+    {
+      Tme->cur_value = Tme->new_value;
+      Tme->prop_asyncs_aprocs();
+    }
+}
+
+template< class T >
+sc_signal_base::UPDATE_FUNC*
+sc_signal<T>::update_funcs_array() const
+{
+    static sc_signal_base::UPDATE_FUNC funcs[] = {
+        &sc_signal<T>::update_prop_none,
+        &sc_signal<T>::update_prop_async,
+        &sc_signal<T>::update_prop_aproc,
+        &sc_signal<T>::update_prop_both
+    };
+    return funcs;
+}
+
+#ifdef DEBUG_SYSTEMC
+
+template< class T >
+void
+sc_signal<T>::print(ostream& os) const
+{
+    os << read();
+}
+
+template< class T >
+void
+sc_signal<T>::dump(ostream& os) const
+{
+    sc_signal_base::dump(os);
+    os << "value = " << cur_value << endl;
+    os << "old value = " << old_value << endl;
+    os << "new value = " << new_value << endl;
+}
+
+#endif
+
+template< class T >
+void
+sc_signal<T>::trace( sc_trace_file* tf ) const
+{
+    ::sc_trace( tf, (get_data_ptr()), name() );
+}
+
+/*---------------------------------------------------------------------------*/
+
+template< class T >
+inline ostream&
+operator<<( ostream& str, const sc_signal<T>& sig )
+{
+    return (str << sig.read());
+}
+
+#endif

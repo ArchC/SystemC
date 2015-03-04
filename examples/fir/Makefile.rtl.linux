@@ -1,0 +1,12 @@
+TARGET_ARCH = linux
+
+CC = g++
+OPT    = -O3
+DEBUG  =    
+CFLAGS = $(DEBUG) $(OPT) -fexceptions -Wall
+
+MODULE  = run_rtl
+SRCS    = stimulus.cpp display.cpp fir_fsm.cpp fir_data.cpp main_rtl.cpp
+OBJS    = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs

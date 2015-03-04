@@ -1,0 +1,265 @@
+/******************************************************************************
+    Copyright (c) 1996-2001 CoWare, Inc.    ALL RIGHTS RESERVED
+
+  The contents of this file are subject to the restrictions and limitations
+  set forth in the SystemC Open Community License Software Download and
+  Use License Version 1.2 (the "License"); you may not use this file except
+  in compliance with such restrictions and limitations. You may obtain
+  instructions on how to receive a copy of the License at
+  http://www.systemc.org/. Software distributed by Original Contributor
+  under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
+  ANY KIND, either express or implied. See the License for the specific
+  language governing rights and limitations under the License.
+
+******************************************************************************/
+
+/******************************************************************************
+
+    sc_channel_array_defs.h_ -- definitions for the template class
+                                sc_channel_array<A>
+
+    Original Author: CoWare Inc.
+
+******************************************************************************/
+
+/******************************************************************************
+
+    MODIFICATION LOG - modifiers, enter your name, affliation and
+    changes you are making here:
+
+    Modifier Name & Affiliation:
+    Description of Modification:
+    
+
+******************************************************************************/
+
+// Based on sc_signal_array_defs.h_
+
+#ifndef SC_CHANNEL_ARRAY_DEFS_H
+#define SC_CHANNEL_ARRAY_DEFS_H
+
+#include <string.h>
+
+/******************************************************************************
+    get_channel() returns a reference to the pointer in the
+    indiv_channels array that is indexed by physical index
+    `phys_index'. 
+******************************************************************************/
+template< class A, class T >
+inline sc_channel<T>*
+sc_channel_array_gnu<A,T>::get_channel( int phys_index ) const
+{
+    return (sc_channel<T>*) indiv_channels[phys_index];
+}
+
+/*******************************************************************************
+    Write functions. All writes are writes to individual channels.
+*******************************************************************************/
+
+template< class A, class T >
+sc_channel_array_gnu<A,T>&
+sc_channel_array_gnu<A,T>::write( const sc_array<T>& nv )
+{
+    int len = cur_val_array.length();
+    nv.check_length(len);
+    sc_channel<T>* chn = get_channel(0);
+    while(!space_available(chn)) wait(); 
+    // If one channel has space, all have space
+
+    for (int i = len - 1; i >= 0; --i) {
+        backdoor_write(get_channel(i), *(nv.get_data_ptr(i)));
+    }
+    wait();
+    if (!bufsize(chn)) {
+        while (!space_available(chn)) wait();
+    }
+    return *this;
+}
+
+template< class A, class T >
+sc_channel_array_gnu<A,T>&
+sc_channel_array_gnu<A,T>::nb_write( const sc_array<T>& nv )
+{
+    int len = cur_val_array.length();
+    nv.check_length(len);
+    sc_channel<T>* chn = get_channel(0);
+    if (!bufsize(chn)) {
+      cerr << "SystemC warning: Non-blocking write on channel of zero buffers is not allowed" << endl;
+      return *this;
+    }
+    if (!space_available(chn)) {
+        cerr << "SystemC warning: Channel Array is full, written value is ignored" << endl;
+        return *this;
+    }
+    for (int i = len - 1; i >= 0; --i) {
+        chn = get_channel(i);
+	chn->nb_write(*(nv.get_data_ptr(i)));
+    }
+    return *this;
+}
+
+template< class A, class T >
+sc_channel_array_gnu<A,T>&
+sc_channel_array_gnu<A,T>::write( const T* nv )
+{
+    sc_channel<T>* chn = get_channel(0);
+    while (!space_available(chn)) wait();
+    // If one channel has space, all have space
+
+    for (int i = cur_val_array.length() - 1; i >= 0; --i) {
+        backdoor_write(get_channel(i), nv[i]);
+    }
+    wait();
+    if (!bufsize(chn)) {
+        while (!space_available(chn)) wait();
+    }
+    return *this;
+}
+
+template< class A, class T >
+sc_channel_array_gnu<A,T>&
+sc_channel_array_gnu<A,T>::nb_write( const T* nv )
+{
+#if defined(__HP_aCC)
+    sc_channel<T>* chn = get_channel(0);
+#else
+    sc_channel<T>* chn = get_channel(pi1);
+#endif
+
+    if (!bufsize(chn)) {
+      cerr << "SystemC warning: Non-blocking write on channel of zero buffers is not allowed" << endl;
+      return *this;
+    }
+
+    if (!space_available(chn)) {
+        cerr << "SystemC warning: Channel Array is full, written value is ignored" << endl;
+        return *this;
+    }
+
+    for (int i = cur_val_array.length() - 1; i >= 0; --i) {
+        chn = get_channel(i);
+        chn->nb_write(nv[i]);
+    }
+    return *this;
+}
+
+template< class A, class T >
+const A& 
+sc_channel_array_gnu<A,T>::read() const
+{
+    for (int i = _length - 1; i >= 0; --i)
+        get_channel(i)->read();
+    return cur_val_array;
+}
+
+
+/****************************************************************************
+    The copy constructor is not allowed.  We should however reconsider
+    this since the user may forget to pass by reference when calling
+    functions.
+****************************************************************************/
+template< class A, class T >
+sc_channel_array_gnu<A,T>::sc_channel_array_gnu( const sc_channel_array_gnu<A,T>& y )
+    : sc_channel_array_base(0), cur_val_array( (const A&) y.cur_val_array)
+{
+    assert(false);
+}
+
+
+/*****************************************************************************
+   The init function creates the array of individual channels. It also creates
+   sets the sc_array to contain all the cur_value pointers
+*****************************************************************************/
+
+template< class A, class T >
+void
+sc_channel_array_gnu<A,T>::init(const char *nm, const int bsz)
+{
+    int len = cur_val_array.length();
+
+    sc_channel_array_base::_length = len;
+    indiv_channels = new sc_signal_base*[len];
+    T** data_ptrs = new T*[len];
+    for (int i = 0; i < len; ++i) {
+        sc_channel<T>* new_chn;
+        if (!nm) // No name string specified
+            new_chn = new sc_channel<T>((sc_object*) this, nm, bsz);
+	else { // Name string specified - make name unique
+	    char strbuf[1000];
+	    sprintf(strbuf, "%s_%d", nm, i);
+	    new_chn = new sc_channel<T>((sc_object*) this, strbuf, bsz);
+	}
+        indiv_channels[i] = new_chn;
+        data_ptrs[i] = new_chn->get_cur_val_ptr();
+    }
+    cur_val_array.set_data_ptrs(data_ptrs);
+    free_indiv_channels = true;
+}
+
+
+
+/*****************************************************************************
+    CONSTRUCTORS SEEN BY THE USER
+*****************************************************************************/
+
+template< class A, class T >
+sc_channel_array_gnu<A,T>::sc_channel_array_gnu( int len, int bsz )
+    : sc_channel_array_base((sc_object*) this), cur_val_array( (T**) 0, len )
+{
+    init( (char *) 0, bsz);
+}
+
+template< class A, class T >
+sc_channel_array_gnu<A,T>::sc_channel_array_gnu( const char* nm, int len, int bsz )
+    : sc_channel_array_base(nm, (sc_object*) this), cur_val_array( (T**) 0, len )
+{
+    init(nm, bsz);
+}
+
+
+/******************************************************************************
+    sc_channel_array_gnu<A,T>::~sc_channel_array_gnu() - destructor
+    Responsible for cleaning up the dynamic storage allocated.
+******************************************************************************/
+template< class A, class T >
+sc_channel_array_gnu<A,T>::~sc_channel_array_gnu()
+{
+    if (free_indiv_channels) {
+        for( int i = cur_val_array.length() - 1; i >= 0; --i )
+            delete indiv_channels[i];
+    }
+    delete[] indiv_channels;
+}
+
+
+// Trace function not really needed. Maybe we should not have it at all.
+template< class A, class T >
+void
+sc_channel_array_gnu<A,T>::trace(sc_trace_file *tf) const
+{
+    /* Intentionally Blank. Each channel, being an individual object will have its
+       trace function called automatically, so we don't have to do anything here.
+    */
+}
+
+/*---------------------------------------------------------------------------*/
+
+template< class A, class T >
+bool
+sc_channel_array_gnu<A,T>::is_full() const
+{
+    sc_channel<T>* chn = get_channel(0);
+    return(!space_available(chn)); 
+}
+
+template< class A, class T >
+bool
+sc_channel_array_gnu<A,T>::is_empty() const
+{
+    sc_channel<T>* chn = get_channel(0);
+    return(!data_available(chn));
+}  
+
+
+#endif
+

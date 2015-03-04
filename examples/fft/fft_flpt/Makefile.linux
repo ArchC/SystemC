@@ -1,0 +1,12 @@
+TARGET_ARCH = linux
+
+CC = g++
+OPT    = -O3
+DEBUG  =    
+CFLAGS = $(DEBUG) $(OPT) -fexceptions -Wall
+
+MODULE = run
+SRCS = source.cpp sink.cpp fft.cpp main.cpp 
+OBJS = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs

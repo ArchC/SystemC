@@ -1,0 +1,463 @@
+/******************************************************************************
+    Copyright (c) 1996-2001 Synopsys, Inc.    ALL RIGHTS RESERVED
+
+  The contents of this file are subject to the restrictions and limitations
+  set forth in the SystemC Open Community License Software Download and
+  Use License Version 1.2 (the "License"); you may not use this file except
+  in compliance with such restrictions and limitations. You may obtain
+  instructions on how to receive a copy of the License at
+  http://www.systemc.org/. Software distributed by Original Contributor
+  under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
+  ANY KIND, either express or implied. See the License for the specific
+  language governing rights and limitations under the License.
+
+******************************************************************************/
+
+/******************************************************************************
+
+    sc_signal_spec.h_ - specialization of sc_signal<> for some native types.
+
+    Original Author: Stan Y. Liao. Synopsys, Inc. (stanliao@synopsys.com)
+
+******************************************************************************/
+
+/******************************************************************************
+
+    MODIFICATION LOG - modifiers, enter your name, affliation and
+    changes you are making here:
+
+    Modifier Name & Affiliation:
+    Description of Modification:
+    
+
+******************************************************************************/
+
+
+#ifndef SC_SIGNAL_SPEC_H
+#define SC_SIGNAL_SPEC_H
+
+#include "sc_iostream.h"
+#include "sc_signal_deval.h"
+
+class sc_signal_edgy : public sc_signal_base {
+    friend class sc_aproc_process;
+    friend class sc_signal_optimize;
+
+public:
+    virtual void decl_sensitive_async( sc_async_process_handle async ) const;
+    virtual void decl_sensitive_async_neg( sc_async_process_handle async ) const;
+    virtual void decl_sensitive_async_pos( sc_async_process_handle async ) const;
+
+    virtual void decl_sensitive_aproc( sc_aproc_process_handle aproc ) const;
+    virtual void decl_sensitive_aproc_neg( sc_aproc_process_handle aproc ) const;
+    virtual void decl_sensitive_aproc_pos( sc_aproc_process_handle aproc ) const;
+
+    virtual void remove_sensitive_aproc_neg( sc_aproc_process_handle aproc ) const;
+
+    virtual bool edgy_read() const = 0;
+    virtual ~sc_signal_edgy() = 0;
+
+    const sc_signal_edgy_deval& delayed() const
+    {
+        return reinterpret_cast<const sc_signal_edgy_deval&>(*this);
+    }
+
+protected:
+    void add_dependent_procs_to_queue_pos() { add_dependent_procs_to_queue_default(); }
+    void add_dependent_procs_to_queue_neg();
+
+    void prop_asyncs_only_neg();
+    void prop_aprocs_only_neg();
+    void prop_asyncs_aprocs_neg();
+
+    sc_signal_edgy( sc_object* from, bool add_to_simcontext = true )
+        : sc_signal_base( from, add_to_simcontext ) { }
+    sc_signal_edgy( const char* nm, sc_object* from, bool add_to_simcontext = true )
+        : sc_signal_base( nm, from, add_to_simcontext ) { }
+
+    /* use the sensitive_{asyncs,aprocs} arrays in the
+       base class for the positive edge */
+    mutable sc_pvector<sc_async_process_handle> sensitive_asyncs_neg;
+    mutable sc_pvector<sc_aproc_process_handle> sensitive_aprocs_neg;
+};
+
+
+
+/* SPECIALIZATION FOR BOOL */
+template<>
+class sc_signal<bool> : public sc_signal_edgy
+{
+    friend class sc_clock;
+    friend class sc_clock_edge;
+    friend class sc_signal_optimize;
+
+public:
+        // Constructor
+    sc_signal();
+    explicit sc_signal( const char* nm );
+    sc_signal( sc_object* created_by );
+
+public:
+        // Destructor
+    ~sc_signal()
+    {
+    }
+
+        // Retrieves the current value of the signal
+        // <group>
+    inline const bool& read() const
+    {
+        return cur_value;
+    }
+    inline operator const bool&() const
+    {
+        return cur_value;
+    }
+    inline bool* get_data_ptr()
+    {
+        return &cur_value;
+    }
+    inline const bool* get_data_ptr() const
+    {
+        return &cur_value;
+    }
+        // </group>
+
+    inline const bool& get_new_value() const { return new_value; }
+    inline const bool& get_old_value() const { return old_value; }
+
+    inline virtual 
+    sc_signal<bool>& write( bool d )
+    {
+        new_value = d;
+        if (d != cur_value)
+            submit_update();
+        return *this;
+    }
+    inline virtual 
+    sc_signal<bool>& operator=( bool d )
+    {
+        new_value = d;
+        if (new_value != cur_value){
+            submit_update();
+	}
+        return *this;
+    }
+    inline virtual 
+    sc_signal<bool>& operator=( const sc_signal<bool>& d )
+    {
+        return operator=(d.read());
+    }
+    inline bool event() const
+    {
+        return !(cur_value == old_value);
+    }
+    inline bool posedge() const
+    {
+        return (cur_value == true && old_value == false);
+    }
+    inline bool negedge() const
+    {
+        return (cur_value == false && old_value == true);
+    }
+
+    void print(ostream& os) const
+    {
+        os << cur_value;
+    }
+    void dump(ostream& os) const
+    {
+        sc_signal_base::dump(os);
+        os << "value = " << cur_value << endl;
+        os << "old value = " << old_value << endl;
+        os << "new value = " << new_value << endl;
+    }
+
+    void trace( sc_trace_file* tf ) const
+    {
+        ::sc_trace( tf, *(get_data_ptr()), name() );
+    }
+
+protected:
+    virtual sc_signal_base::UPDATE_FUNC* update_funcs_array() const;
+
+        // Updates the current value of the signal with the new value.
+    virtual 
+    void update()
+    {
+        if(new_value != cur_value)
+        {
+          cur_value = new_value;
+          /* Because for sc_signal<bool> we submit_update()
+             only if the new_value and cur_value are different,
+             we have only two alternatives here */
+          if (new_value)
+            add_dependent_procs_to_queue_pos();
+          else 
+            add_dependent_procs_to_queue_neg();
+	}
+        
+    }
+
+    void update_nonv()
+    {
+        if(new_value != cur_value)
+        {
+          cur_value = new_value;
+          if (new_value) 
+            add_dependent_procs_to_queue_pos();
+          else 
+            add_dependent_procs_to_queue_neg();
+	}
+    }
+
+    virtual 
+    void update_old()
+    {
+        old_value = cur_value;
+    }
+
+    void update_old_nonv()
+    {
+        old_value = cur_value;
+    }
+
+    void set_cur_value(const bool& nv) { cur_value = nv; }
+    void set_new_value(const bool& nv) { new_value = nv; }
+    void set_old_value(const bool& nv) { old_value = nv; }
+    const bool& get_cur_value() const { return cur_value; }
+    bool edgy_read() const;
+
+protected:
+    bool cur_value;
+    bool new_value;
+    bool old_value;
+};
+
+
+/* SPECIALIZATION FOR UNSIGNED */
+template<>
+class sc_signal<unsigned> : public sc_signal_base
+{
+    friend class sc_clock;
+    friend class sc_clock_edge;
+    friend class sc_signal_optimize;
+
+public:
+        // Constructor
+    sc_signal();
+    explicit sc_signal( const char* nm );
+    sc_signal( sc_object* created_by );
+
+public:
+        // Destructor
+    ~sc_signal()
+    {
+
+    }
+
+        // Retrieves the current value of the signal
+        // <group>
+    inline const unsigned& read() const
+    {
+        return cur_value;
+    }
+    inline operator const unsigned&() const
+    {
+        return cur_value;
+    }
+    inline unsigned* get_data_ptr()
+    {
+        return &cur_value;
+    }
+    inline const unsigned* get_data_ptr() const
+    {
+        return &cur_value;
+    }
+        // </group>
+
+    inline const unsigned& get_new_value() const { return new_value; }
+    inline const unsigned& get_old_value() const { return old_value; }
+
+    inline virtual sc_signal<unsigned>& write( unsigned nv )
+    {
+        new_value = nv;
+        if (new_value != cur_value)
+            submit_update();
+        return *this;
+    }
+    inline virtual sc_signal<unsigned>& operator=( unsigned nv )
+    {
+        new_value = nv;
+        if (new_value != cur_value)
+            submit_update();
+        return *this;
+    }
+    inline virtual sc_signal<unsigned>& operator=( const sc_signal<unsigned>& nv )
+    {
+        return operator=(nv.read());
+    }
+    inline bool event() const
+    {
+        return !(cur_value == old_value);
+    }
+
+    void print(ostream& os) const
+    {
+        os << cur_value;
+    }
+    void dump(ostream& os) const
+    {
+        sc_signal_base::dump(os);
+        os << "value = " << cur_value << endl;
+        os << "old value = " << old_value << endl;
+        os << "new value = " << new_value << endl;
+    }
+
+    void trace( sc_trace_file* tf ) const
+    {
+        ::sc_trace( tf, *(get_data_ptr()), name() );
+    }
+
+protected:
+    virtual sc_signal_base::UPDATE_FUNC* update_funcs_array() const;
+
+        // Updates the current value of the signal with the new value.
+    virtual void update()
+    {
+      if(cur_value != new_value)
+      {
+        cur_value = new_value;
+        add_dependent_procs_to_queue_default();
+      }
+    }
+    virtual void update_old()
+    {
+        old_value = cur_value;
+    }
+
+    void set_cur_value(const unsigned& nv) { cur_value = nv; }
+    void set_new_value(const unsigned& nv) { new_value = nv; }
+    const unsigned& get_cur_value() const { return cur_value; }
+
+private:
+    unsigned cur_value;
+    unsigned new_value;
+    unsigned old_value;
+};
+
+
+/* SPECIALIZATION FOR SC_LOGIC */
+template<>
+class sc_signal<sc_logic> : public sc_signal_base
+{
+    friend class sc_clock;
+    friend class sc_clock_edge;
+    friend class sc_signal_optimize;
+
+public:
+        // Constructor
+    sc_signal();
+    explicit sc_signal( const char* nm );
+    sc_signal( sc_object* created_by );
+
+public:
+        // Destructor
+    ~sc_signal()
+    {
+
+    }
+
+        // Retrieves the current value of the signal
+        // <group>
+    inline const sc_logic& read() const
+    {
+        return cur_value;
+    }
+    inline operator const sc_logic&() const
+    {
+        return cur_value;
+    }
+    inline sc_logic* get_data_ptr()
+    {
+        return &cur_value;
+    }
+    inline const sc_logic* get_data_ptr() const
+    {
+        return &cur_value;
+    }
+        // </group>
+
+    inline const sc_logic& get_new_value() const { return new_value; }
+    inline const sc_logic& get_old_value() const { return old_value; }
+
+    inline const sc_signal_sc_logic_deval& delayed() const { return *(sc_signal_sc_logic_deval*) ((void*) this); }
+
+    inline virtual sc_signal<sc_logic>& write( const sc_logic& nv )
+    {
+        new_value = nv;
+        if (new_value != cur_value)
+            submit_update();
+        return *this;
+    }
+    inline virtual sc_signal<sc_logic>& operator=( const sc_logic& nv )
+    {
+        new_value = nv;
+        if (new_value != cur_value)
+            submit_update();
+        return *this;
+    }
+    inline virtual sc_signal<sc_logic>& operator=( const sc_signal<sc_logic>& nv )
+    {
+        return operator=(nv.read());
+    }
+    inline bool event() const
+    {
+        return !(cur_value == old_value);
+    }
+
+    void print(ostream& os) const
+    {
+        os << cur_value;
+    }
+    void dump(ostream& os) const
+    {
+        sc_signal_base::dump(os);
+        os << "value = " << cur_value << endl;
+        os << "old value = " << old_value << endl;
+        os << "new value = " << new_value << endl;
+    }
+
+    void trace( sc_trace_file* tf ) const
+    {
+        ::sc_trace( tf, *(get_data_ptr()), name() );
+    }
+
+protected:
+    virtual sc_signal_base::UPDATE_FUNC* update_funcs_array() const;
+
+        // Updates the current value of the signal with the new value.
+    virtual void update()
+    {
+      if(cur_value != new_value)
+      {
+        cur_value = new_value;
+        add_dependent_procs_to_queue_default();
+      }
+    }
+    virtual void update_old()
+    {
+        old_value = cur_value;
+    }
+
+    void set_cur_value(const sc_logic& nv) { cur_value = nv; }
+    void set_new_value(const sc_logic& nv) { new_value = nv; }
+    const sc_logic& get_cur_value() const { return cur_value; }
+
+private:
+    sc_logic cur_value;
+    sc_logic new_value;
+    sc_logic old_value;
+};
+
+#endif

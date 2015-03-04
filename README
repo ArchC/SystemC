@@ -1,0 +1,107 @@
+			SystemC(TM) Class Library (Rel. 1.0.2)
+
+This release fixes signal update bug present in 1.0.1:
+
+bug #114640: a signal gets updated whenever a write is performed 
+even if the value did not change.
+
+			SystemC(TM) Class Library (Rel. 1.0.1)
+
+  Supported platforms/compilers: 
+
+  gcc-2.95.2 for Sun Solaris 2.5.1,2.6,7;
+  gcc-2.95.2 for Linux;
+  Sun WorkShop Compiler C++ (CC) 5.0;
+  aCC: HP ANSI C++ B3910B A.01.23
+
+  For Windows platforms please download corresponding file from
+  www.systemc.org
+
+1. Introduction to SystemC(TM)
+
+     SystemC is a C++ class library and methodology that you can
+     use to effectively create a (cycle-)accurate model of a system
+     consisting of software, hardware and their interfaces, in C++. 
+
+2. Licensing and Copyright
+
+   See the separate LICENSE file to determine your rights
+   and responsiblities for using SystemC.
+
+3. User Documentation
+
+   You can find documentation for SystemC Release 1.0.1 on the web:
+   http://www.systemc.org
+
+4. Installation
+
+     See the separate INSTALL file that provides system
+     information and installation instructions.
+
+5. Release Notes
+
+     See the separate RELEASENOTES file that provides upto date
+     information about this release of SystemC.
+
+6. Sun SC5.0 compiler issues
+
+     Due to limited support for templates in 5.0 version of Sun's
+     compiler, there are several differences in the library code. Many
+     operators in SystemC produce template proxy classes. Those objects
+     cannot be assigned to an object of different type nor constructors 
+     that accept proxies can be called. Instead there is a provision of
+     implicit casts from proxy classes to base classes through which
+     assignment and construction are performed. Due to creation of these
+     temporary objects these operations can be significantly slower when
+     using SC5.0. Since C++ doesn't allow more than one implicit user-
+     defined conversion, it may require explicit conversion in some cases.
+
+7. Fixed-point library.
+
+     SystemC v.1.0.1 contains fixed point package. By default the fixed point
+     library is not built. See INSTALL file about details of installation.
+     Compile-time macro SC_INCLUDE_FX must be defined in order to build
+     applications that use fixed point library. You can specify a compiler
+     flag, e.g. g++ -DSC_INCLUDE_FX ... or use define statement before you
+     include systemc.h, e.g.
+
+     #define SC_INCLUDE_FX
+     #include "systemc.h"
+
+     Due to large sizes of fx header files compilation can take extra time.
+
+     If you want to use the fixed-point data types only (i.e., not data
+     types sc_int, sc_uint, sc_bigint, sc_biguint), compilation time can be
+     reduced by defining compile-time macro SC_FX_EXCLUDE_OTHER (in addition
+     to SC_INCLUDE_FX).
+
+8. Additional information
+
+     SystemC has a web site at
+
+          http://www.systemc.org
+     
+     Contact us: http://www.systemc.org/feedback.htm
+
+     Discussion forum: http://www.systemc.org/login_forum.html
+
+     You can post the bugs and suggestions of general interest to the forum.
+     When reporting bugs please specify the following information (if applicable):
+     1) SystemC version 
+     2) platform, compiler, flags 
+     3) description of the problem 
+     4) steps to reproduce the problem 
+     5) compile/runtime warnings and errors 
+     6) code sample, not more than 100 lines to demonstrate the problem 
+
+     Note: All bugs will only be tested against the latest publicly available 
+     version of the product. 
+     Note: All C++ compilers that SystemC supports have bugs of different degree 
+     of severity. We cannot fix those bugs. Please report them to the compiler 
+     vendor. 
+
+
+
+     
+
+

@@ -1,0 +1,200 @@
+/******************************************************************************
+    Copyright (c) 1996-2001 Synopsys, Inc.    ALL RIGHTS RESERVED
+
+  The contents of this file are subject to the restrictions and limitations
+  set forth in the SystemC Open Community License Software Download and
+  Use License Version 1.2 (the "License"); you may not use this file except
+  in compliance with such restrictions and limitations. You may obtain
+  instructions on how to receive a copy of the License at
+  http://www.systemc.org/. Software distributed by Original Contributor
+  under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
+  ANY KIND, either express or implied. See the License for the specific
+  language governing rights and limitations under the License.
+
+******************************************************************************/
+
+/******************************************************************************
+
+    sc_resolved_defs.h_ - Template definitions for sc_resolved
+
+    Original Author: Abhijit Ghosh. Synopsys, Inc. (ghosh@synopsys.com)
+
+******************************************************************************/
+
+/******************************************************************************
+
+    MODIFICATION LOG - modifiers, enter your name, affliation and
+    changes you are making here:
+
+    Modifier Name & Affiliation:
+    Description of Modification:
+    
+
+******************************************************************************/
+
+
+#ifndef SC_RESOLVED_DEFS_H
+#define SC_RESOLVED_DEFS_H
+
+template <class T, class R>
+inline
+sc_signal_resolved_t<T,R>::sc_signal_resolved_t()
+  : sc_signal<T>() // calls the default constructor for sc_signal<T>
+{
+  procs = new sc_pvector<sc_process_b*>;
+  nvalues = new sc_pvector<T*>;
+  this->update_func = &sc_signal_resolved_t<T,R>::update_prop_none;
+}
+
+template <class T, class R>
+inline
+sc_signal_resolved_t<T,R>::sc_signal_resolved_t(char init_value)
+  : sc_signal<T>(init_value) // calls constructor for sc_signal<T>
+{
+  procs = new sc_pvector<sc_process_b*>;
+  nvalues = new sc_pvector<T*>;
+  this->update_func = &sc_signal_resolved_t<T,R>::update_prop_none;
+}
+
+template <class T, class R>
+inline
+sc_signal_resolved_t<T,R>::sc_signal_resolved_t(const char *nm)
+  : sc_signal<T>(nm)
+{
+  procs = new sc_pvector<sc_process_b*>;
+  nvalues = new sc_pvector<T*>;
+  this->update_func = &sc_signal_resolved_t<T,R>::update_prop_none;
+}
+
+template <class T, class R>
+inline 
+sc_signal_resolved_t<T,R>::~sc_signal_resolved_t()
+{
+
+  typename sc_pvector<T*>::const_iterator end = nvalues->end();
+  for (typename sc_pvector<T*>::iterator it = nvalues->begin(); it != end; it++)
+    delete *it;
+  
+  delete procs;
+  delete nvalues;
+}
+
+template <class T, class R>
+#ifndef _MSC_VER
+inline sc_signal_resolved_t<T,R>&
+#else
+inline sc_signal<T>&
+#endif
+sc_signal_resolved_t<T,R>::write(const T& d)
+{
+  sc_process_b* cur_proc = sc_get_curr_process_handle();
+
+  typename sc_pvector<T*>::iterator v_it = nvalues->begin();
+  sc_pvector<sc_process_b*>::iterator endP = procs->end();
+  sc_pvector<sc_process_b*>::iterator p_it = procs->begin();
+
+  bool found = false;
+  for ( ; p_it != endP ; p_it++, v_it++) {
+    if (*p_it == cur_proc ) {
+      **v_it = d;
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    procs->push_back(cur_proc);
+    T* p_t = new T;
+    *p_t = d;
+    nvalues->push_back(p_t);
+  }
+  
+  this->submit_update();
+  return *this;
+}
+
+template <class T, class R>
+inline void
+sc_signal_resolved_t<T,R>::update()
+{
+  T nv = R::resolve(*nvalues);
+  set_new_value(nv);
+  if (this->get_cur_value() != nv) {
+    set_cur_value(nv);
+    this->add_dependent_procs_to_queue_default();
+  }
+}
+
+template<class T, class R>
+void
+sc_signal_resolved_t<T,R>::update_prop_none(sc_signal_base* me)
+{
+    sc_signal_resolved_t<T,R>* Tme = static_cast<sc_signal_resolved_t<T,R>*>(me);
+    T nv = R::resolve(*Tme->nvalues);
+    Tme->set_new_value(nv);
+    if (Tme->get_cur_value() != nv) {
+        Tme->set_cur_value(nv);
+        /* no need to prop */
+    }
+}
+
+template<class T, class R>
+void
+sc_signal_resolved_t<T,R>::update_prop_async(sc_signal_base* me)
+{
+    sc_signal_resolved_t<T,R>* Tme = static_cast<sc_signal_resolved_t<T,R>*>(me);
+    T nv = R::resolve(*Tme->nvalues);
+    Tme->set_new_value(nv);
+    if (Tme->get_cur_value() != nv) {
+        Tme->set_cur_value(nv);
+        Tme->prop_asyncs_only();
+    }
+}
+
+template<class T, class R>
+void
+sc_signal_resolved_t<T,R>::update_prop_aproc(sc_signal_base* me)
+{
+    sc_signal_resolved_t<T,R>* Tme = static_cast<sc_signal_resolved_t<T,R>*>(me);
+    T nv = R::resolve(*Tme->nvalues);
+    Tme->set_new_value(nv);
+    if (Tme->get_cur_value() != nv) {
+        Tme->set_cur_value(nv);
+        Tme->prop_aprocs_only();
+    }
+}
+
+template<class T, class R>
+void
+sc_signal_resolved_t<T,R>::update_prop_both(sc_signal_base* me)
+{
+    sc_signal_resolved_t<T,R>* Tme = static_cast<sc_signal_resolved_t<T,R>*>(me);
+    T nv = R::resolve(*Tme->nvalues);
+    Tme->set_new_value(nv);
+    if (Tme->get_cur_value() != nv) {
+        Tme->set_cur_value(nv);
+        Tme->prop_asyncs_aprocs();
+    }
+}
+
+template<class T, class R>
+sc_signal_base::UPDATE_FUNC*
+sc_signal_resolved_t<T,R>::update_funcs_array() const
+{
+    static sc_signal_base::UPDATE_FUNC funcs[] = {
+        &sc_signal_resolved_t<T,R>::update_prop_none,
+        &sc_signal_resolved_t<T,R>::update_prop_async,
+        &sc_signal_resolved_t<T,R>::update_prop_aproc,
+        &sc_signal_resolved_t<T,R>::update_prop_both
+    };
+    return funcs;
+}
+
+#if defined(__HP_aCC)
+inline void sc_trace(sc_trace_file *tf, const sc_signal_resolved& object, const sc_string& name)
+{
+    if (tf) tf->trace(object, name);
+}
+#endif
+
+#endif

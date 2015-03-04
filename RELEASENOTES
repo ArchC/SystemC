@@ -1,0 +1,112 @@
+               Release Notes for SystemC Release 1.0.2
+
+This release fixes signal update bug present in 1.0.1:
+
+bug #114640: a signal gets updated whenever a write is performed 
+even if the value did not change.
+
+
+               Release Notes for SystemC Release 1.0.1
+
+SystemC 1.0.1 adds support for HP-UX aCC compiler (HP ANSI C++ B3910B A.01.23)
+It also provides a number of bug fixes.
+
+The following list describes the fixes (minor issues are not included)
+
+105186  error in writing sc_uint to stdout
+103507  shift of sc_bv causes warning message
+102540  sc_int::range() bug
+102173  global variable is out of width w/o error
+ 98553  add tracing support for sc_bv, sc_lv and sc_rv
+ 97667  xor bug in sc_bv
+107468  useless error message when assigning sc_logic('X') to sc_bit
+107464  Useless error message for E2002
+107460  Error message show display the name of the offending variabl
+107336  The operations defined for sc_logic and sc_bit not consisten
+106736  sc_uint_base doesn't work when size is 64
+106391  compilation error
+105234  to_signed methode causes runtime error
+103510  operator overloading resolution problem.
+102322  abort with error message
+ 98253  undefined symbols during link: sc_bv_ns::sc_lv_base::operato
+108395  SystemC 1.0: can't trace sc_bv
+107615  Bug in comparison operator in sc_lv/sc_bv
+107472  concatination of sc_lv doesn't work
+107471  concatination of sc_bv seems not to work
+107337  The bit selection operator should work for sc_lv datatype; i
+107096  unpredictable results if combinatorical process write multip
+104792  NT: can't include when using systemc
+104041  sc_fixed and sc_ufixed copy constructors truncate fractional
+100895  ISDB traces are not working
+100620  Error on initializing sc_int<>/sc_uint<> with constant value
+ 98055  bug in sc_int concatenation
+ 97436  bug in writing to ports of type sc_bv
+ 96918  ambiguous overload for `sc_signal > & = int'
+ 96766  port binding through multiple levels of hierarchy triggers a
+ 96742  problem with sc_trace to an aiwf file.
+
+
+               Release Notes for SystemC Release 1.0
+
+1. ISDB tracing is supported, but if you want to use ISDB, you need
+   libisdb.a. THIS LIBRARY IS NOT DISPTRIBUTED WITH SystemC.
+
+2. Copying is governed under the terms of the license agreement. Please 
+   see the LICENSE file.
+
+3. Documentation for the QuickThreads library is not included with
+   this release. QuickThreads is distributed as a pre-built library.
+
+4. Initial values of signals.  Signals of built-in types and plain structs 
+   have unspecified initial values.  Only signals of resolved types
+   have "known" initial values, i.e. 'X'.  Therefore, in order to make
+   simulation deterministic, note the following:
+
+    1) Initialize all nonresolved signals before simulation begins.
+       This can be done with the operator = or the write() method:
+
+        sc_signal<bool> x, y;
+        // ...
+        x = 0;
+        y.write(1);
+        // ...
+        sc_start(100);
+
+    2) Do not initialize or write to a resolved signal outside of a 
+       process.  This will cause undesired behavior.
+
+        sc_signal_resolved r;
+        // ...
+        r = '1';  // WRONG! -- not inside a process
+        // ...
+        sc_start(100);
+
+
+Platforms Supported:
+-------------------
+
+SystemC can be installed on the following platforms
+
+1) Sun Solaris with GNU C++ compiler version GCC-2.95.2.
+
+         GCC and gmake are free software and can be obtained
+         from the following sources. 
+         
+	GCC can be obtained from 
+                 http://www.gnu.org/software/gcc/gcc.html 
+         gmake can be obtained from
+                 http://www.gnu.org/software/make/make.html 
+         
+2) Linux with GNU C++ compiler version GCC-2.95.2.
+
+         See item 1 above for sources of compilers for this platform.
+
+
+
+3) Sun Solaris with SC5.0 C++ compiler. For installation, see INSTALL file; 
+         other compiler specific issues, see README file.
+
+
+
+Note: SystemC v.1.0 CANNOT be compiled with GNU C++ compilers prior to
+version 2.95.2. Type gcc --version to see the version of compiler you're using.

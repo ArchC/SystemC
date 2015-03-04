@@ -35,6 +35,9 @@
 
 
 // $Log: sc_mutex.cpp,v $
+// Revision 1.1.1.1  2006/12/15 20:31:35  acg
+// SystemC 2.2
+//
 // Revision 1.4  2006/03/21 00:00:27  acg
 //   Andy Goodrich: changed name of sc_get_current_process_base() to be
 //   sc_get_current_process_b() since its returning an sc_process_b instance.
@@ -79,6 +82,7 @@ sc_mutex::~sc_mutex()
 int
 sc_mutex::lock()
 {
+    if (m_owner == sc_get_current_process_b()) return 0;
     while( in_use() ) {
 	wait( m_free );
     }
@@ -92,6 +96,7 @@ sc_mutex::lock()
 int
 sc_mutex::trylock()
 {
+    if (m_owner == sc_get_current_process_b()) return 0;
     if( in_use() ) {
 	return -1;
     }

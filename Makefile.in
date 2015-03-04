@@ -63,27 +63,29 @@ host_alias = @host_alias@
 host_triplet = @host@
 target_alias = @target_alias@
 target_triplet = @target@
+AR_TOOL = @AR_TOOL@
 CC = @CC@
 CXX = @CXX@
 DEBUG_CXXFLAGS = @DEBUG_CXXFLAGS@
 EXTRA_CXXFLAGS = @EXTRA_CXXFLAGS@
-FX_DIR = @FX_DIR@
 MAKEINFO = @MAKEINFO@
 OPT_CXXFLAGS = @OPT_CXXFLAGS@
 PACKAGE = @PACKAGE@
+QT_ARCH = @QT_ARCH@
 RANLIB = @RANLIB@
 TARGET_ARCH = @TARGET_ARCH@
 VERSION = @VERSION@
 
-SUBDIRS = src examples
-EXTRA_DIST =  	include 	lib-gccsparcOS5 	lib-hpux10 	lib-linux 	lib-sparcOS5 	docs 	RELEASENOTES 	LICENSE 	examples/Makefile.am 	examples/Makefile.defs
+SUBDIRS =  	src 	examples 	.
+
+
+INST_FILES =  	AUTHORS 	COPYING 	ChangeLog 	INSTALL 	LICENSE 	NEWS 	README 	RELEASENOTES 	docs
 
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
 CONFIG_CLEAN_FILES = 
 DIST_COMMON =  README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
-Makefile.in NEWS aclocal.m4 config.guess config.sub configure \
-configure.in install-sh missing mkinstalldirs
+Makefile.in NEWS aclocal.m4 configure configure.in
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -234,11 +236,10 @@ distdir: $(DISTFILES)
 	-rm -rf $(distdir)
 	mkdir $(distdir)
 	-chmod 777 $(distdir)
-	$(mkinstalldirs) $(distdir)/examples
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
-	    cp -pr $$d/$$file $(distdir)/$$file; \
+	    cp -pr $$/$$file $(distdir)/$$file; \
 	  else \
 	    test -f $(distdir)/$$file \
 	    || ln $$d/$$file $(distdir)/$$file 2> /dev/null \
@@ -266,13 +267,13 @@ installcheck: installcheck-recursive
 install-exec-am:
 install-exec: install-exec-recursive
 
-install-data-am:
+install-data-am: install-data-local
 install-data: install-data-recursive
 
 install-am: all-am
 	@$(MAKE) $(AM_MAKEFLAGS) install-exec-am install-data-am
 install: install-recursive
-uninstall-am:
+uninstall-am: uninstall-local
 uninstall: uninstall-recursive
 all-am: Makefile
 all-redirect: all-recursive
@@ -320,17 +321,45 @@ mostlyclean-recursive distclean-recursive clean-recursive \
 maintainer-clean-recursive tags tags-recursive mostlyclean-tags \
 distclean-tags clean-tags maintainer-clean-tags distdir info-am info \
 dvi-am dvi check check-am installcheck-am installcheck install-exec-am \
-install-exec install-data-am install-data install-am install \
-uninstall-am uninstall all-redirect all-am all installdirs-am \
-installdirs mostlyclean-generic distclean-generic clean-generic \
-maintainer-clean-generic clean mostlyclean distclean maintainer-clean
+install-exec install-data-local install-data-am install-data install-am \
+install uninstall-local uninstall-am uninstall all-redirect all-am all \
+installdirs-am installdirs mostlyclean-generic distclean-generic \
+clean-generic maintainer-clean-generic clean mostlyclean distclean \
+maintainer-clean
 
 
 debug:
-	$(MAKE) CXXFLAGS="$(EXTRA_CXXFLAGS) $(DEBUG_CXXFLAGS)" all
+	$(MAKE) all CXXFLAGS="$(EXTRA_CXXFLAGS) $(DEBUG_CXXFLAGS)"
 
 opt:
-	$(MAKE) CXXFLAGS="$(EXTRA_CXXFLAGS) $(OPT_CXXFLAGS)" all
+	$(MAKE) all CXXFLAGS="$(EXTRA_CXXFLAGS) $(OPT_CXXFLAGS)"
+
+install-data-local:
+	@$(NORMAL_INSTALL)
+	for file in $(INST_FILES); do \
+	  d=$(srcdir); \
+	  if test -d $$d/$$file; then \
+	    test -d $(prefix)/$$file \
+	    || cp -pr $$d/$$file $(prefix) || :; \
+	  else \
+	    test -f $(prefix)/$$file \
+	    || cp -p $$d/$$file $(prefix)/$$file || :; \
+	  fi; \
+	done
+
+uninstall-local:
+	@$(NORMAL_UNINSTALL)
+	w=`pwd`; cd $(srcdir); s=`pwd`; cd $$w; \
+	if test $(prefix) != $$s; then \
+	  for file in $(INST_FILES); do \
+	    d=$(srcdir); \
+	    if test -d $$d/$$file; then \
+	      rm -rf $(prefix)/$$file; \
+	    else \
+	      rm -f $(prefix)/$$file; \
+	    fi; \
+	  done; \
+	fi
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -1,7 +1,10 @@
-			INSTALL NOTES FOR SystemC Release 1.0.1
+		INSTALL NOTES FOR SystemC Release 2.0
+		-------------------------------------
 
 Contents:
 	1. Installation Notes for Unix 
+
+	2. Installation Notes for Windows
 
 
 1. Installation Notes for Unix
@@ -10,16 +13,16 @@ Contents:
 System Requirements
 ===================
 
-SystemC(TM) can be installed on the following UNIX platforms
+SystemC can be installed on the following UNIX platforms
 
-  1. Sun Solaris with the GNU C++ compiler.
+  1. Sun Solaris 2.7 and 2.8 with GNU C++ compiler version 2.95.2.
 
-  2. Linux with GNU C++ compiler.
+  2. Sun Solaris 2.7 and 2.8 with SC6.1 and SC6.2
 
-  3. Sun Solaris with Sun SC5.0 C++ compiler 
-    (for issues specific to SC5.0 compiler please see README file)
+  3. Linux (Redhat 6.2) with GNU C++ compiler version 2.95.2.
 
-  4. HP-UX with aCC C++ compiler
+  4. HP-UX 11.00 with aCC C++ compiler versions A.03.31 and A.03.15.
+
 
 Sources for Compilers and Related Tools
 =======================================
@@ -27,108 +30,131 @@ Sources for Compilers and Related Tools
 To build, install, and use SystemC on UNIX platforms, you need the
 following tools:
 
-  1. GNU C++ Compiler version GCC-2.95.2, Sun SC5.0, or HP aCC
+  1. GNU C++ Compiler version 2.95.2,
+     or Sun WorkShop 6 update 1 C++ 5.2 (SC6.1) or update 2 C++ 5.3 (SC6.2),
+     or HP aCC version A.03.31 or A.03.15.
 
   2. GNU Make (gmake)
 
-GCC, EGCS, and gmake are free software that you can
+GCC and gmake are free software that you can
 obtain from the following sources:
 
   GCC		http://www.gnu.org/software/gcc/gcc.html
 
   gmake		http://www.gnu.org/software/make/make.html
 
-  EGCS		http://www.egcs.cygnus.com
 
 Basic SystemC Installation
 ==========================
 
 To install SystemC on a UNIX system, do the following steps:
 
-  1. Change to the top level directory (systemc-0.91/)
+  1. Change to the top level directory (systemc-2.0)
 
-  2. Set the following environment variables:
+  2. Create a temporary directory, e.g.,
 
-     for gcc-2.92.2 on Solaris:
+	> mkdir objdir
 
-     setenv TARGET_ARCH gccsparcOS5
-     setenv CXX g++
+  3. Change to the temporary directory, e.g.,
 
-     for gcc-2.92.2 on Linux:
+	> cd objdir
 
-     setenv TARGET_ARCH linux
-     setenv CXX g++
-     
-     for SUN SC5.0 on Solaris:
+  4. Set the following environment variable(s):
 
-     setenv TARGET_ARCH sparcOS5
-     setenv CXX CC
+     For gcc-2.95.2 on Solaris:
 
-     for aCC on HP-UX:
+	> setenv CXX g++
 
-     setenv TARGET_ARCH hpux10
-     setenv CXX aCC
-     
-  3. configure the package for your system. 
+     For SC 6.1 or 6.2 on Solaris:
+
+	> setenv CXX CC
+
+     For gcc-2.95.2 on Linux:
+
+	> setenv CXX g++
+
+     For aCC on HP-UX:
+
+	> setenv CXX aCC
+
+  5. Configure the package for your system, e.g.,
      (The configure script is explained below.)
 
-     assuming you installed the package to systemc-1.0.1 directory
-
-	> cd systemc-1.0.1
-	> ./configure
+	> ../configure
 
      While the 'configure' script is running, which takes a few moments, 
-     prints messages to inform you of the features it is checking.
-     It also detects the platform. ($TARGET_ARCH). 
+     it prints messages to inform you of the features it is checking.
+     It also detects the platform.
      
      Note for System V users: 
      If you are using `csh' on an older version of System V, you might 
-     need to use the `sh ./configure' command instead of './configure'. 
+     need to use the `sh ../configure' command instead of '../configure'.
      Otherwise, `csh' will attempt to `configure' itself.
 
-     SystemC v.1.0.1 includes fixed-point package that is not built by default.
-     If the fixed-point library is required it can be built with the following
-     command:
+     SystemC 2.0 includes a fixed-point package that is always built.
+     When compiling your applications with fixed-point types, you still have
+     to use compiler flag -DSC_INCLUDE_FX. Note that compile times increase
+     significantly when using this compiler flag.
 
-	> ./configure --with-fx-types=yes
-     
-     Fixed-point library requires significant time to build, and also when its
-     header files are included in the application, compilation time increases.
+     In case you want to install the package in another place than the
+     top level directory (systemc-2.0), configure the package e.g. as
+     follows:
 
-  4. Compile the package.
+	> ../configure --prefix=/usr/local/systemc-2.0
 
-	> make (builds optimized libs)
-	(`make debug' for debug libs)				
+     Note: make sure you have created the target directory before installing
+           the package. Do *not* use /usr/local as a prefix.
 
-     ( SC5.0 users: If for some reason the wrong compiler is called 
-       you can explicitly specify compiler in command line, e.g.
-       make "CXX CC -pto" clean debug
-     )
+  6. Compile the package.
 
-  5. Install the libraries under lib-$(TARGET_ARCH)/
+     For an optimized SystemC library, enter:
 
-	> make install
+	> gmake
 
-Running the examples
+     For a debug SystemC library, enter:
+
+	> gmake debug
+
+  7. Install the package.
+
+	> gmake install
+
+  8. You can now remove the temporary directory, .e.g,
+
+	> cd ..
+	> rm -rf objdir
+
+     Alternatively, you can keep the temporary directory to later uninstall
+     the package. To clean up the temporary directory, enter:
+
+	> gmake clean
+
+     To uninstall the package, enter:
+
+	> gmake uninstall
+
+
+Running the Examples
 ====================
 
-1. Change to the example directory (e.g. systemc-1.0.1/examples/pipe/ ).
+1. Change to the example directory (e.g. systemc-2.0/examples/pipe/ ).
 
 2. Read the brief description of the example in the README file. 
 
-3. Build the example using `make' and corresponding Makefile:
-    for Solaris and gcc compiler: make -f Makefile.gcc 
-    for Solaris and SC5 compiler: make -f Makefile.sun
-    for HP-UX and aCC compiler  : make -f Makefile.hp  
-    for Linux and gcc compiler  : make -f Makefile.linux
+3. Build the example using `gmake' and corresponding Makefile:
+
+   For Solaris and gcc compiler: gmake -f Makefile.gcc
+   For Solaris and CC compiler : gmake -f Makefile.sun
+   For Linux and gcc compiler  : gmake -f Makefile.linux
+   For HP-UX and aCC compiler  : gmake -f Makefile.hp
 
 4. Run the executable.
 
 Use the makefiles provided in  the 'examples' directory as templates for 
-makefiles you need for compiling  your own examples.
+makefiles you need for compiling your own examples.
 	
      
-Using the configure Script
+Using the Configure Script
 ==========================
  
 The `configure' shell script tries to determine the correct values for
@@ -161,42 +187,56 @@ the `configure' script, for example to use a newer version of `autoconf'.
 The `configure.in' file is used by the `autoconf' program to create the
 `configure' script.
 
+Note for (key) developers:
+
+  In case you have changed the `configure.in' file or one of the
+  `Makefile.am' files:
+
+  - Use the `config/distclean' script to remove the generated `configure'
+    script, the generated `aclocal.m4' file and the generated `Makefile.am'
+    files.
+
+  - Use the `config/bootstrap' script to generate the `configure' script
+    and the necessary `Makefile.in' files. This script makes use of the
+    GNU auto-tools `aclocal', `automake', and `autoconf'.
+
 
 Compilation and Linking Options
-=====================
+===============================
 
-Some systems require compilation or linking options that
-the `configure' script does not define. You can define the initial values for
-these options by setting them in your environment before running the
+Some systems require compilation or linking options that the `configure'
+script does not define. You can define the initial values for these
+options by setting them in your environment before running the
 `configure' script.
 
 Using a Bourne-compatible shell, the command line entry might be:
 
-     > CC=c89 CFLAGS=-O2 LIBS=-lposix ./configure
+	> CC=c89 CFLAGS=-O2 LIBS=-lposix ../configure
 
 Or, on systems that have the `env' program, the command line entry might be:
 
-     > env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ./configure
+	> env CPPFLAGS=-I/usr/local/include LDFLAGS=-s ../configure
 
 
 Optional Features
 =================
 
-To build optimized libraries (default), from the top level directory run 
+To build optimized libraries (default), from the top level directory run:
 
-> make opt
+	> gmake opt
 
-To build libraries with debug information, from the top level directory run
+To build libraries with debug information, from the top level directory run:
 
-> make debug
+	> gmake debug
 
-followed by make, make install.
+followed by gmake, and gmake install.
 
 e.g. the following command will rebuild the optimized library from scratch:
 
-> make clean opt install
+	> gmake clean opt install
 
-By default, optimized libraries are built. 
+By default, optimized libraries are built.
+
 
 Specifying the System Type
 ==========================
@@ -269,5 +309,58 @@ operation:
 
 Other options that are rarely used are available in the `configure' script.
 Use the `--help' option to print a list.
- 
 
+
+
+2. Installation for Windows
+---------------------------
+
+This release has been ported to Windows NT 4.0 (SP3 and higher) and will
+work with Visual C++ 6.0. 
+
+The SystemC distribution includes project and workspace files for
+Visual C++. If you use these project and workspace files the SystemC
+source files are available to your new project. For Visual C++ 6.0 the
+project and workspace files are located in directory:
+
+  ...\systemc-2.0\msvc60
+
+This directory contains two subdirectories: `systemc' and
+`examples'.
+
+The `systemc' directory contains the project and workspace files to
+compile the `systemc.lib' library. Double-click on the `systemc.dsw'
+file to launch Visual C++ with the workspace file. The workspace file
+will have the proper switches set to compile for Visual C++ 6.0.
+Select `Build systemc.lib' under the Build menu or press F7 to build
+`systemc.lib'.
+
+The `examples' directory contains the project and workspace files to
+compile the SystemC examples. Go to one of the examples subdirectories
+and double-click on the .dsw file to launch Visual C++ with the
+workspace file. The workspace file will have the proper switches set
+to compile for Visual C++ 6.0. Select `Build <example>.exe' under the
+Build menu or press F7 to build the example executable.
+
+To create a new design, first create a new project by using the `New'
+menu item under the `File' menu. Select the Projects tab on the dialog
+box that appears and select a Win32 Console Application. Create an
+empty project.
+
+For your own SystemC applications, make sure that the Run Time Type
+Information switch is on by using the `Settings...' menu item under
+the `Project' menu. Select the C/C++ tab, and select the `C++
+Language' category. Make sure that the `Enable Run Time Type
+Information (RTTI)' checkbox is checked.
+
+Also make sure that the SystemC header files are included by selecting
+the C/C++ tab, selecting the `Preprocessor' category, and typing the
+path to the SystemC `src' directory in the text entry field labeled
+`Additional include directories'. The examples use
+e.g. `../../../src'.
+
+Next add the source files to the project by using the `Add To
+Project>Files...' menu item under the `Project' menu. Make sure that
+the files are added to the new project directory just created. Do the
+same for the `systemc.lib' library before building your SystemC
+application.

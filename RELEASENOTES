@@ -1,112 +1,285 @@
-               Release Notes for SystemC Release 1.0.2
+		Release Notes for SystemC Release 2.0
+                =====================================
 
-This release fixes signal update bug present in 1.0.1:
+CONTENTS
+========
 
-bug #114640: a signal gets updated whenever a write is performed 
-even if the value did not change.
+  1) What's new in this release?
 
+  2) The SystemC 2.0 core language and elementary channels
 
-               Release Notes for SystemC Release 1.0.1
+  3) Differences with previous (1.X) SystemC Releases
 
-SystemC 1.0.1 adds support for HP-UX aCC compiler (HP ANSI C++ B3910B A.01.23)
-It also provides a number of bug fixes.
+  4) No support anymore for SystemC 0.9 specific features
 
-The following list describes the fixes (minor issues are not included)
+  5) Directory structure changed
 
-105186  error in writing sc_uint to stdout
-103507  shift of sc_bv causes warning message
-102540  sc_int::range() bug
-102173  global variable is out of width w/o error
- 98553  add tracing support for sc_bv, sc_lv and sc_rv
- 97667  xor bug in sc_bv
-107468  useless error message when assigning sc_logic('X') to sc_bit
-107464  Useless error message for E2002
-107460  Error message show display the name of the offending variabl
-107336  The operations defined for sc_logic and sc_bit not consisten
-106736  sc_uint_base doesn't work when size is 64
-106391  compilation error
-105234  to_signed methode causes runtime error
-103510  operator overloading resolution problem.
-102322  abort with error message
- 98253  undefined symbols during link: sc_bv_ns::sc_lv_base::operato
-108395  SystemC 1.0: can't trace sc_bv
-107615  Bug in comparison operator in sc_lv/sc_bv
-107472  concatination of sc_lv doesn't work
-107471  concatination of sc_bv seems not to work
-107337  The bit selection operator should work for sc_lv datatype; i
-107096  unpredictable results if combinatorical process write multip
-104792  NT: can't include when using systemc
-104041  sc_fixed and sc_ufixed copy constructors truncate fractional
-100895  ISDB traces are not working
-100620  Error on initializing sc_int<>/sc_uint<> with constant value
- 98055  bug in sc_int concatenation
- 97436  bug in writing to ports of type sc_bv
- 96918  ambiguous overload for `sc_signal > & = int'
- 96766  port binding through multiple levels of hierarchy triggers a
- 96742  problem with sc_trace to an aiwf file.
+  6) Build process changed
+
+  7) Known limitations
+
+  8) Fixed-point library
 
 
-               Release Notes for SystemC Release 1.0
+1) What's new in this release?
+==============================
 
-1. ISDB tracing is supported, but if you want to use ISDB, you need
-   libisdb.a. THIS LIBRARY IS NOT DISPTRIBUTED WITH SystemC.
+Compared to 2.0 beta-2 release, this release has the following new items:
 
-2. Copying is governed under the terms of the license agreement. Please 
-   see the LICENSE file.
+  i) Bug fixes and enhancements:
+     o (128062) undefined symbols when configured with --with-fx-types=no
+     o (127848) bitvector (partial) self assignment with ranges doesn't work
+     o (127712) multi-port sensitivity doesn't work
+     o (127640) Ports cannot be given a name
+     o (127624) Single bit concatenation differs between sc_uint and sc_lv
+     o (127536) sc_cycle doesn't take care of timed events
+     o (127534) Make sc_out and sc_out_rv real classes to ease debugging
+     o (127527) sc_[u]fix[_fast] copy constructors do not copy type params
+     o (127351) sc_fifo print and dump methods produce wrong output when full
 
-3. Documentation for the QuickThreads library is not included with
-   this release. QuickThreads is distributed as a pre-built library.
+  ii) Ports to the following new platforms:
+      o Windows NT 4.0 (SP3 and higher) with VC++6.0
 
-4. Initial values of signals.  Signals of built-in types and plain structs 
-   have unspecified initial values.  Only signals of resolved types
-   have "known" initial values, i.e. 'X'.  Therefore, in order to make
-   simulation deterministic, note the following:
+Compared to the SystemC 1.X releases, there are many new items that are
+outlined in the following sections.
 
-    1) Initialize all nonresolved signals before simulation begins.
-       This can be done with the operator = or the write() method:
+2) The SystemC 2.0 core language and elementary channels
+========================================================
 
-        sc_signal<bool> x, y;
-        // ...
-        x = 0;
-        y.write(1);
-        // ...
-        sc_start(100);
+This production release of SystemC implements the core language and the
+elementary channels as defined in the "Functional Specification for
+SystemC 2.0" document (see the docs/FuncSpec20.pdf file). This release
+fixes bugs in the beta-2 release, it is supported on a larger number of 
+platforms, and has an example showing dynamic thread creation.
 
-    2) Do not initialize or write to a resolved signal outside of a 
-       process.  This will cause undesired behavior.
+Here is an overview of changes with respect to 1.0.2. Note that all these
+changes were also available in 2.0 beta-2 release:
 
-        sc_signal_resolved r;
-        // ...
-        r = '1';  // WRONG! -- not inside a process
-        // ...
-        sc_start(100);
+  - Process initialization has changed. All SC_METHODs and SC_THREADs
+    are initialized at the beginning of the simulation. SC_CTHREADs
+    are not initialized.
+    For backward compatibility, use a wait() in the beginning of an
+    SC_THREAD process. For SC_METHODs, you can use the
+    `dont_initialize()` function after declaration of the SC_METHOD
+    process (only do this for SystemC 1.0.2 and SystemC 1.2.1 beta
+    designs). The latter function is a beta feature (not part of the
+    functional specification proper).
+
+  - The model of time has changed to absolute and integer-valued. The
+    new type `sc_time' is implemented as defined in the functional
+    specification. There are a few minor changes in the utility
+    functions. For details, see the updated functional specification
+    in the docs directory.
+
+  - The events and dynamic sensitivity have been implemented as
+    defined in the functional specification, with the exception that
+    `sensitive << port->some_event()' is not working for unbound
+    ports (an advanced feature called "event finder" can be used to
+    deal with these situations). In addition, dynamic sensitivity for
+    SC_METHODS is added (instead of the `wait()' function, use the
+    `next_trigger()' function). 
+    After a wait()/next_trigger() with a time argument and an event or
+    event list, it is possible to query whether or not the timeout
+    event was notified with function `timed_out()'. This is a beta
+    feature.
+    In the SystemC scheduler, controlled randomization is not yet
+    implemented.
+
+  - The base classes for interfaces, ports, and channels have been
+    implemented as defined in the functional specification. There is
+    one difference with the specification: interfaces classes that 
+    directly derive from `sc_interface' must be derived `virtual' (see
+    the docs/FuncSpec20.pdf file).
+
+  - The SC_HAS_PROCESS macro has been defined (this is called
+    SC_HAS_PROCS in the functional specification) to allow full access
+    to a module constructor, both for port and parameter
+    initialization and for module inheritance.
+    Note that instead of `const sc_module_name&' `sc_module_name' must
+    be used for the module name type (see the docs/FuncSpec20.pdf file).
+    This will support the creation of user-defined constructors, necessary
+    for creating parameterizable modules and processes.
+
+  - The `end_of_elaboration()' function has been implemented for
+    ports, primitive channels, and modules.
+
+  - The following elementary channels have been (re)implemented:
+      o sc_signal<T>
+      o sc_signal_resolved
+      o sc_signal_rv<N>
+      o sc_fifo<T>
+      o sc_mutex
+      o sc_semaphore
+      o sc_buffer<T>
+
+  - Unbound (output) signal ports can be initialized with the
+    `initialize()' method. This is a beta feature. E.g.
+
+      SC_MODULE( my_module ) {
+        sc_out<int> out;
+        ...
+        SC_CTOR( my_module ) {
+          ...
+          out.initialize( 3 );
+        }
+      }
+
+   Once the (output) port is bound, the `write()' method is called
+   with the value supplied to the `initialize()' method.
+   This will allow the initialization of ports in the constructor of a
+   module.
 
 
-Platforms Supported:
--------------------
+3) Differences with previous (1.X) SystemC Releases
+===================================================
 
-SystemC can be installed on the following platforms
+Here are some important differences with previous releases of SystemC (note 
+that these features were also available with the 2.0 beta-2 release):
 
-1) Sun Solaris with GNU C++ compiler version GCC-2.95.2.
+ - The behavior of SC_CTHREAD has changed. These threads now sample their
+   inputs and produce outputs in response to these inputs at the active
+   edge of the clock that they are sensitive to. This is different from
+   the previous behavior where the outputs where delayed by one clock
+   cycle. With this new behavior, the SC_THREAD processes can be used to
+   produce the behavior of SC_CTHREAD.
 
-         GCC and gmake are free software and can be obtained
-         from the following sources. 
-         
-	GCC can be obtained from 
-                 http://www.gnu.org/software/gcc/gcc.html 
-         gmake can be obtained from
-                 http://www.gnu.org/software/make/make.html 
-         
-2) Linux with GNU C++ compiler version GCC-2.95.2.
+   SC_CTHREAD processes are maintained for backward compatibility but their
+   use is discouraged. Instead, use an SC_THREAD process that is sensitive
+   to one edge of one clock.
 
-         See item 1 above for sources of compilers for this platform.
+ - Reading from output signal ports is now allowed.
+
+ - Custom constructors can be used (see above) and parameterizable modules
+   can be created.
+
+ - Writing to an unbound port (in the constructor of a module) is allowed
+   through a special initialization function (see above).
+
+ - With the new model of time, the sc_start() and sc_cycle() functions now
+   accept arguments of type double as well as arguments of type sc_time. Note
+   that double arguments will be considered to be in the default time unit
+   and will be rounded to the nearest integer time.
+
+ - sc_clock is not derived from sc_signal<bool> anymore. Instead, both
+   sc_signal<T> and sc_clock implement the sc_signal_in_if<bool> interface.
+
+ - sc_clock cannot be written to anymore.
+
+ - Make derived clocks not with type sc_clock, but with type
+   sc_signal<bool>. Pass this with argument type
+   sc_signal_in_if<bool>& and sc_signal_out_if<bool>&.
+
+ - When used with signals, user-defined types must define:
+     o the operator = (assignment)
+     o the operator == (equality)
+     o the operator << (ostream&, user-defined type)
+     o the sc_trace() function
+
+ - Function sc_time_stamp() now returns an sc_time object. If you
+   want a double value relative to the default time unit, use
+   sc_simulation_time() instead.
 
 
+4) No support anymore for SystemC 0.9 specific features
+=======================================================
 
-3) Sun Solaris with SC5.0 C++ compiler. For installation, see INSTALL file; 
-         other compiler specific issues, see README file.
+The SystemC 0.9 syntax and classes are no longer supported.
+
+Here is a list of old classes and the new classes that should be used instead:
+
+    old					new
+ -----------------------------------------------------------------
+  - sc_bool_vector			sc_bv<N>
+  - sc_logic_vector			sc_lv<N>
+  - sc_array
+  - sc_2d				C/C++ array
+  - sc_signal_bool_vector		sc_signal<sc_bv<N> >
+  - sc_signal_logic_vector		sc_signal<sc_lv<N> >
+  - sc_signal_logic			sc_signal<sc_logic>
+  - sc_signal_resolved_vector		sc_signal_rv<N>
+  - sc_signal_array
+  - sc_channel				sc_fifo<T>
+  - sc_channel_array
+  - sc_sync				SC_MODULE and SC_CTHREAD
+  - sc_async				SC_MODULE and SC_METHOD
+  - sc_aproc				SC_MODULE and SC_THREAD
+
+Furthermore:
+
+  - Functions press_start_button() and press_stop_button() are gone.
+    Use sc_start() and sc_stop() instead.
+
+  - The callback function pointer in the simulate function is gone.
+
+  - The functions sc_sync_tprocess(), sc_async_fprocess(), and
+    sc_async_tprocess() are gone. Use the macros SC_CTHREAD,
+    SC_METHOD, and SC_THREAD instead.
 
 
+5) Directory structure changed
+==============================
 
-Note: SystemC v.1.0 CANNOT be compiled with GNU C++ compilers prior to
-version 2.95.2. Type gcc --version to see the version of compiler you're using.
+The SystemC source code files have been moved from `src' to
+`src/systemc/<subdirectory>'. The QuickThreads source code is now
+shipped with SystemC, in directory `src/systemc/qt'.
+
+The `include' directory is gone from the distribution. This directory
+and its subdirectories are generated when calling `make install'
+during the build process. The same is true for the
+`lib-<target_architecture>' directories. This distribution does not
+come with any precompiled object code archives. Check the `INSTALL'
+file for instructions on how to create the include directory and the
+library.
+
+
+6) Build process changed
+========================
+
+The build process (for details see the `INSTALL' file) now creates
+only *one* object code archive, i.e., `libsystemc.a'. This object code
+archive comes in the place of the libraries `libsystemc.a',
+`libnumeric_bit.a', and `libqt.a' in the SystemC 1.X releases.
+
+The `configure' script now supports the `--prefix=<some_directory>'
+option, which allows you to specify the directory where you want to
+install the include files, the library, and some other files. The
+default is still the top level directory of the SystemC
+distribution. Check the `INSTALL' file for details.
+
+
+7) Known limitations
+====================
+
+Here is a list of known limitations in this release:
+
+  - The following problems have been reported in the forum and have not
+    been fixed in this release. They will be fixed in a future release:
+      o Bit-selects and part-selects on signals and signal ports are not
+        yet supported.
+      o Delayed write on signals and signal ports are not yet supported.
+      o Various type conversion functions between data types have not yet
+        been implemented.
+      o Various bugs in the data types have not been fixed yet.
+
+
+8) Fixed-point library
+======================
+
+SystemC contains a fixed-point datatypes package.
+
+Compile-time macro SC_INCLUDE_FX must be defined in order to build
+applications that use fixed point types. You can specify a compiler
+flag, e.g. g++ -DSC_INCLUDE_FX ... or use a define statement before
+you include systemc.h, e.g.
+
+  #define SC_INCLUDE_FX
+  #include "systemc.h"
+
+Due to the large size of the fixed-point datatypes header files,
+compilation can take considerably more time.
+
+If you want to use the fixed-point data types only (i.e., not data-
+types sc_int, sc_uint, sc_bigint, sc_biguint), compilation time can be
+reduced by defining compile-time macro SC_FX_EXCLUDE_OTHER (in addition
+to SC_INCLUDE_FX).
+

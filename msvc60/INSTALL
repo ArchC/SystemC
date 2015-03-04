@@ -1,0 +1,59 @@
+		INSTALL NOTES FOR SystemC Release 2.0
+		-------------------------------------
+
+Contents:
+	1. Installation Notes for Windows
+
+
+1. Installation for Windows
+---------------------------
+
+This release has been ported to Windows NT 4.0 (SP3 and higher) and will
+work with Visual C++ 6.0. 
+
+The SystemC distribution includes project and workspace files for
+Visual C++. If you use these project and workspace files the SystemC
+source files are available to your new project. For Visual C++ 6.0 the
+project and workspace files are located in directory:
+
+  ...\systemc-2.0\msvc60
+
+This directory contains two subdirectories: `systemc' and
+`examples'.
+
+The `systemc' directory contains the project and workspace files to
+compile the `systemc.lib' library. Double-click on the `systemc.dsw'
+file to launch Visual C++ with the workspace file. The workspace file
+will have the proper switches set to compile for Visual C++ 6.0.
+Select `Build systemc.lib' under the Build menu or press F7 to build
+`systemc.lib'.
+
+The `examples' directory contains the project and workspace files to
+compile the SystemC examples. Go to one of the examples subdirectories
+and double-click on the .dsw file to launch Visual C++ with the
+workspace file. The workspace file will have the proper switches set
+to compile for Visual C++ 6.0. Select `Build <example>.exe' under the
+Build menu or press F7 to build the example executable.
+
+To create a new design, first create a new project by using the `New'
+menu item under the `File' menu. Select the Projects tab on the dialog
+box that appears and select a Win32 Console Application. Create an
+empty project.
+
+For your own SystemC applications, make sure that the Run Time Type
+Information switch is on by using the `Settings...' menu item under
+the `Project' menu. Select the C/C++ tab, and select the `C++
+Language' category. Make sure that the `Enable Run Time Type
+Information (RTTI)' checkbox is checked.
+
+Also make sure that the SystemC header files are included by selecting
+the C/C++ tab, selecting the `Preprocessor' category, and typing the
+path to the SystemC `src' directory in the text entry field labeled
+`Additional include directories'. The examples use
+e.g. `../../../src'.
+
+Next add the source files to the project by using the `Add To
+Project>Files...' menu item under the `Project' menu. Make sure that
+the files are added to the new project directory just created. Do the
+same for the `systemc.lib' library before building your SystemC
+application.

@@ -1,7 +1,43 @@
-NEWS:
-----
+* SystemC 2.0 (this release)
+  Production release of SystemC 2.0.
+  - All new SystemC 2.0 core language features.
+  - All SystemC 1.0.2 functionality (except obsoleted SystemC 0.9 features).
+  - No methodology-specific channels as in SystemC 1.2.1 beta.
+    (Note: starting with this release, the 2.0 Core Language Features
+     will be released separately from the methodology-specific libraries,
+     an example of which is the Master-Slave Library of 1.2.1 beta.
+     The release of the Master-Slave Library will follow this release.
+     You would be able to use the Master-Slave Library in conjunction with
+     this release). 
+  - Dynamic thread creation example provided.
+  - Directory structure changed from 1.0.2, but same as 2.0 beta-2.
+  - Build process changed from 1.0.2 but same as 2.0 beta-2.
+  - Bug fixes for 2.0 beta-2.
+  - Platforms supported (changed from 2.0 beta-2):
+    o Sun Solaris 2.7 and 2.8 with GNU C++ compiler version 2.95.2
+    o Sun Solaris 2.7 and 2.8 with SC6.1 and SC6.2
+    o Linux (Redhat 6.2) with GNU C++ compiler version 2.95.2
+    o HP-UX 11.00 with aCC C++ compiler versions A.03.31 and A.03.15
+      (Note: +O1 is the highest safe optimization level)
+    o Windows NT 4.0 (SP3 and higher) with VC++6.0
 
-Release 0.9 is the first release of SystemC.
-Release 0.91 of SystemC.
-Release 1.0 of SystemC. First release of fixed-point package.
-Release 1.0.1 of SystemC. Bug fix release.
+* SystemC 2.0 Beta-2
+  Second beta release of SystemC 2.0.
+
+* SystemC 2.0 Beta-1
+  First beta release of SystemC 2.0.
+
+* SystemC 1.0.2
+  Bug fix release.
+
+* SystemC 1.0.1
+  Bug fix release.
+
+* SystemC 1.0
+  First release of new SystemC syntax and fixed-point package.
+
+* SystemC 0.91
+  Second release of SystemC.
+
+* SystemC 0.9
+  This is the first release of SystemC.

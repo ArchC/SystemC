@@ -1,0 +1,17 @@
+TARGET_ARCH = sparcOS5
+
+CC     = CC
+OPT    = -O3
+DEBUG  = -g
+OTHER  =
+EXTRA_CFLAGS = $(OPT) $(OTHER)
+# EXTRA_CFLAGS = $(DEBUG) $(OTHER)
+
+MODULE = run
+SRCS = source.cpp sink.cpp fft.cpp main.cpp 
+OBJS = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs
+
+clean::
+	rm -rf SunWS_cache

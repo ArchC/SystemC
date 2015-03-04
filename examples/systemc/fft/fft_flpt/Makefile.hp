@@ -1,0 +1,14 @@
+TARGET_ARCH = hpux11
+
+CC     = aCC
+OPT    = +O1
+DEBUG  = -g
+OTHER  = -Aa +DA2.0 +DS2.0
+EXTRA_CFLAGS = $(OPT) $(OTHER)
+# EXTRA_CFLAGS = $(DEBUG) $(OTHER)
+
+MODULE = run
+SRCS = source.cpp sink.cpp fft.cpp main.cpp 
+OBJS = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs

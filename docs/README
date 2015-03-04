@@ -1,8 +1,17 @@
-Current directory contains the following files:
+The current directory contains the following files:
 
-Licence.pdf - Licence agreement version 1.2
+License.pdf      - License agreement version 2.2
 
-UserGuide11.pdf - user guide version 1.1
+WhitePaper20.pdf - Introduction to SystemC 2.0
+
+FuncSpec20.pdf   - Functional specification for SystemC 2.0
+
+UserGuide20.pdf  - SystemC 2.0 User's Guide
+
+Note that the SystemC 2.0 User's Guide covers primarily the SystemC 1.0
+language features. We recommend that you use the combination of the
+SystemC 2.0 User's Guide and the Functional Specification for SystemC 2.0
+as a User's Guide for the SystemC 2.0 language.
 
 If you don't have Adobe Acrobat Reader(tm) you can download it from:
 http://www.adobe.com/products/acrobat/

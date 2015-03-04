@@ -1,0 +1,14 @@
+TARGET_ARCH = gccsparcOS5
+
+CC     = g++
+OPT    = -O3
+DEBUG  = -g
+OTHER  = -Wall
+CFLAGS = $(OPT) $(OTHER)
+# CFLAGS = $(DEBUG) $(OTHER)
+
+MODULE = run
+SRCS = simple_fifo.cpp
+OBJS = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs

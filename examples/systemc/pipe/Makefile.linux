@@ -1,0 +1,14 @@
+TARGET_ARCH = linux
+
+CC     = g++
+OPT    = -O3
+DEBUG  = -g
+OTHER  = -Wall
+CFLAGS = $(OPT) $(OTHER)
+# CFLAGS = $(DEBUG) $(OTHER)
+
+MODULE = run
+SRCS = display.cpp numgen.cpp main.cpp stage1.cpp stage2.cpp stage3.cpp 
+OBJS = $(SRCS:.cpp=.o)
+
+include ../Makefile.defs

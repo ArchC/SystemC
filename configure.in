@@ -1,78 +1,177 @@
-AC_INIT(src/sc_aproc.cpp)
+dnl ***************************************************************************
+dnl
+dnl  The following code is derived, directly or indirectly, from the SystemC
+dnl  source code Copyright (c) 1996-2001 by all Contributors.
+dnl  All Rights reserved.
+dnl
+dnl  The contents of this file are subject to the restrictions and limitations
+dnl  set forth in the SystemC Open Source License Version 2.2 (the "License");
+dnl  You may not use this file except in compliance with such restrictions and
+dnl  limitations. You may obtain instructions on how to receive a copy of the
+dnl  License at http://www.systemc.org/. Software distributed by Contributors
+dnl  under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
+dnl  ANY KIND, either express or implied. See the License for the specific
+dnl  language governing rights and limitations under the License.
+dnl
+dnl ***************************************************************************
+dnl
+dnl  configure.in --
+dnl  Process this file with autoconf to produce a configure script.
+dnl
+dnl  Original Author: Martin Janssen, Synopsys, Inc., 2001-05-21
+dnl
+dnl ***************************************************************************
+dnl
+dnl  MODIFICATION LOG - modifiers, enter your name, affiliation, date and
+dnl  changes you are making here.
+dnl
+dnl      Name, Affiliation, Date:
+dnl  Description of Modification:
+dnl
+dnl ***************************************************************************
+
+dnl
+dnl Initialization.
+dnl
+
+AC_INIT(NEWS)
+AC_CONFIG_AUX_DIR(config)
+
+dnl
+dnl Some simple checks.
+dnl
 
 AC_CANONICAL_SYSTEM
-
-AM_INIT_AUTOMAKE(systemc,1.0.2)
-
-AC_ARG_WITH( fx_types,	[  --with-fx-types         include fixed-point data types [no]], with_fx_types=$withval, with_fx_types="no" )
+AM_INIT_AUTOMAKE(package,version,do-no-define)
 
 AC_PROG_CC
 AC_PROG_CXX
+AC_PROG_RANLIB
+AC_PROG_INSTALL
 
-FX_DIR=""
-if test "x$with_fx_types" = "xyes"; then
-    FX_DIR="fx"
-fi
+dnl
+dnl Set the compiler flags and target architecture.
+dnl
+
+CXX_COMP=`basename $CXX`
+AR_TOOL="ar cru"
+
+case "$target" in
+    sparc-sun-solaris*) 
+        case "$CXX_COMP" in
+            CC)
+                EXTRA_CXXFLAGS=""
+                DEBUG_CXXFLAGS="-g"
+                OPT_CXXFLAGS="-O3"
+                TARGET_ARCH="sparcOS5"
+		AR_TOOL="CC -xar -o"
+        	CC="cc"
+        	CFLAGS="-xO2"
+                ;;
+            c++ | g++)
+                EXTRA_CXXFLAGS="-Wall"
+                DEBUG_CXXFLAGS="-g"
+                OPT_CXXFLAGS="-O3"
+                TARGET_ARCH="gccsparcOS5"
+        	CC="gcc -ansi -Wall -pedantic"
+        	CFLAGS="-O2"
+                ;;
+            *)
+                AC_MSG_ERROR("sorry...compiler not supported")
+		;;
+        esac
+        QT_ARCH="sparc-os2"
+        ;;
+    *linux*)
+        case "$CXX_COMP" in
+            c++ | g++)
+                EXTRA_CXXFLAGS="-Wall"
+                DEBUG_CXXFLAGS="-g"
+                OPT_CXXFLAGS="-O3"
+                TARGET_ARCH="linux"
+        	CC="gcc -ansi -Wall -pedantic"
+        	CFLAGS="-O2"
+                ;;
+            *)
+                AC_MSG_ERROR("sorry...compiler not supported")
+		;;
+        esac
+        QT_ARCH="iX86"
+        ;;
+    *cygwin*)
+        case "$CXX_COMP" in
+            c++ | g++)
+                EXTRA_CXXFLAGS="-Wall"
+                DEBUG_CXXFLAGS="-g"
+                OPT_CXXFLAGS="-O3"
+                TARGET_ARCH="cygwin"
+        	CC="gcc -ansi -Wall -pedantic"
+        	CFLAGS="-O2"
+                ;;
+            *)
+                AC_MSG_ERROR("sorry...compiler not supported")
+		;;
+        esac
+        QT_ARCH="iX86"
+        ;;
+    *hpux11*)
+        case "$CXX_COMP" in
+            aCC)
+                EXTRA_CXXFLAGS="-Aa +DA2.0 +DS2.0"
+                DEBUG_CXXFLAGS="-g"
+                OPT_CXXFLAGS="+O1"
+                TARGET_ARCH="hpux11"
+		CC="cc -Ae +DA2.0 +DS2.0"
+        	CFLAGS="-O"
+                ;;
+            c++ | g++)
+                EXTRA_CXXFLAGS="-Wall"
+                DEBUG_CXXFLAGS="-g"
+                OPT_CXXFLAGS="-O3"
+                TARGET_ARCH="gcchpux11"
+        	CC="cc -Ae"
+        	CFLAGS="-O"
+                ;;
+            *)
+                AC_MSG_ERROR("sorry...compiler not supported")
+		;;
+        esac
+        QT_ARCH="hppa"
+        ;;
+    *)
+        AC_MSG_ERROR("sorry...architecture not supported")
+        ;;
+esac
+
+dnl
+dnl The fixed-point datatypes "package" is included.
+dnl
+
+EXTRA_CXXFLAGS="$EXTRA_CXXFLAGS -DSC_INCLUDE_FX"
+CXXFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
+
+dnl
+dnl Set the default prefix and make sure the prefix is absolute.
+dnl
+
+test "x$prefix" = xNONE && prefix=$srcdir
+current_dir=`pwd`; cd $prefix; prefix=`pwd`; cd $current_dir
+
+dnl
+dnl Substitution variables.
+dnl
 
 AC_SUBST(EXTRA_CXXFLAGS)
 AC_SUBST(DEBUG_CXXFLAGS)
 AC_SUBST(OPT_CXXFLAGS)
 AC_SUBST(TARGET_ARCH)
-AC_SUBST(FX_DIR)
+AC_SUBST(QT_ARCH)
+AC_SUBST(AR_TOOL)
 
-case "$target" in
-    sparc-sun-solaris*) 
-        case "$CXX" in
-            CC)
-                EXTRA_CXXFLAGS="-pto"
-                DEBUG_CXXFLAGS="-g "
-                OPT_CXXFLAGS="-O3"
-                TARGET_ARCH=sparcOS5
-                ;;
-            c++ | g++)
-                EXTRA_CXXFLAGS="-Wall"
-                DEBUG_CXXFLAGS="-g "
-                OPT_CXXFLAGS="-O3"
-                TARGET_ARCH=gccsparcOS5
-                ;;
-        esac
-        ;;
-    *linux*)
-        EXTRA_CXXFLAGS="-Wall"
-        DEBUG_CXXFLAGS="-g "
-        OPT_CXXFLAGS="-O3"
-        TARGET_ARCH=linux
-        ;;
-    *hpux10*)
-        case "$CXX" in
-            aCC)
-                EXTRA_CXXFLAGS="+DAportable"
-#               EXTRA_CXXFLAGS="+DA1.1 +DS2.0"
-                DEBUG_CXXFLAGS="-g "
-                OPT_CXXFLAGS="+O3"
-                TARGET_ARCH=hpux10
-                ;;
-            c++ | g++)
-                EXTRA_CXXFLAGS=-Wall
-                DEBUG_CXXFLAGS="-g "
-                OPT_CXXFLAGS="-O3"
-                TARGET_ARCH=gcchpux10
-                ;;
-        esac
-        ;;
-    default)
-        echo "sorry...currently do not support this architecture"
-        ;;
-esac 
+dnl
+dnl Create the Makefiles.
+dnl
 
-if test "x$with_fx_types" = "xyes"; then
-    EXTRA_CXXFLAGS="$EXTRA_CXXFLAGS -DSC_INCLUDE_FX"
-    echo EXTRA_CXXFLAGS= $EXTRA_CXXFLAGS
-fi
+AC_OUTPUT(Makefile src/Makefile src/systemc/Makefile src/systemc/communication/Makefile src/systemc/datatypes/Makefile src/systemc/datatypes/bit/Makefile src/systemc/datatypes/fx/Makefile src/systemc/datatypes/int/Makefile src/systemc/kernel/Makefile src/systemc/tracing/Makefile src/systemc/qt/Makefile src/systemc/utils/Makefile examples/Makefile examples/systemc/Makefile) 
 
-CXXFLAGS="$EXTRA_CXXFLAGS $OPT_CXXFLAGS"
-
-AC_PROG_INSTALL
-AC_PROG_RANLIB
-
-AC_OUTPUT(Makefile src/Makefile src/numeric_bit/Makefile src/numeric_bit/fx/Makefile examples/Makefile) 
+dnl Taf!

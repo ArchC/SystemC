@@ -38,7 +38,7 @@ SUBDIRS = \
 	.
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = pc/systemc.pc
+pkgconfig_DATA = pc/systemc.pc pc/tlm.pc
 
 INST_FILES = \
 	AUTHORS \

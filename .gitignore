@@ -59,3 +59,5 @@ config/ltversion.m4
 config/missing
 config/test-driver
 config/compile
+config/ltsugar.m4
+config/lt~obsolete.m4

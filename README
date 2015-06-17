@@ -130,3 +130,5 @@ Additional information
    Note: All C++ compilers that SystemC supports have bugs of different
          degree of severity. We cannot fix those bugs. Please report them
          to the compiler vendor.
+
+Join the chat at https://gitter.im/ArchC/SystemC

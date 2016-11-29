@@ -582,7 +582,7 @@ inline sc_dt::uint64 sc_signal<sc_dt::sc_int<W> >::read_part( int left, int righ
 
 SC_TEMPLATE
 inline void sc_signal<sc_dt::sc_int<W> >::register_port( 
-	sc_port_base& port_, const char* if_typename_ )
+	__attribute__((unused)) sc_port_base& port_, __attribute__((unused)) const char* if_typename_ )
 {
 #       ifdef DEBUG_SYSTEMC
 		std::string nm( if_typename_ );
@@ -595,8 +595,6 @@ inline void sc_signal<sc_dt::sc_int<W> >::register_port(
 			}
 			m_output_p = &port_;
 		}
-#       else
-            if ( &port_ && if_typename_ ) {} // Silence unused args warning.
 #       endif
 }
 

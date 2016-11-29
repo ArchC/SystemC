@@ -34,60 +34,56 @@
 ## (should be kept in sync among all test.am files)
 ##
 ## Note: Recent Automake versions (>1.13) support relative placeholders for
-##      included files (%D%,%C%).  To support older versions, use explicit
+##       included files (%D%,%C%).  To support older versions, use explicit
 ##       names for now.
 ##
 ## Local values:
-##   %D%: 2.1/specialized_signals
-##   %C%: 2_1_specialized_signals
+##   %D%: SC2.3/sc_ttd
+##   %C%: SC2_3_sc_ttd
 
-examples_TESTS += 2.1/specialized_signals/test
+examples_TESTS += SC2.3/sc_ttd/test
 
-2_1_specialized_signals_test_CPPFLAGS = \
+SC2_3_sc_ttd_test_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
-2_1_specialized_signals_test_SOURCES = \
-	$(2_1_specialized_signals_H_FILES) \
-	$(2_1_specialized_signals_CXX_FILES)
+SC2_3_sc_ttd_test_SOURCES = \
+	$(SC2_3_sc_ttd_H_FILES) \
+	$(SC2_3_sc_ttd_CXX_FILES)
 
 examples_BUILD += \
-	$(2_1_specialized_signals_BUILD)
+	$(SC2_3_sc_ttd_BUILD)
 
 examples_CLEAN += \
-	2.1/specialized_signals/run.log \
-	2.1/specialized_signals/expexted_trimmed.log \
-	2.1/specialized_signals/run_trimmed.log \
-	2.1/specialized_signals/diff.log
+	SC2.3/sc_ttd/run.log \
+	SC2.3/sc_ttd/expexted_trimmed.log \
+	SC2.3/sc_ttd/run_trimmed.log \
+	SC2.3/sc_ttd/diff.log
 
 examples_FILES += \
-	$(2_1_specialized_signals_H_FILES) \
-	$(2_1_specialized_signals_CXX_FILES) \
-	$(2_1_specialized_signals_BUILD) \
-	$(2_1_specialized_signals_EXTRA)
+	$(SC2_3_sc_ttd_H_FILES) \
+	$(SC2_3_sc_ttd_CXX_FILES) \
+	$(SC2_3_sc_ttd_BUILD) \
+	$(SC2_3_sc_ttd_EXTRA)
 
 ## example-specific details
 
-2_1_specialized_signals_H_FILES = \
-	2.1/specialized_signals/scx_signal_int.h \
-	2.1/specialized_signals/scx_signal_uint.h \
-	2.1/specialized_signals/scx_signal_signed.h \
-	2.1/specialized_signals/scx_signal_unsigned.h
+SC2_3_sc_ttd_test_CPPFLAGS += \
+	-I $(srcdir)/SC2.3/sc_ttd/../include
 
-2_1_specialized_signals_CXX_FILES = \
-	2.1/specialized_signals/main.cpp \
-	2.1/specialized_signals/scx_signal_int.cpp \
-	2.1/specialized_signals/scx_signal_uint.cpp \
-	2.1/specialized_signals/scx_signal_signed.cpp \
-	2.1/specialized_signals/scx_signal_unsigned.cpp 
+SC2_3_sc_ttd_H_FILES = \
+	SC2.3/sc_ttd/../include/sc_ttd.h
 
-2_1_specialized_signals_BUILD =
+SC2_3_sc_ttd_CXX_FILES = \
+	SC2.3/sc_ttd/main.cpp
 
-2_1_specialized_signals_EXTRA = \
-	2.1/specialized_signals/specialized_signals.vcproj \
-	2.1/specialized_signals/Makefile
+SC2_3_sc_ttd_BUILD =
 
-#2_1_specialized_signals_FILTER = 
-#export 2_1_specialized_signals_FILTER
+SC2_3_sc_ttd_EXTRA = \
+	SC2.3/sc_ttd/sc_ttd.vcproj \
+	SC2.3/sc_ttd/Makefile
+
+#SC2_3_sc_ttd_FILTER = 
+#export SC2_3_sc_ttd_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

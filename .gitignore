@@ -61,3 +61,15 @@ config/test-driver
 config/compile
 config/ltsugar.m4
 config/lt~obsolete.m4
+examples/sysc/*/test
+examples/sysc/*/test.sh
+examples/sysc/*/*/test
+examples/sysc/*/*/test.sh
+examples/sysc/fir/test_rtl
+examples/sysc/fir/test_rtl.sh
+examples/tlm/*/test
+examples/tlm/*/test.sh
+examples/tlm/*/*/test
+examples/tlm/*/*/test.sh
+examples/tlm/at_extension_optional/at_target_4_phase.cpp
+examples/tlm/at_extension_optional/traffic_generator.cpp

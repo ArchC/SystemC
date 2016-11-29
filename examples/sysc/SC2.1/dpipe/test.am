@@ -38,50 +38,48 @@
 ##       names for now.
 ##
 ## Local values:
-##   %D%: 2.1/forkjoin
-##   %C%: 2.1_forkjoin
-##
+##   %D%: SC2.1/dpipe
+##   %C%: SC2_1_dpipe
 
-examples_TESTS += 2.1/forkjoin/test
+examples_TESTS += SC2.1/dpipe/test
 
-2_1_forkjoin_test_CPPFLAGS = \
+SC2_1_dpipe_test_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
-2_1_forkjoin_test_SOURCES = \
-	$(2_1_forkjoin_H_FILES) \
-	$(2_1_forkjoin_CXX_FILES)
+SC2_1_dpipe_test_SOURCES = \
+	$(SC2_1_dpipe_H_FILES) \
+	$(SC2_1_dpipe_CXX_FILES)
 
 examples_BUILD += \
-	$(2_1_forkjoin_BUILD)
+	$(SC2_1_dpipe_BUILD)
 
 examples_CLEAN += \
-	2.1/forkjoin/run.log \
-	2.1/forkjoin/expexted_trimmed.log \
-	2.1/forkjoin/run_trimmed.log \
-	2.1/forkjoin/diff.log
+	SC2.1/dpipe/run.log \
+	SC2.1/dpipe/expexted_trimmed.log \
+	SC2.1/dpipe/run_trimmed.log \
+	SC2.1/dpipe/diff.log
 
 examples_FILES += \
-	$(2_1_forkjoin_H_FILES) \
-	$(2_1_forkjoin_CXX_FILES) \
-	$(2_1_forkjoin_BUILD) \
-	$(2_1_forkjoin_EXTRA)
+	$(SC2_1_dpipe_H_FILES) \
+	$(SC2_1_dpipe_CXX_FILES) \
+	$(SC2_1_dpipe_BUILD) \
+	$(SC2_1_dpipe_EXTRA)
 
 ## example-specific details
 
-2_1_forkjoin_H_FILES =
+SC2_1_dpipe_H_FILES =
 
-2_1_forkjoin_CXX_FILES = \
-	2.1/forkjoin/forkjoin.cpp
+SC2_1_dpipe_CXX_FILES = \
+	SC2.1/dpipe/main.cpp
 
-2_1_forkjoin_BUILD =
+SC2_1_dpipe_BUILD =
 
-2_1_forkjoin_EXTRA = \
-	2.1/forkjoin/forkjoin.vcproj \
-	2.1/forkjoin/Makefile \
-	2.1/forkjoin/README.txt
+SC2_1_dpipe_EXTRA = \
+	SC2.1/dpipe/dpipe.vcproj \
+	SC2.1/dpipe/Makefile
 
-#2_1_forkjoin_FILTER = 
-#export 2_1_forkjoin_FILTER
+#SC2_1_dpipe_FILTER = 
+#export SC2_1_dpipe_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

@@ -34,52 +34,53 @@
 ## (should be kept in sync among all test.am files)
 ##
 ## Note: Recent Automake versions (>1.13) support relative placeholders for
-##       included files (%D%,%C%).  To support older versions, use explicit
+##      included files (%D%,%C%).  To support older versions, use explicit
 ##       names for now.
 ##
 ## Local values:
-##   %D%: 2.1/dpipe
-##   %C%: 2_1_dpipe
+##   %D%: SC2.1/scx_barrier
+##   %C%: SC2_1_scx_barrier
 
-examples_TESTS += 2.1/dpipe/test
+examples_TESTS += SC2.1/scx_barrier/test
 
-2_1_dpipe_test_CPPFLAGS = \
+SC2_1_scx_barrier_test_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
-2_1_dpipe_test_SOURCES = \
-	$(2_1_dpipe_H_FILES) \
-	$(2_1_dpipe_CXX_FILES)
+SC2_1_scx_barrier_test_SOURCES = \
+	$(SC2_1_scx_barrier_H_FILES) \
+	$(SC2_1_scx_barrier_CXX_FILES)
 
 examples_BUILD += \
-	$(2_1_dpipe_BUILD)
+	$(SC2_1_scx_barrier_BUILD)
 
 examples_CLEAN += \
-	2.1/dpipe/run.log \
-	2.1/dpipe/expexted_trimmed.log \
-	2.1/dpipe/run_trimmed.log \
-	2.1/dpipe/diff.log
+	SC2.1/scx_barrier/run.log \
+	SC2.1/scx_barrier/expexted_trimmed.log \
+	SC2.1/scx_barrier/run_trimmed.log \
+	SC2.1/scx_barrier/diff.log
 
 examples_FILES += \
-	$(2_1_dpipe_H_FILES) \
-	$(2_1_dpipe_CXX_FILES) \
-	$(2_1_dpipe_BUILD) \
-	$(2_1_dpipe_EXTRA)
+	$(SC2_1_scx_barrier_H_FILES) \
+	$(SC2_1_scx_barrier_CXX_FILES) \
+	$(SC2_1_scx_barrier_BUILD) \
+	$(SC2_1_scx_barrier_EXTRA)
 
 ## example-specific details
 
-2_1_dpipe_H_FILES =
+SC2_1_scx_barrier_H_FILES = \
+	SC2.1/scx_barrier/scx_barrier.h
 
-2_1_dpipe_CXX_FILES = \
-	2.1/dpipe/main.cpp
+SC2_1_scx_barrier_CXX_FILES = \
+	SC2.1/scx_barrier/main.cpp
 
-2_1_dpipe_BUILD =
+SC2_1_scx_barrier_BUILD =
 
-2_1_dpipe_EXTRA = \
-	2.1/dpipe/dpipe.vcproj \
-	2.1/dpipe/Makefile
+SC2_1_scx_barrier_EXTRA = \
+	SC2.1/scx_barrier/scx_barrier.vcproj \
+	SC2.1/scx_barrier/Makefile
 
-#2_1_dpipe_FILTER = 
-#export 2_1_dpipe_FILTER
+#SC2_1_scx_barrier_FILTER = 
+#export SC2_1_scx_barrier_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

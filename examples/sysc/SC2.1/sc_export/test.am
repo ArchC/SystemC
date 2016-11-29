@@ -38,50 +38,49 @@
 ##       names for now.
 ##
 ## Local values:
-##   %D%: 2.1/sc_report
-##   %C%: 2_1_sc_report
-##
+##   %D%: SC2.1/sc_export
+##   %C%: SC2_1_sc_export
 
-examples_TESTS += 2.1/sc_report/test
+examples_TESTS += SC2.1/sc_export/test
 
-2_1_sc_report_test_CPPFLAGS = \
+SC2_1_sc_export_test_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
-2_1_sc_report_test_SOURCES = \
-	$(2_1_sc_report_H_FILES) \
-	$(2_1_sc_report_CXX_FILES)
+SC2_1_sc_export_test_SOURCES = \
+	$(SC2_1_sc_export_H_FILES) \
+	$(SC2_1_sc_export_CXX_FILES)
 
 examples_BUILD += \
-	$(2_1_sc_report_BUILD)
+	$(SC2_1_sc_export_BUILD)
 
 examples_CLEAN += \
-	2.1/sc_report/run.log \
-	2.1/sc_report/expexted_trimmed.log \
-	2.1/sc_report/run_trimmed.log \
-	2.1/sc_report/diff.log
+	SC2.1/sc_export/run.log \
+	SC2.1/sc_export/expexted_trimmed.log \
+	SC2.1/sc_export/run_trimmed.log \
+	SC2.1/sc_export/diff.log
 
 examples_FILES += \
-	$(2_1_sc_report_H_FILES) \
-	$(2_1_sc_report_CXX_FILES) \
-	$(2_1_sc_report_BUILD) \
-	$(2_1_sc_report_EXTRA)
+	$(SC2_1_sc_export_H_FILES) \
+	$(SC2_1_sc_export_CXX_FILES) \
+	$(SC2_1_sc_export_BUILD) \
+	$(SC2_1_sc_export_EXTRA)
 
 ## example-specific details
 
-2_1_sc_report_H_FILES =
+SC2_1_sc_export_H_FILES =
 
-2_1_sc_report_CXX_FILES = \
-	2.1/sc_report/main.cpp
+SC2_1_sc_export_CXX_FILES = \
+	SC2.1/sc_export/main.cpp
 
-2_1_sc_report_BUILD =
+SC2_1_sc_export_BUILD =
 
-2_1_sc_report_EXTRA = \
-	2.1/sc_report/sc_report.vcproj \
-	2.1/sc_report/Makefile \
-	2.1/sc_report/README.txt
+SC2_1_sc_export_EXTRA = \
+	SC2.1/sc_export/sc_export.vcproj \
+	SC2.1/sc_export/Makefile \
+	SC2.1/sc_export/README.txt
 
-#2_1_sc_report_FILTER = 
-#export 2_1_sc_report_FILTER
+#SC2_1_sc_export_FILTER = 
+#export SC2_1_sc_export_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

@@ -34,56 +34,53 @@
 ## (should be kept in sync among all test.am files)
 ##
 ## Note: Recent Automake versions (>1.13) support relative placeholders for
-##      included files (%D%,%C%).  To support older versions, use explicit
+##       included files (%D%,%C%).  To support older versions, use explicit
 ##       names for now.
 ##
 ## Local values:
-##   %D%: 2.3/sc_rvd
-##   %C%: 2_3_sc_rvd
+##   %D% = SC2.1/reset_signal_is
+##   %C% = SC2.1_reset_signal_is
 
-examples_TESTS += 2.3/sc_rvd/test
 
-2_3_sc_rvd_test_CPPFLAGS = \
+examples_TESTS += SC2.1/reset_signal_is/test
+
+SC2_1_reset_signal_is_test_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
-2_3_sc_rvd_test_SOURCES = \
-	$(2_3_sc_rvd_H_FILES) \
-	$(2_3_sc_rvd_CXX_FILES)
+SC2_1_reset_signal_is_test_SOURCES = \
+	$(SC2_1_reset_signal_is_H_FILES) \
+	$(SC2_1_reset_signal_is_CXX_FILES)
 
 examples_BUILD += \
-	$(2_3_sc_rvd_BUILD)
+	$(SC2_1_reset_signal_is_BUILD)
 
 examples_CLEAN += \
-	2.3/sc_rvd/run.log \
-	2.3/sc_rvd/expexted_trimmed.log \
-	2.3/sc_rvd/run_trimmed.log \
-	2.3/sc_rvd/diff.log
+	SC2.1/reset_signal_is/run.log \
+	SC2.1/reset_signal_is/expexted_trimmed.log \
+	SC2.1/reset_signal_is/run_trimmed.log \
+	SC2.1/reset_signal_is/diff.log
 
 examples_FILES += \
-	$(2_3_sc_rvd_H_FILES) \
-	$(2_3_sc_rvd_CXX_FILES) \
-	$(2_3_sc_rvd_BUILD) \
-	$(2_3_sc_rvd_EXTRA)
+	$(SC2_1_reset_signal_is_H_FILES) \
+	$(SC2_1_reset_signal_is_CXX_FILES) \
+	$(SC2_1_reset_signal_is_BUILD) \
+	$(SC2_1_reset_signal_is_EXTRA)
 
 ## example-specific details
 
-2_3_sc_rvd_test_CPPFLAGS += \
-	-I $(srcdir)/2.3/sc_rvd/../include
+SC2_1_reset_signal_is_H_FILES =
 
-2_3_sc_rvd_H_FILES = \
-	2.3/sc_rvd/../include/sc_rvd.h
+SC2_1_reset_signal_is_CXX_FILES = \
+	SC2.1/reset_signal_is/reset_signal_is.cpp
 
-2_3_sc_rvd_CXX_FILES = \
-	2.3/sc_rvd/main.cpp
+SC2_1_reset_signal_is_BUILD =
 
-2_3_sc_rvd_BUILD =
+SC2_1_reset_signal_is_EXTRA = \
+	SC2.1/reset_signal_is/reset_signal_is.vcproj \
+	SC2.1/reset_signal_is/Makefile
 
-2_3_sc_rvd_EXTRA = \
-	2.3/sc_rvd/sc_rvd.vcproj \
-	2.3/sc_rvd/Makefile
-
-#2_3_sc_rvd_FILTER = 
-#export 2_3_sc_rvd_FILTER
+#SC2_1_reset_signal_is_FILTER = 
+#export SC2_1_reset_signal_is_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

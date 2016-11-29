@@ -38,52 +38,50 @@
 ##       names for now.
 ##
 ## Local values:
-##   %D%: 2.3/sc_ttd
-##   %C%: 2_3_sc_ttd
+##   %D%: SC2.1/sc_report
+##   %C%: SC2_1_sc_report
+##
 
-examples_TESTS += 2.3/sc_ttd/test
+examples_TESTS += SC2.1/sc_report/test
 
-2_3_sc_ttd_test_CPPFLAGS = \
+SC2_1_sc_report_test_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
-2_3_sc_ttd_test_SOURCES = \
-	$(2_3_sc_ttd_H_FILES) \
-	$(2_3_sc_ttd_CXX_FILES)
+SC2_1_sc_report_test_SOURCES = \
+	$(SC2_1_sc_report_H_FILES) \
+	$(SC2_1_sc_report_CXX_FILES)
 
 examples_BUILD += \
-	$(2_3_sc_ttd_BUILD)
+	$(SC2_1_sc_report_BUILD)
 
 examples_CLEAN += \
-	2.3/sc_ttd/run.log \
-	2.3/sc_ttd/expexted_trimmed.log \
-	2.3/sc_ttd/run_trimmed.log \
-	2.3/sc_ttd/diff.log
+	SC2.1/sc_report/run.log \
+	SC2.1/sc_report/expexted_trimmed.log \
+	SC2.1/sc_report/run_trimmed.log \
+	SC2.1/sc_report/diff.log
 
 examples_FILES += \
-	$(2_3_sc_ttd_H_FILES) \
-	$(2_3_sc_ttd_CXX_FILES) \
-	$(2_3_sc_ttd_BUILD) \
-	$(2_3_sc_ttd_EXTRA)
+	$(SC2_1_sc_report_H_FILES) \
+	$(SC2_1_sc_report_CXX_FILES) \
+	$(SC2_1_sc_report_BUILD) \
+	$(SC2_1_sc_report_EXTRA)
 
 ## example-specific details
 
-2_3_sc_ttd_test_CPPFLAGS += \
-	-I $(srcdir)/2.3/sc_ttd/../include
+SC2_1_sc_report_H_FILES =
 
-2_3_sc_ttd_H_FILES = \
-	2.3/sc_ttd/../include/sc_ttd.h
+SC2_1_sc_report_CXX_FILES = \
+	SC2.1/sc_report/main.cpp
 
-2_3_sc_ttd_CXX_FILES = \
-	2.3/sc_ttd/main.cpp
+SC2_1_sc_report_BUILD =
 
-2_3_sc_ttd_BUILD =
+SC2_1_sc_report_EXTRA = \
+	SC2.1/sc_report/sc_report.vcproj \
+	SC2.1/sc_report/Makefile \
+	SC2.1/sc_report/README.txt
 
-2_3_sc_ttd_EXTRA = \
-	2.3/sc_ttd/sc_ttd.vcproj \
-	2.3/sc_ttd/Makefile
-
-#2_3_sc_ttd_FILTER = 
-#export 2_3_sc_ttd_FILTER
+#SC2_1_sc_report_FILTER = 
+#export SC2_1_sc_report_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

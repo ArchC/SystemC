@@ -85,19 +85,19 @@ include simple_perf/test.am
 
 ## 2.1 examples
 
-include 2.1/dpipe/test.am
-include 2.1/forkjoin/test.am
-include 2.1/reset_signal_is/test.am
-include 2.1/sc_export/test.am
-include 2.1/sc_report/test.am
-include 2.1/scx_barrier/test.am
-include 2.1/scx_mutex_w_policy/test.am
-include 2.1/specialized_signals/test.am
+include SC2.1/dpipe/test.am
+include SC2.1/forkjoin/test.am
+include SC2.1/reset_signal_is/test.am
+include SC2.1/sc_export/test.am
+include SC2.1/sc_report/test.am
+include SC2.1/scx_barrier/test.am
+include SC2.1/scx_mutex_w_policy/test.am
+include SC2.1/specialized_signals/test.am
 
 ## 2.3 examples
 
-include 2.3/sc_rvd/test.am
-include 2.3/sc_ttd/test.am
+include SC2.3/sc_rvd/test.am
+include SC2.3/sc_ttd/test.am
 
 ## ************************************************************************
 

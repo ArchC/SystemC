@@ -40,48 +40,48 @@
 ##       names for now.
 ##
 ## Local values:
-##   %D%: 2.1/scx_mutex_w_policy
-##   %C%: 2_1_scx_mutex_w_policy
+##   %D%: SC2.1/dpipe
+##   %C%: SC2_1_dpipe
 
-examples_TESTS += 2.1/scx_mutex_w_policy/test
+examples_TESTS += SC2.1/dpipe/test
 
-2_1_scx_mutex_w_policy_test_CPPFLAGS = \
+SC2_1_dpipe_test_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
-2_1_scx_mutex_w_policy_test_SOURCES = \
-	$(2_1_scx_mutex_w_policy_H_FILES) \
-	$(2_1_scx_mutex_w_policy_CXX_FILES)
+SC2_1_dpipe_test_SOURCES = \
+	$(SC2_1_dpipe_H_FILES) \
+	$(SC2_1_dpipe_CXX_FILES)
 
 examples_BUILD += \
-	$(2_1_scx_mutex_w_policy_BUILD)
+	$(SC2_1_dpipe_BUILD)
 
 examples_CLEAN += \
-	2.1/scx_mutex_w_policy/run.log \
-	2.1/scx_mutex_w_policy/expexted_trimmed.log \
-	2.1/scx_mutex_w_policy/run_trimmed.log \
-	2.1/scx_mutex_w_policy/diff.log
+	SC2.1/dpipe/run.log \
+	SC2.1/dpipe/expexted_trimmed.log \
+	SC2.1/dpipe/run_trimmed.log \
+	SC2.1/dpipe/diff.log
 
 examples_FILES += \
-	$(2_1_scx_mutex_w_policy_H_FILES) \
-	$(2_1_scx_mutex_w_policy_CXX_FILES) \
-	$(2_1_scx_mutex_w_policy_BUILD) \
-	$(2_1_scx_mutex_w_policy_EXTRA)
+	$(SC2_1_dpipe_H_FILES) \
+	$(SC2_1_dpipe_CXX_FILES) \
+	$(SC2_1_dpipe_BUILD) \
+	$(SC2_1_dpipe_EXTRA)
 
 ## example-specific details
 
-2_1_scx_mutex_w_policy_H_FILES =
+SC2_1_dpipe_H_FILES =
 
-2_1_scx_mutex_w_policy_CXX_FILES = \
-	2.1/scx_mutex_w_policy/scx_mutex_w_policy.cpp
+SC2_1_dpipe_CXX_FILES = \
+	SC2.1/dpipe/main.cpp
 
-2_1_scx_mutex_w_policy_BUILD =
+SC2_1_dpipe_BUILD =
 
-2_1_scx_mutex_w_policy_EXTRA = \
-	2.1/scx_mutex_w_policy/scx_mutex_w_policy.vcproj \
-	2.1/scx_mutex_w_policy/Makefile
+SC2_1_dpipe_EXTRA = \
+	SC2.1/dpipe/dpipe.vcproj \
+	SC2.1/dpipe/Makefile
 
-#2_1_scx_mutex_w_policy_FILTER = 
-#export 2_1_scx_mutex_w_policy_FILTER
+#SC2_1_dpipe_FILTER = 
+#export SC2_1_dpipe_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

@@ -40,52 +40,49 @@
 ##       names for now.
 ##
 ## Local values:
-##   %D%: 2.3/sc_rvd
-##   %C%: 2_3_sc_rvd
+##   %D%: SC2.1/scx_barrier
+##   %C%: SC2_1_scx_barrier
 
-examples_TESTS += 2.3/sc_rvd/test
+examples_TESTS += SC2.1/scx_barrier/test
 
-2_3_sc_rvd_test_CPPFLAGS = \
+SC2_1_scx_barrier_test_CPPFLAGS = \
 	$(AM_CPPFLAGS)
 
-2_3_sc_rvd_test_SOURCES = \
-	$(2_3_sc_rvd_H_FILES) \
-	$(2_3_sc_rvd_CXX_FILES)
+SC2_1_scx_barrier_test_SOURCES = \
+	$(SC2_1_scx_barrier_H_FILES) \
+	$(SC2_1_scx_barrier_CXX_FILES)
 
 examples_BUILD += \
-	$(2_3_sc_rvd_BUILD)
+	$(SC2_1_scx_barrier_BUILD)
 
 examples_CLEAN += \
-	2.3/sc_rvd/run.log \
-	2.3/sc_rvd/expexted_trimmed.log \
-	2.3/sc_rvd/run_trimmed.log \
-	2.3/sc_rvd/diff.log
+	SC2.1/scx_barrier/run.log \
+	SC2.1/scx_barrier/expexted_trimmed.log \
+	SC2.1/scx_barrier/run_trimmed.log \
+	SC2.1/scx_barrier/diff.log
 
 examples_FILES += \
-	$(2_3_sc_rvd_H_FILES) \
-	$(2_3_sc_rvd_CXX_FILES) \
-	$(2_3_sc_rvd_BUILD) \
-	$(2_3_sc_rvd_EXTRA)
+	$(SC2_1_scx_barrier_H_FILES) \
+	$(SC2_1_scx_barrier_CXX_FILES) \
+	$(SC2_1_scx_barrier_BUILD) \
+	$(SC2_1_scx_barrier_EXTRA)
 
 ## example-specific details
 
-2_3_sc_rvd_test_CPPFLAGS += \
-	-I $(srcdir)/2.3/sc_rvd/../include
+SC2_1_scx_barrier_H_FILES = \
+	SC2.1/scx_barrier/scx_barrier.h
 
-2_3_sc_rvd_H_FILES = \
-	2.3/sc_rvd/../include/sc_rvd.h
+SC2_1_scx_barrier_CXX_FILES = \
+	SC2.1/scx_barrier/main.cpp
 
-2_3_sc_rvd_CXX_FILES = \
-	2.3/sc_rvd/main.cpp
+SC2_1_scx_barrier_BUILD =
 
-2_3_sc_rvd_BUILD =
+SC2_1_scx_barrier_EXTRA = \
+	SC2.1/scx_barrier/scx_barrier.vcproj \
+	SC2.1/scx_barrier/Makefile
 
-2_3_sc_rvd_EXTRA = \
-	2.3/sc_rvd/sc_rvd.vcproj \
-	2.3/sc_rvd/Makefile
-
-#2_3_sc_rvd_FILTER = 
-#export 2_3_sc_rvd_FILTER
+#SC2_1_scx_barrier_FILTER = 
+#export SC2_1_scx_barrier_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

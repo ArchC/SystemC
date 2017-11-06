@@ -57,7 +57,7 @@ examples_BUILD += \
 
 examples_CLEAN += \
 	simple_bus/run.log \
-	simple_bus/expexted_trimmed.log \
+	simple_bus/expected_trimmed.log \
 	simple_bus/run_trimmed.log \
 	simple_bus/diff.log
 
@@ -100,7 +100,8 @@ simple_bus_BUILD = \
 	simple_bus/golden.log
 
 simple_bus_EXTRA = \
-	simple_bus/simple_bus.vcproj \
+	simple_bus/simple_bus.sln \
+	simple_bus/simple_bus.vcxproj \
 	simple_bus/Makefile \
 	simple_bus/ChangeLog \
 	simple_bus/README \
@@ -108,7 +109,6 @@ simple_bus_EXTRA = \
 	simple_bus/LEGAL
 
 #simple_bus_FILTER = 
-#export simple_bus_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

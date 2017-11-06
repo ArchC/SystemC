@@ -29,12 +29,12 @@
 #include <cstddef>
 #include <cstdlib>
 
-#define SC_DISABLE_API_VERSION_CHECK // for in-library sc_ver.h inclusion
-
 #include "sysc/kernel/sc_ver.h"
 #include "sysc/kernel/sc_kernel_ids.h"
-#include "sysc/utils/sc_iostream.h"
 #include "sysc/utils/sc_report.h"
+
+#include <cstring>
+#include <sstream>
 
 using std::getenv;
 using std::strcmp;
@@ -48,32 +48,32 @@ static
 const char systemc_version[] =
     "SystemC " SC_VERSION " --- " __DATE__ " " __TIME__;
 
-const unsigned int sc_version_major = SC_VERSION_MAJOR;
-const unsigned int sc_version_minor = SC_VERSION_MINOR;
-const unsigned int sc_version_patch = SC_VERSION_PATCH;
-const bool         sc_is_prerelease = SC_IS_PRERELEASE;
+SC_API const unsigned int sc_version_major = SC_VERSION_MAJOR;
+SC_API const unsigned int sc_version_minor = SC_VERSION_MINOR;
+SC_API const unsigned int sc_version_patch = SC_VERSION_PATCH;
+SC_API const bool         sc_is_prerelease = SC_IS_PRERELEASE;
 
-const std::string  sc_version_originator   = SC_VERSION_ORIGINATOR;
-const std::string  sc_version_release_date = SC_VERSION_RELEASE_DATE;
-const std::string  sc_version_prerelease   = SC_VERSION_PRERELEASE;
-const std::string  sc_version_string       = SC_VERSION;
-const std::string  sc_copyright_string     = SC_COPYRIGHT;
+SC_API const std::string  sc_version_originator   = SC_VERSION_ORIGINATOR;
+SC_API const std::string  sc_version_release_date = SC_VERSION_RELEASE_DATE;
+SC_API const std::string  sc_version_prerelease   = SC_VERSION_PRERELEASE;
+SC_API const std::string  sc_version_string       = SC_VERSION;
+SC_API const std::string  sc_copyright_string     = SC_COPYRIGHT;
 
-const char*
+SC_API const char*
 sc_copyright()
 {
     return SC_COPYRIGHT;
 }
 
 
-const char*
+SC_API const char*
 sc_release()
 {
     return SC_VERSION;
 }
 
 
-const char*
+SC_API const char*
 sc_version()
 {
     return systemc_version;
@@ -86,7 +86,7 @@ sc_version()
 
 // ----------------------------------------------------------------------------
 
-void
+SC_API void
 pln()
 {
     static bool lnp = SC_DISABLE_COPYRIGHT_MESSAGE;
@@ -128,6 +128,7 @@ pln()
       SC_CONCAT_UNDERSCORE_( Name, config ) = Name; \
     } else if( SC_CONCAT_UNDERSCORE_( Name, config ) != Name ) { \
       SC_REPORT_FATAL( SC_ID_INCONSISTENT_API_CONFIG_, Symbol ); \
+      /* may continue, if suppressed */ \
     } \
   } while( false )
 
@@ -154,7 +155,7 @@ pln()
 const int SC_DISABLE_VIRTUAL_BIND_CHECK_ = 1;
 
 template<>
-SC_API_VERSION_STRING
+SC_API SC_API_VERSION_STRING
 <
 //   & DEBUG_SYSTEMC_CHECK_,
   & SC_DISABLE_VIRTUAL_BIND_CHECK_

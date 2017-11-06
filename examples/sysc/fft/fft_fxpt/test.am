@@ -57,7 +57,7 @@ examples_BUILD += \
 
 examples_CLEAN += \
 	fft/fft_fxpt/run.log \
-	fft/fft_fxpt/expexted_trimmed.log \
+	fft/fft_fxpt/expected_trimmed.log \
 	fft/fft_fxpt/run_trimmed.log \
 	fft/fft_fxpt/diff.log
 
@@ -85,6 +85,7 @@ fft_fft_fxpt_CXX_FILES = \
 	fft/fft_fxpt/source.cpp
 
 fft_fft_fxpt_BUILD = \
+	fft/fft_fxpt/golden.log \
 	fft/fft_fxpt/in_imag \
 	fft/fft_fxpt/in_imag.1 \
 	fft/fft_fxpt/in_imag.2 \
@@ -105,11 +106,11 @@ fft_fft_fxpt_BUILD = \
 	fft/fft_fxpt/out_real.4.golden
 
 fft_fft_fxpt_EXTRA = \
-	fft/fft_fxpt/fft_fxpt.vcproj \
+	fft/fft_fxpt/fft_fxpt.sln \
+	fft/fft_fxpt/fft_fxpt.vcxproj \
 	fft/fft_fxpt/Makefile
 
 #fft_fft_fxpt_FILTER = 
-#export fft_fft_fxpt_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

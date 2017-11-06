@@ -57,7 +57,7 @@ examples_BUILD += \
 
 examples_CLEAN += \
 	pipe/run.log \
-	pipe/expexted_trimmed.log \
+	pipe/expected_trimmed.log \
 	pipe/run_trimmed.log \
 	pipe/diff.log
 
@@ -89,13 +89,13 @@ pipe_CXX_FILES = \
 #	pipe/golden.log
 
 pipe_EXTRA = \
-	pipe/pipe.vcproj \
+	pipe/pipe.sln \
+	pipe/pipe.vcxproj \
 	pipe/Makefile \
 	pipe/README
 
 
 #pipe_FILTER = 
-#export pipe_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

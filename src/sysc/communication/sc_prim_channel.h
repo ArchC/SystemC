@@ -41,7 +41,7 @@ namespace sc_core {
 //  Abstract base class of all primitive channel classes.
 // ----------------------------------------------------------------------------
 
-class sc_prim_channel
+class SC_API sc_prim_channel
 : public sc_object
 {
     friend class sc_prim_channel_registry;
@@ -85,6 +85,12 @@ protected:
 
     // called by simulation_done (does nothing by default)
     virtual void end_of_simulation();
+
+    // indicate that this channel is async and could call async_request_update
+    // therefore, the kernel should arrange to suspend rather than exit while
+    // this channel is attached.
+    bool async_attach_suspending();
+    bool async_detach_suspending();
 
 protected:
 
@@ -238,7 +244,7 @@ public:
 
 
     int size() const
-        { return m_prim_channel_vec.size(); }
+        { return static_cast<int>(m_prim_channel_vec.size()); }
 
     inline void request_update( sc_prim_channel& );
     void async_request_update( sc_prim_channel& );
@@ -250,6 +256,20 @@ public:
     }   
 
     bool pending_async_updates() const;
+
+    // synchronization with attached async suspending channels
+    //  - potentially blocks the current thread, if no explicitly
+    //    attached async channels have posted updates, yet
+    //  - returns true, if and only if there are NO pending synchronous
+    //    updates after resuming from the external synchronization
+    bool async_suspend();
+
+    // (un)register a channel as being asynchronous
+    //  - presence of asynchronous channels leads async_suspend() to
+    //    block until any external async updates have been received
+    //    (instead of exiting the simulation upon starvation)
+    bool async_attach_suspending(sc_prim_channel&);
+    bool async_detach_suspending(sc_prim_channel&);
 
 private:
 
@@ -332,6 +352,20 @@ void
 sc_prim_channel::async_request_update()
 {
     m_registry->async_request_update(*this);
+}
+
+inline
+bool
+sc_prim_channel::async_attach_suspending()
+{
+    return m_registry->async_attach_suspending(*this);
+}
+
+inline
+bool
+sc_prim_channel::async_detach_suspending()
+{
+    return m_registry->async_detach_suspending(*this);
 }
 
 

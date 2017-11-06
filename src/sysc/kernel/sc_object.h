@@ -30,19 +30,23 @@
 #ifndef SC_OBJECT_H
 #define SC_OBJECT_H
 
-
-#include "sysc/utils/sc_iostream.h"
 #include "sysc/kernel/sc_attribute.h"
+#include <iostream>
+
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+#pragma warning(push)
+#pragma warning(disable: 4251) // DLL import for std::string,vector
+#endif
 
 namespace sc_core {
 
-class sc_event;
-class sc_module;
+class SC_API sc_event;
+class SC_API sc_module;
 class sc_phase_callback_registry;
 class sc_runnable;
-class sc_simcontext;
-class sc_trace_file;
-class sc_trace_file_base;
+class SC_API sc_simcontext;
+class SC_API sc_trace_file;
+class SC_API sc_trace_file_base;
 
 // ----------------------------------------------------------------------------
 //  CLASS : sc_object
@@ -50,7 +54,7 @@ class sc_trace_file_base;
 //  Abstract base class of all SystemC `simulation' objects.
 // ----------------------------------------------------------------------------
 
-class sc_object
+class SC_API sc_object 
 {
     friend class sc_event;
     friend class sc_module;
@@ -174,6 +178,10 @@ sc_object* sc_get_parent( const sc_object* obj_p )
 }
 
 } // namespace sc_core
+
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+#pragma warning(pop)
+#endif
 
 /*****************************************************************************
 

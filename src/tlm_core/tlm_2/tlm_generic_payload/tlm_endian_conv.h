@@ -21,12 +21,11 @@
 #ifndef __TLM_ENDIAN_CONV_H__
 #define __TLM_ENDIAN_CONV_H__
 
-#include <systemc>
 #include "tlm_core/tlm_2/tlm_generic_payload/tlm_gp.h"
 
+#include <cstring> // std::memset
 
 namespace tlm {
-
 
 /*
 Tranaction-Level Modelling
@@ -290,20 +289,20 @@ inline void copy_db0(uchar *src1, uchar *src2, uchar *dest1, uchar *dest2) {
   *dest2 = *src2;
 }
 
-inline void copy_dbtrue0(uchar *src1, uchar *src2, uchar *dest1, uchar *dest2) {
+inline void copy_dbtrue0(uchar *src1, uchar * /* src2 */, uchar *dest1, uchar *dest2) {
   *dest1 = *src1;
   *dest2 = TLM_BYTE_ENABLED;
 }
 
-inline void copy_btrue0(uchar *src1, uchar *src2, uchar *dest1, uchar *dest2) {
+inline void copy_btrue0(uchar * /* src1 */, uchar * /* src2 */, uchar * /* dest1 */, uchar *dest2) {
   *dest2 = TLM_BYTE_ENABLED;
 }
 
-inline void copy_b0(uchar *src1, uchar *src2, uchar *dest1, uchar *dest2) {
+inline void copy_b0(uchar * /* src1 */, uchar *src2, uchar * /* dest1 */, uchar *dest2) {
   *dest2 = *src2;
 }
 
-inline void copy_dbyb0(uchar *src1, uchar *src2, uchar *dest1, uchar *dest2) {
+inline void copy_dbyb0(uchar *src1, uchar * /* src2 */, uchar *dest1, uchar *dest2) {
   if(*dest2 == TLM_BYTE_ENABLED) *src1 = *dest1;
 }
 
@@ -386,7 +385,7 @@ tlm_to_hostendian_generic(tlm_generic_payload *txn, unsigned int sizeof_databus)
   txn->set_data_ptr(tc->new_dbuf);
   tc->establish_bebuf(new_length);
   txn->set_byte_enable_ptr(tc->new_bebuf);
-  memset(txn->get_byte_enable_ptr(), TLM_BYTE_DISABLED, new_length);
+  std::memset(txn->get_byte_enable_ptr(), TLM_BYTE_DISABLED, new_length);
   txn->set_streaming_width(new_stream_width);
   txn->set_data_length(new_length);
   txn->set_byte_enable_length(new_length);

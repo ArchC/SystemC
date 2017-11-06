@@ -63,7 +63,6 @@
 
 
 #include "sysc/kernel/sc_cmnhdr.h"
-#include "sysc/utils/sc_iostream.h"
 #include "sysc/datatypes/int/sc_signed.h"
 #include "sysc/datatypes/int/sc_unsigned.h"
 #include "sysc/datatypes/int/sc_int_base.h"
@@ -97,6 +96,7 @@ const sc_digit SC_DIGIT_ZERO = (sc_digit)0;
 const sc_digit SC_DIGIT_ONE  = (sc_digit)1;
 const sc_digit SC_DIGIT_TWO  = (sc_digit)2;
 
+SC_API void sc_proxy_out_of_bounds(const char* msg = NULL, int64 val = 0);
 
 // assignment functions; forward declarations
 
@@ -106,7 +106,7 @@ void
 assign_p_( sc_proxy<X>& px, const sc_proxy<Y>& py );
 
 // Vector types that are not derived from sc_proxy must have a length()
-// function and an operator []. 
+// function and an operator [].
 
 template <class X, class T>
 inline
@@ -116,8 +116,8 @@ assign_v_( sc_proxy<X>& px, const T& a );
 
 // other functions; forward declarations
 
-const std::string convert_to_bin( const char* s );
-const std::string convert_to_fmt( const std::string& s, sc_numrep numrep, bool );
+SC_API const std::string convert_to_bin( const char* s );
+SC_API const std::string convert_to_fmt( const std::string& s, sc_numrep numrep, bool );
 
 // ----------------------------------------------------------------------------
 //  CLASS TEMPLATE : sc_proxy_traits
@@ -135,9 +135,8 @@ template<> struct sc_proxy_traits<sc_bv_base>
 {
     typedef sc_proxy_traits<sc_bv_base> traits_type;
     typedef bool                        value_type;
-    typedef bool                        bit_type;
+    typedef sc_logic                    bit_type; // sc_logic needed for mixed expressions
     typedef sc_bv_base                  vector_type;
-    typedef traits_type                 type;
 };
 
 template<> struct sc_proxy_traits<sc_lv_base>
@@ -146,7 +145,6 @@ template<> struct sc_proxy_traits<sc_lv_base>
     typedef sc_logic_value_t            value_type;
     typedef sc_logic                    bit_type;
     typedef sc_lv_base                  vector_type;
-    typedef traits_type                 type;
 };
 
 
@@ -176,13 +174,13 @@ template<typename X> struct sc_mixed_proxy_traits_helper<X,X>
 
 
 template<typename X, typename Y> struct sc_proxy_traits< sc_concref_r<X,Y> >
-  : sc_mixed_proxy_traits_helper< typename X::traits_type::type
-                                , typename Y::traits_type::type >
+  : sc_mixed_proxy_traits_helper< typename X::traits_type
+                                , typename Y::traits_type >
 {};
 
 template<typename X, typename Y> struct sc_proxy_traits<sc_concref<X,Y> >
-  : sc_mixed_proxy_traits_helper< typename X::traits_type::type
-                                , typename Y::traits_type::type >
+  : sc_mixed_proxy_traits_helper< typename X::traits_type
+                                , typename Y::traits_type >
 {};
 
 
@@ -197,8 +195,9 @@ template <class X>
 class sc_proxy // #### : public sc_value_base
 {
 public:
-    typedef typename sc_proxy_traits<X>::type traits_type;
-    typedef typename traits_type::bit_type    bit_type;
+    typedef typename sc_proxy_traits<X>::traits_type traits_type;
+    typedef typename traits_type::bit_type   bit_type;
+    typedef typename traits_type::value_type value_type;
 
     // virtual destructor
 
@@ -208,10 +207,10 @@ public:
     // casts
 
     X& back_cast()
-	{ return SCAST<X&>( *this ); }
+	{ return static_cast<X&>( *this ); }
 
     const X& back_cast() const
-	{ return SCAST<const X&>( *this ); }
+	{ return static_cast<const X&>( *this ); }
 
 
     // assignment operators
@@ -443,19 +442,19 @@ public:
 
     // reduce functions
 
-    sc_logic_value_t and_reduce() const;
+    value_type and_reduce() const;
 
-    sc_logic_value_t nand_reduce() const
+    value_type nand_reduce() const
 	{ return sc_logic::not_table[and_reduce()]; }
 
-    sc_logic_value_t or_reduce() const;
+    value_type or_reduce() const;
 
-    sc_logic_value_t nor_reduce() const
+    value_type nor_reduce() const
 	{ return sc_logic::not_table[or_reduce()]; }
 
-    sc_logic_value_t xor_reduce() const;
+    value_type xor_reduce() const;
 
-    sc_logic_value_t xnor_reduce() const
+    value_type xnor_reduce() const
 	{ return sc_logic::not_table[xor_reduce()]; }
 
 
@@ -514,13 +513,13 @@ public:
     // other methods
 
     void print( ::std::ostream& os = ::std::cout ) const
-	{ 
-	    // the test below will force printing in binary if decimal is 
+	{
+	    // the test below will force printing in binary if decimal is
 	    // specified.
 	    if ( sc_io_base(os, SC_DEC) == SC_DEC )
 	        os << to_string();
 	    else
-	        os << to_string(sc_io_base(os,SC_BIN),sc_io_show_base(os)); 
+	        os << to_string(sc_io_base(os,SC_BIN),sc_io_show_base(os));
 	}
 
     void scan( ::std::istream& is = ::std::cin );
@@ -1068,7 +1067,7 @@ b_and_assign_( sc_proxy<X>& px, const sc_proxy<Y>& py )
 {
     X& x = px.back_cast();
     const Y& y = py.back_cast();
-    assert( x.length() == y.length() );
+    sc_assert( x.length() == y.length() );
     int sz = x.size();
     for( int i = 0; i < sz; ++ i ) {
 	sc_digit x_dw, x_cw, y_dw, y_cw;
@@ -1092,7 +1091,7 @@ b_or_assign_( sc_proxy<X>& px, const sc_proxy<Y>& py )
 {
     X& x = px.back_cast();
     const Y& y = py.back_cast();
-    assert( x.length() == y.length() );
+    sc_assert( x.length() == y.length() );
     int sz = x.size();
     for( int i = 0; i < sz; ++ i ) {
 	sc_digit x_dw, x_cw, y_dw, y_cw;
@@ -1116,7 +1115,7 @@ b_xor_assign_( sc_proxy<X>& a, const sc_proxy<Y>& b )
 {
     X& x = a.back_cast();
     const Y& y = b.back_cast();
-    assert( x.length() == y.length() );
+    sc_assert( x.length() == y.length() );
     int sz = x.size();
     for( int i = 0; i < sz; ++ i ) {
 	sc_digit x_dw, x_cw, y_dw, y_cw;
@@ -1140,11 +1139,9 @@ sc_proxy<X>::operator <<= ( int n )
 {
     X& x = back_cast();
     if( n < 0 ) {
-	char msg[BUFSIZ];
-	std::sprintf( msg,
-		 "left shift operation is only allowed with positive "
-		 "shift values, shift value = %d", n );
-	SC_REPORT_ERROR( sc_core::SC_ID_OUT_OF_BOUNDS_, msg );
+        sc_proxy_out_of_bounds( "left shift operation is only allowed with "
+                                "positive shift values, shift value = ", n );
+        return x;
     }
     if( n >= x.length() ) {
 	extend_sign_w_( x, 0, false );
@@ -1196,11 +1193,9 @@ sc_proxy<X>::operator >>= ( int n )
 {
     X& x = back_cast();
     if( n < 0 ) {
-	char msg[BUFSIZ];
-	std::sprintf( msg,
-		 "right shift operation is only allowed with positive "
-		 "shift values, shift value = %d", n );
-	SC_REPORT_ERROR( sc_core::SC_ID_OUT_OF_BOUNDS_, msg );
+        sc_proxy_out_of_bounds( "right shift operation is only allowed with "
+                                "positive shift values, shift value = ", n );
+        return x;
     }
     if( n >= x.length() ) {
 	extend_sign_w_( x, 0, false );
@@ -1269,9 +1264,9 @@ sc_proxy<X>::reverse()
     int len = x.length();
     int half_len = len / 2;
     for( int i = 0, j = len - 1; i < half_len; ++ i, --j ) {
-	sc_logic_value_t t = x.get_bit( i );
-	x.set_bit( i, x.get_bit( j ) );
-	x.set_bit( j, t );
+        value_type t = x.get_bit( i );
+        x.set_bit( i, x.get_bit( j ) );
+        x.set_bit( j, t );
     }
     return x;
 }
@@ -1286,11 +1281,11 @@ reverse( const sc_proxy<X>& a );
 
 template <class X>
 inline
-sc_logic_value_t
+typename sc_proxy<X>::value_type
 sc_proxy<X>::and_reduce() const
 {
     const X& x = back_cast();
-    sc_logic_value_t result = sc_logic_value_t( 1 );
+    value_type result = value_type( 1 );
     int len = x.length();
     for( int i = 0; i < len; ++ i ) {
 	result = sc_logic::and_table[result][x.get_bit( i )];
@@ -1300,11 +1295,11 @@ sc_proxy<X>::and_reduce() const
 
 template <class X>
 inline
-sc_logic_value_t
+typename sc_proxy<X>::value_type
 sc_proxy<X>::or_reduce() const
 {
     const X& x = back_cast();
-    sc_logic_value_t result = sc_logic_value_t( 0 );
+    value_type result = value_type( 0 );
     int len = x.length();
     for( int i = 0; i < len; ++ i ) {
 	result = sc_logic::or_table[result][x.get_bit( i )];
@@ -1314,11 +1309,11 @@ sc_proxy<X>::or_reduce() const
 
 template <class X>
 inline
-sc_logic_value_t
+typename sc_proxy<X>::value_type
 sc_proxy<X>::xor_reduce() const
 {
     const X& x = back_cast();
-    sc_logic_value_t result = sc_logic_value_t( 0 );
+    value_type result = value_type( 0 );
     int len = x.length();
     for( int i = 0; i < len; ++ i ) {
 	result = sc_logic::xor_table[result][x.get_bit( i )];
@@ -1432,7 +1427,8 @@ void
 sc_proxy<X>::check_bounds( int n ) const  // check if bit n accessible
 {
     if( n < 0 || n >= back_cast().length() ) {
-	SC_REPORT_ERROR( sc_core::SC_ID_OUT_OF_BOUNDS_, 0 );
+        sc_proxy_out_of_bounds(NULL, n);
+        sc_core::sc_abort(); // can't recover from here
     }
 }
 
@@ -1442,7 +1438,8 @@ void
 sc_proxy<X>::check_wbounds( int n ) const  // check if word n accessible
 {
     if( n < 0 || n >= back_cast().size() ) {
-	SC_REPORT_ERROR( sc_core::SC_ID_OUT_OF_BOUNDS_, 0 );
+        sc_proxy_out_of_bounds(NULL, n);
+        sc_core::sc_abort(); // can't recover from here
     }
 }
 
@@ -1468,7 +1465,7 @@ sc_proxy<X>::to_anything_unsigned() const
 
 template <class X>
 inline
-uint64 
+uint64
 sc_proxy<X>::to_uint64() const
 {
     // words 1 and 0 returned.
@@ -1479,16 +1476,16 @@ sc_proxy<X>::to_uint64() const
 	SC_REPORT_WARNING( sc_core::SC_ID_VECTOR_CONTAINS_LOGIC_VALUE_, 0 );
     }
     uint64 w = x.get_word( 0 );
-    if( len > SC_DIGIT_SIZE ) 
+    if( len > SC_DIGIT_SIZE )
     {
 	if( x.get_cword( 1 ) != SC_DIGIT_ZERO ) {
 	    SC_REPORT_WARNING( sc_core::SC_ID_VECTOR_CONTAINS_LOGIC_VALUE_, 0 );
 	}
 	uint64 w1 = x.get_word( 1 );
-        w = w | (w1 << SC_DIGIT_SIZE);	
+        w = w | (w1 << SC_DIGIT_SIZE);
 	return w;
     }
-    else if( len == SC_DIGIT_SIZE ) 
+    else if( len == SC_DIGIT_SIZE )
     {
 	return w;
     }
@@ -1507,13 +1504,13 @@ sc_proxy<X>::to_anything_signed() const
     int len = x.length();
     int64 w = 0;
 
-    if( len > SC_DIGIT_SIZE ) 
+    if( len > SC_DIGIT_SIZE )
     {
-	if( x.get_cword( 1 ) != SC_DIGIT_ZERO ) 
+	if( x.get_cword( 1 ) != SC_DIGIT_ZERO )
 	    SC_REPORT_WARNING( sc_core::SC_ID_VECTOR_CONTAINS_LOGIC_VALUE_, 0 );
 	w = x.get_word(1);
     }
-    if( x.get_cword( 0 ) != SC_DIGIT_ZERO ) 
+    if( x.get_cword( 0 ) != SC_DIGIT_ZERO )
 	SC_REPORT_WARNING( sc_core::SC_ID_VECTOR_CONTAINS_LOGIC_VALUE_, 0 );
     w = (w << SC_DIGIT_SIZE) | x.get_word( 0 );
     if( len >= 64 ) {
@@ -1521,7 +1518,7 @@ sc_proxy<X>::to_anything_signed() const
     }
 
     uint64 zero = 0;
-    sc_logic_value_t sgn = x.get_bit( len - 1 );
+    value_type sgn = x.get_bit( len - 1 );
     if( sgn == 0 ) {
 	return (int64)( w & (~zero >> (64 - len)) );
     } else {
@@ -1536,7 +1533,7 @@ sc_proxy<X>::to_anything_signed() const
 
 template <class X>
 inline
-sc_logic_value_t
+typename sc_proxy<X>::value_type
 and_reduce( const sc_proxy<X>& a )
 {
     return a.and_reduce();
@@ -1544,7 +1541,7 @@ and_reduce( const sc_proxy<X>& a )
 
 template <class X>
 inline
-sc_logic_value_t
+typename sc_proxy<X>::value_type
 nand_reduce( const sc_proxy<X>& a )
 {
     return a.nand_reduce();
@@ -1552,7 +1549,7 @@ nand_reduce( const sc_proxy<X>& a )
 
 template <class X>
 inline
-sc_logic_value_t
+typename sc_proxy<X>::value_type
 or_reduce( const sc_proxy<X>& a )
 {
     return a.or_reduce();
@@ -1560,7 +1557,7 @@ or_reduce( const sc_proxy<X>& a )
 
 template <class X>
 inline
-sc_logic_value_t
+typename sc_proxy<X>::value_type
 nor_reduce( const sc_proxy<X>& a )
 {
     return a.nor_reduce();
@@ -1568,7 +1565,7 @@ nor_reduce( const sc_proxy<X>& a )
 
 template <class X>
 inline
-sc_logic_value_t
+typename sc_proxy<X>::value_type
 xor_reduce( const sc_proxy<X>& a )
 {
     return a.xor_reduce();
@@ -1576,7 +1573,7 @@ xor_reduce( const sc_proxy<X>& a )
 
 template <class X>
 inline
-sc_logic_value_t
+typename sc_proxy<X>::value_type
 xnor_reduce( const sc_proxy<X>& a )
 {
     return a.xnor_reduce();

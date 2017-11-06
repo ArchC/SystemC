@@ -29,9 +29,6 @@
 #ifndef SC_MEMPOOL_H
 #define SC_MEMPOOL_H
 
-
-#include "sysc/utils/sc_iostream.h"
-
 namespace sc_core {
 
 // ----------------------------------------------------------------------------
@@ -40,7 +37,7 @@ namespace sc_core {
 //  ...
 // ----------------------------------------------------------------------------
 
-class sc_mempool
+class SC_API sc_mempool
 {
 public:
 
@@ -56,7 +53,7 @@ public:
 //  ...
 // ----------------------------------------------------------------------------
 
-class sc_mpobject
+class SC_API sc_mpobject
 {
 public:
 

@@ -58,7 +58,7 @@ examples_BUILD += \
 
 examples_CLEAN += \
 	lt/run.log \
-	lt/expexted_trimmed.log \
+	lt/expected_trimmed.log \
 	lt/run_trimmed.log \
 	lt/diff.log
 
@@ -86,13 +86,12 @@ lt_EXTRA = \
 	lt/README \
 	lt/build-msvc/Makefile \
 	lt/build-msvc/lt.sln \
-	lt/build-msvc/lt.vcproj \
+	lt/build-msvc/lt.vcxproj \
 	lt/build-unix/Makefile \
 	lt/docs/lt_example.pdf \
 	lt/docs/lt_example.ppt
 
 #lt_FILTER = 
-#export lt_FILTER
 
 ## Taf!
 ## :vim: ft=automake:

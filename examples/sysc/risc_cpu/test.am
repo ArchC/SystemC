@@ -57,7 +57,7 @@ examples_BUILD += \
 
 examples_CLEAN += \
 	risc_cpu/run.log \
-	risc_cpu/expexted_trimmed.log \
+	risc_cpu/expected_trimmed.log \
 	risc_cpu/run_trimmed.log \
 	risc_cpu/diff.log
 
@@ -110,11 +110,11 @@ risc_cpu_EXTRA = \
 	risc_cpu/test1.asm \
 	risc_cpu/README \
 	risc_cpu/README_TYPESCRIPT \
-	risc_cpu/risc_cpu.vcproj \
+	risc_cpu/risc_cpu.sln \
+	risc_cpu/risc_cpu.vcxproj \
 	risc_cpu/Makefile
 
 #risc_cpu_FILTER = 
-#export risc_cpu_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

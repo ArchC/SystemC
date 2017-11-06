@@ -22,7 +22,7 @@
   sc_method_process.cpp -- Method process implementation
 
   Original Author: Andy Goodrich, Forte Design Systems, 4 August 2005
-               
+
   CHANGE LOG AT THE END OF THE FILE
  *****************************************************************************/
 
@@ -40,27 +40,28 @@
 //     P    = pointer to process message is for, or NULL in which case the
 //            message will not print.
 #if 0
+#   include <cstring>
 #   define DEBUG_NAME ""
 #   define DEBUG_MSG(NAME,P,MSG) \
     { \
-        if ( P && ( (strlen(NAME)==0) || !strcmp(NAME,P->name())) ) \
+        if ( P && ( (std::strlen(NAME)==0) || !std::strcmp(NAME,P->name())) ) \
           std::cout << "**** " << sc_time_stamp() << " ("  \
-	            << sc_get_current_process_name() << "): " << MSG \
+	            << sc_get_current_process_name("** NONE **") << "): " << MSG \
 		    << " - " << P->name() << std::endl; \
     }
 #else
-#   define DEBUG_MSG(NAME,P,MSG) 
+#   define DEBUG_MSG(NAME,P,MSG)
 #endif
 
 namespace sc_core {
 
 // +----------------------------------------------------------------------------
 // |"sc_method_process::check_for_throws"
-// | 
+// |
 // | This method checks to see if this method process should throw an exception
 // | or not. It is called from sc_simcontext::preempt_with() to see if the
-// | thread that was executed during the preemption did a kill or other 
-// | manipulation on this object instance that requires it to throw an 
+// | thread that was executed during the preemption did a kill or other
+// | manipulation on this object instance that requires it to throw an
 // | exception.
 // +----------------------------------------------------------------------------
 void sc_method_process::check_for_throws()
@@ -88,41 +89,41 @@ void sc_method_process::check_for_throws()
 void sc_method_process::clear_trigger()
 {
     switch( m_trigger_type ) {
-      case STATIC: 
+      case STATIC:
         return;
-      case EVENT: 
+      case EVENT:
         m_event_p->remove_dynamic( this );
         m_event_p = 0;
         break;
-      case OR_LIST: 
+      case OR_LIST:
         m_event_list_p->remove_dynamic( this, 0 );
         m_event_list_p->auto_delete();
         m_event_list_p = 0;
         break;
-      case AND_LIST: 
+      case AND_LIST:
         m_event_list_p->remove_dynamic( this, 0 );
         m_event_list_p->auto_delete();
         m_event_list_p = 0;
         m_event_count = 0;
         break;
-      case TIMEOUT: 
+      case TIMEOUT:
         m_timeout_event_p->cancel();
         m_timeout_event_p->reset();
         break;
-      case EVENT_TIMEOUT: 
+      case EVENT_TIMEOUT:
         m_timeout_event_p->cancel();
         m_timeout_event_p->reset();
         m_event_p->remove_dynamic( this );
         m_event_p = 0;
         break;
-      case OR_LIST_TIMEOUT: 
+      case OR_LIST_TIMEOUT:
         m_timeout_event_p->cancel();
         m_timeout_event_p->reset();
         m_event_list_p->remove_dynamic( this, 0 );
         m_event_list_p->auto_delete();
         m_event_list_p = 0;
       break;
-      case AND_LIST_TIMEOUT: 
+      case AND_LIST_TIMEOUT:
         m_timeout_event_p->cancel();
         m_timeout_event_p->reset();
         m_event_list_p->remove_dynamic( this, 0 );
@@ -143,7 +144,7 @@ void sc_method_process::clear_trigger()
 //------------------------------------------------------------------------------
 void sc_method_process::disable_process(
     sc_descendant_inclusion_info descendants )
-{     
+{
 
     // IF NEEDED PROPOGATE THE SUSPEND REQUEST THROUGH OUR DESCENDANTS:
 
@@ -154,7 +155,7 @@ void sc_method_process::disable_process(
 
         for ( int child_i = 0; child_i < child_n; child_i++ )
         {
-            sc_process_b* child_p = DCAST<sc_process_b*>(children[child_i]);
+            sc_process_b* child_p = dynamic_cast<sc_process_b*>(children[child_i]);
             if ( child_p ) child_p->disable_process(descendants);
         }
     }
@@ -163,18 +164,19 @@ void sc_method_process::disable_process(
 
     if ( !sc_allow_process_control_corners )
     {
-	switch( m_trigger_type )
-	{ 
-	  case AND_LIST_TIMEOUT:
-	  case EVENT_TIMEOUT: 
-	  case OR_LIST_TIMEOUT:
-	  case TIMEOUT:
-	    report_error( SC_ID_PROCESS_CONTROL_CORNER_CASE_,
-	                  "attempt to disable a method with timeout wait" );
-	    break;
-	  default:
-	    break;
-	}
+        switch( m_trigger_type )
+        {
+          case AND_LIST_TIMEOUT:
+          case EVENT_TIMEOUT:
+          case OR_LIST_TIMEOUT:
+          case TIMEOUT:
+            report_error( SC_ID_PROCESS_CONTROL_CORNER_CASE_,
+                          "attempt to disable a method with timeout wait" );
+            // may continue, if suppressed
+            break;
+          default:
+            break;
+        }
     }
 
     // DISABLE OUR OBJECT INSTANCE:
@@ -194,7 +196,7 @@ void sc_method_process::disable_process(
 //"sc_method_process::enable_process"
 //
 // This method enables the execution of this process, and if requested, its
-// descendants. If the process was suspended and has a resumption pending it 
+// descendants. If the process was suspended and has a resumption pending it
 // will be dispatched in the next delta cycle. Otherwise the state will be
 // adjusted to indicate it is no longer suspended, but no immediate execution
 // will occur.
@@ -212,7 +214,7 @@ void sc_method_process::enable_process(
 
         for ( int child_i = 0; child_i < child_n; child_i++ )
         {
-            sc_process_b* child_p = DCAST<sc_process_b*>(children[child_i]);
+            sc_process_b* child_p = dynamic_cast<sc_process_b*>(children[child_i]);
             if ( child_p ) child_p->enable_process(descendants);
         }
     }
@@ -235,16 +237,17 @@ void sc_method_process::enable_process(
 //"sc_method_process::kill_process"
 //
 // This method removes throws a kill for this object instance. It calls the
-// sc_process_b::kill_process() method to perform low level clean up. 
+// sc_process_b::kill_process() method to perform low level clean up.
 //------------------------------------------------------------------------------
 void sc_method_process::kill_process(sc_descendant_inclusion_info descendants)
 {
 
     // IF THE SIMULATION HAS NOT BEEN INITIALIZED YET THAT IS AN ERROR:
 
-    if ( sc_get_status() == SC_ELABORATION )
+    if ( !sc_is_running() )
     {
         report_error( SC_ID_KILL_PROCESS_WHILE_UNITIALIZED_ );
+        return;
     }
 
     // IF NEEDED, PROPOGATE THE KILL REQUEST THROUGH OUR DESCENDANTS:
@@ -256,7 +259,7 @@ void sc_method_process::kill_process(sc_descendant_inclusion_info descendants)
 
         for ( int child_i = 0; child_i < child_n; child_i++ )
         {
-            sc_process_b* child_p = DCAST<sc_process_b*>(children[child_i]);
+            sc_process_b* child_p = dynamic_cast<sc_process_b*>(children[child_i]);
             if ( child_p ) child_p->kill_process(descendants);
         }
     }
@@ -275,8 +278,8 @@ void sc_method_process::kill_process(sc_descendant_inclusion_info descendants)
 
 
     // REMOVE OUR PROCESS FROM EVENTS, ETC., AND IF ITS THE ACTIVE PROCESS
-    // THROW ITS KILL. 
-    // 
+    // THROW ITS KILL.
+    //
     // Note we set the throw status to kill regardless if we throw or not.
     // That lets check_for_throws stumble across it if we were in the call
     // chain when the kill call occurred.
@@ -285,7 +288,7 @@ void sc_method_process::kill_process(sc_descendant_inclusion_info descendants)
         simcontext()->remove_runnable_method( this );
     disconnect_process();
 
-    m_throw_status = THROW_KILL; 
+    m_throw_status = THROW_KILL;
     if ( sc_get_current_process_b() == this )
     {
         throw sc_unwind_exception( this, false );
@@ -297,21 +300,22 @@ void sc_method_process::kill_process(sc_descendant_inclusion_info descendants)
 //
 // This is the object instance constructor for this class.
 //------------------------------------------------------------------------------
-sc_method_process::sc_method_process( const char* name_p, 
-    bool free_host, SC_ENTRY_FUNC method_p, 
-    sc_process_host* host_p, const sc_spawn_options* opt_p 
+sc_method_process::sc_method_process( const char* name_p,
+    bool free_host, SC_ENTRY_FUNC method_p,
+    sc_process_host* host_p, const sc_spawn_options* opt_p
 ):
     sc_process_b(
-        name_p ? name_p : sc_gen_unique_name("method_p"), 
+        name_p ? name_p : sc_gen_unique_name("method_p"),
         false, free_host, method_p, host_p, opt_p),
 	m_cor(0), m_stack_size(0), m_monitor_q()
 {
 
     // CHECK IF THIS IS AN sc_module-BASED PROCESS AND SIMUALTION HAS STARTED:
 
-    if ( DCAST<sc_module*>(host_p) != 0 && sc_is_running() )
+    if ( dynamic_cast<sc_module*>(host_p) != 0 && sc_is_running() )
     {
         report_error( SC_ID_MODULE_METHOD_AFTER_START_, "" );
+        sc_abort(); // can't recover from here
     }
 
     // INITIALIZE VALUES:
@@ -368,6 +372,9 @@ sc_method_process::sc_method_process( const char* name_p,
 //------------------------------------------------------------------------------
 sc_method_process::~sc_method_process()
 {
+    if( !dynamic() ) {
+        simcontext()->remove_process(this);
+    }
 }
 
 
@@ -380,7 +387,7 @@ sc_method_process::~sc_method_process()
 //------------------------------------------------------------------------------
 void sc_method_process::suspend_process(
     sc_descendant_inclusion_info descendants )
-{     
+{
 
     // IF NEEDED PROPOGATE THE SUSPEND REQUEST THROUGH OUR DESCENDANTS:
 
@@ -391,24 +398,26 @@ void sc_method_process::suspend_process(
 
         for ( int child_i = 0; child_i < child_n; child_i++ )
         {
-            sc_process_b* child_p = DCAST<sc_process_b*>(children[child_i]);
+            sc_process_b* child_p = dynamic_cast<sc_process_b*>(children[child_i]);
             if ( child_p ) child_p->suspend_process(descendants);
         }
     }
 
     // CORNER CASE CHECKS, THE FOLLOWING ARE ERRORS:
-    //   (a) if this method has a reset_signal_is specification 
+    //   (a) if this method has a reset_signal_is specification
     //   (b) if this method is in synchronous reset
 
     if ( !sc_allow_process_control_corners && m_has_reset_signal )
     {
-	report_error(SC_ID_PROCESS_CONTROL_CORNER_CASE_,
-		     "attempt to suspend a method that has a reset signal");
+        report_error(SC_ID_PROCESS_CONTROL_CORNER_CASE_,
+                     "attempt to suspend a method that has a reset signal");
+        // may continue, if suppressed
     }
     else if ( !sc_allow_process_control_corners && m_sticky_reset )
     {
-	report_error(SC_ID_PROCESS_CONTROL_CORNER_CASE_,
-		     "attempt to suspend a method in synchronous reset");
+        report_error(SC_ID_PROCESS_CONTROL_CORNER_CASE_,
+                     "attempt to suspend a method in synchronous reset");
+        // may continue, if suppressed
     }
 
     // SUSPEND OUR OBJECT INSTANCE:
@@ -419,12 +428,12 @@ void sc_method_process::suspend_process(
     //     scheduling of the process.
 
     m_state = m_state | ps_bit_suspended;
-    if ( next_runnable() != 0 ) 
+    if ( next_runnable() != 0 )
     {
 	m_state = m_state | ps_bit_ready_to_run;
 	simcontext()->remove_runnable_method( this );
     }
-    if ( sc_get_current_process_b() == DCAST<sc_process_b*>(this)  )
+    if ( sc_get_current_process_b() == dynamic_cast<sc_process_b*>(this)  )
     {
 	m_state = m_state | ps_bit_ready_to_run;
     }
@@ -434,7 +443,7 @@ void sc_method_process::suspend_process(
 //"sc_method_process::resume_process"
 //
 // This method resumes the execution of this process, and if requested, its
-// descendants. If the process was suspended and has a resumption pending it 
+// descendants. If the process was suspended and has a resumption pending it
 // will be dispatched in the next delta cycle. Otherwise the state will be
 // adjusted to indicate it is no longer suspended, but no immediate execution
 // will occur.
@@ -452,7 +461,7 @@ void sc_method_process::resume_process(
 
         for ( int child_i = 0; child_i < child_n; child_i++ )
         {
-            sc_process_b* child_p = DCAST<sc_process_b*>(children[child_i]);
+            sc_process_b* child_p = dynamic_cast<sc_process_b*>(children[child_i]);
             if ( child_p ) child_p->resume_process(descendants);
         }
     }
@@ -463,9 +472,10 @@ void sc_method_process::resume_process(
     if ( !sc_allow_process_control_corners && (m_state & ps_bit_disabled) &&
          (m_state & ps_bit_suspended) )
     {
-	m_state = m_state & ~ps_bit_suspended;
-        report_error( SC_ID_PROCESS_CONTROL_CORNER_CASE_, 
-	              "call to resume() on a disabled suspended method");
+        m_state = m_state & ~ps_bit_suspended;
+        report_error( SC_ID_PROCESS_CONTROL_CORNER_CASE_,
+                      "call to resume() on a disabled suspended method" );
+        // may continue, if suppressed
     }
 
     // CLEAR THE SUSPENDED BIT:
@@ -480,11 +490,11 @@ void sc_method_process::resume_process(
     if ( m_state & ps_bit_ready_to_run )
     {
 	m_state = m_state & ~ps_bit_ready_to_run;
-	if ( next_runnable() == 0 && 
-	   ( sc_get_current_process_b() != DCAST<sc_process_b*>(this) ) )
+	if ( next_runnable() == 0 &&
+	   ( sc_get_current_process_b() != dynamic_cast<sc_process_b*>(this) ) )
         {
 	    simcontext()->push_runnable_method(this);
-	    remove_dynamic_events();  
+	    remove_dynamic_events();
 	}
     }
 }
@@ -492,20 +502,20 @@ void sc_method_process::resume_process(
 //------------------------------------------------------------------------------
 //"sc_method_process::throw_reset"
 //
-// This virtual method is invoked to "throw" a reset. 
+// This virtual method is invoked to "throw" a reset.
 //
 // If the reset is synchronous this is a no-op, except for triggering the
 // reset event if it is present.
 //
 // If the reset is asynchronous we:
-//   (a) cancel any dynamic waits 
+//   (a) cancel any dynamic waits
 //   (b) if it is the active process actually throw a reset exception.
 //   (c) if it was not the active process and does not have a static
 //       sensitivity emit an error if corner cases are to be considered
 //       errors.
 //
 // Notes:
-//   (1) If the process had a reset event it will have been triggered in 
+//   (1) If the process had a reset event it will have been triggered in
 //       sc_process_b::semantics()
 //
 // Arguments:
@@ -538,7 +548,7 @@ void sc_method_process::throw_reset( bool async )
 	    m_throw_status = THROW_ASYNC_RESET;
 	    throw sc_unwind_exception( this, true );
 	}
-	else 
+	else
 	{
 	    DEBUG_MSG(DEBUG_NAME,this,
 	              "throw_reset: queueing this method for execution");
@@ -552,7 +562,7 @@ void sc_method_process::throw_reset( bool async )
 //"sc_method_process::throw_user"
 //
 // This virtual method is invoked when a user exception is to be thrown.
-// If requested it will also throw the exception to the children of this 
+// If requested it will also throw the exception to the children of this
 // object instance. Since this is a method no throw will occur for this
 // object instance. The children will be awakened from youngest child to
 // eldest.
@@ -562,13 +572,14 @@ void sc_method_process::throw_reset( bool async )
 //------------------------------------------------------------------------------
 void sc_method_process::throw_user( const sc_throw_it_helper& helper,
     sc_descendant_inclusion_info descendants )
-{     
+{
 
     // IF THE SIMULATION IS NOT ACTUALLY RUNNING THIS IS AN ERROR:
 
     if (  sc_get_status() != SC_RUNNING )
     {
         report_error( SC_ID_THROW_IT_WHILE_NOT_RUNNING_ );
+        return;
     }
 
     // IF NEEDED PROPOGATE THE THROW REQUEST THROUGH OUR DESCENDANTS:
@@ -580,8 +591,8 @@ void sc_method_process::throw_user( const sc_throw_it_helper& helper,
 
         for ( int child_i = 0; child_i < child_n; child_i++ )
         {
-            sc_process_b* child_p = DCAST<sc_process_b*>(children[child_i]);
-            if ( child_p ) 
+            sc_process_b* child_p = dynamic_cast<sc_process_b*>(children[child_i]);
+            if ( child_p )
 	    {
 	        DEBUG_MSG(DEBUG_NAME,child_p,"about to throw user on");
 	        child_p->throw_user(helper, descendants);
@@ -618,11 +629,11 @@ void sc_method_process::throw_user( const sc_throw_it_helper& helper,
 // This method sets up a dynamic trigger on an event.
 //
 // Notes:
-//   (1) This method is identical to sc_thread_process::trigger_dynamic(), 
-//       but they cannot be combined as sc_process_b::trigger_dynamic() 
+//   (1) This method is identical to sc_thread_process::trigger_dynamic(),
+//       but they cannot be combined as sc_process_b::trigger_dynamic()
 //       because the signatures things like sc_event::remove_dynamic()
 //       have different overloads for sc_method_process* and sc_thread_process*.
-//       So if you change code here you'll also need to change it in 
+//       So if you change code here you'll also need to change it in
 //       sc_thread_process.cpp.
 //
 // Result is true if this process should be removed from the event's list,
@@ -651,7 +662,7 @@ bool sc_method_process::trigger_dynamic( sc_event* e )
     }
 #endif // SC_ENABLE_IMMEDIATE_SELF_NOTIFICATIONS
 
-    if( is_runnable() ) 
+    if( is_runnable() )
         return true;
 
     // If a process is disabled then we ignore any events, leaving them enabled:
@@ -663,7 +674,7 @@ bool sc_method_process::trigger_dynamic( sc_event* e )
     {
         if ( e == m_timeout_event_p )
 	{
-	    remove_dynamic_events( true );  
+	    remove_dynamic_events( true );
 	    return true;
 	}
 	else
@@ -678,9 +689,9 @@ bool sc_method_process::trigger_dynamic( sc_event* e )
     // Every case needs to set 'rc' and continue on to the end of
     // this method to allow suspend processing to work correctly.
 
-    switch( m_trigger_type ) 
+    switch( m_trigger_type )
     {
-      case EVENT: 
+      case EVENT:
 	m_event_p = 0;
 	m_trigger_type = STATIC;
 	break;
@@ -706,11 +717,11 @@ bool sc_method_process::trigger_dynamic( sc_event* e )
 	m_trigger_type = STATIC;
 	break;
 
-      case TIMEOUT: 
+      case TIMEOUT:
 	m_trigger_type = STATIC;
 	break;
 
-      case EVENT_TIMEOUT: 
+      case EVENT_TIMEOUT:
         if ( e == m_timeout_event_p )
 	{
 	    m_timed_out = true;
@@ -731,9 +742,9 @@ bool sc_method_process::trigger_dynamic( sc_event* e )
         if ( e == m_timeout_event_p )
 	{
             m_timed_out = true;
-            m_event_list_p->remove_dynamic( this, e ); 
+            m_event_list_p->remove_dynamic( this, e );
             m_event_list_p->auto_delete();
-            m_event_list_p = 0; 
+            m_event_list_p = 0;
             m_trigger_type = STATIC;
 	}
 
@@ -741,20 +752,20 @@ bool sc_method_process::trigger_dynamic( sc_event* e )
 	{
             m_timeout_event_p->cancel();
             m_timeout_event_p->reset();
-	    m_event_list_p->remove_dynamic( this, e ); 
+	    m_event_list_p->remove_dynamic( this, e );
 	    m_event_list_p->auto_delete();
-	    m_event_list_p = 0; 
+	    m_event_list_p = 0;
 	    m_trigger_type = STATIC;
 	}
 	break;
-      
+
       case AND_LIST_TIMEOUT:
         if ( e == m_timeout_event_p )
 	{
             m_timed_out = true;
-            m_event_list_p->remove_dynamic( this, e ); 
+            m_event_list_p->remove_dynamic( this, e );
             m_event_list_p->auto_delete();
-            m_event_list_p = 0; 
+            m_event_list_p = 0;
             m_trigger_type = STATIC;
 	}
 
@@ -767,7 +778,7 @@ bool sc_method_process::trigger_dynamic( sc_event* e )
 		m_timeout_event_p->reset();
 		// no need to remove_dynamic
 		m_event_list_p->auto_delete();
-		m_event_list_p = 0; 
+		m_event_list_p = 0;
 		m_trigger_type = STATIC;
 	    }
 	    else
@@ -784,7 +795,7 @@ bool sc_method_process::trigger_dynamic( sc_event* e )
       }
     }
 
-    // If we get here then the method has satisfied its next_trigger, if its 
+    // If we get here then the method has satisfied its next_trigger, if its
     // suspended mark its state as ready to run. If its not suspended then push
     // it onto the runnable queue.
 
@@ -800,7 +811,7 @@ bool sc_method_process::trigger_dynamic( sc_event* e )
     return true;
 }
 
-} // namespace sc_core 
+} // namespace sc_core
 
 
 /*****************************************************************************

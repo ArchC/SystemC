@@ -56,12 +56,13 @@
 
 namespace sc_core {
 
+SC_API_TEMPLATE_DECL_ sc_ppq<sc_time*>;
 
 // ---------------------------------------------------------------------------
 // sc_event_queue_if
 // ---------------------------------------------------------------------------
 
-class sc_event_queue_if : public virtual sc_interface
+class SC_API sc_event_queue_if : public virtual sc_interface
 {
 public:
     virtual void notify (double when, sc_time_unit base) =0;
@@ -74,7 +75,7 @@ public:
 // delta, or timed events.
 // ---------------------------------------------------------------------------
 
-class sc_event_queue: 
+class SC_API sc_event_queue: 
   public sc_event_queue_if,
   public sc_module
 {
@@ -146,6 +147,7 @@ const sc_event& sc_event_queue::default_event() const
 // Using event queue as a port
 //
 typedef sc_port<sc_event_queue_if,1,SC_ONE_OR_MORE_BOUND> sc_event_queue_port;
+SC_API_TEMPLATE_DECL_ sc_port<sc_event_queue_if,1,SC_ONE_OR_MORE_BOUND>;
 
 } // namespace sc_core
 

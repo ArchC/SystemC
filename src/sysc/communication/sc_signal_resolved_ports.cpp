@@ -26,6 +26,12 @@
   CHANGE LOG IS AT THE END OF THE FILE
  *****************************************************************************/
 
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+// disable warning about explicit instantiation of sc_signal
+// without implementation in this translation unit (-> sc_signal.cpp)
+#pragma warning(disable:4661)
+#endif
+
 #include <cstdio>
 
 #include "sysc/kernel/sc_simcontext.h"
@@ -49,10 +55,8 @@ sc_in_resolved::end_of_elaboration()
 {
     base_type::end_of_elaboration();
     // check if bound channel is a resolved signal
-    if( DCAST<sc_signal_resolved*>( get_interface() ) == 0 ) {
-	char msg[BUFSIZ];
-	std::sprintf( msg, "%s (%s)", name(), kind() );
-	SC_REPORT_ERROR( SC_ID_RESOLVED_PORT_NOT_BOUND_, msg );
+    if( dynamic_cast<sc_signal_resolved*>( get_interface() ) == 0 ) {
+        report_error( SC_ID_RESOLVED_PORT_NOT_BOUND_, 0 );
     }
 }
 
@@ -70,10 +74,8 @@ sc_inout_resolved::end_of_elaboration()
 {
     base_type::end_of_elaboration();
     // check if bound channel is a resolved signal
-    if( DCAST<sc_signal_resolved*>( get_interface() ) == 0 ) {
-	char msg[BUFSIZ];
-	std::sprintf( msg, "%s (%s)", name(), kind() );
-	SC_REPORT_ERROR( SC_ID_RESOLVED_PORT_NOT_BOUND_, msg );
+    if( dynamic_cast<sc_signal_resolved*>( get_interface() ) == 0 ) {
+        report_error( SC_ID_RESOLVED_PORT_NOT_BOUND_, 0 );
     }
 }
 

@@ -32,8 +32,8 @@
  *****************************************************************************/
 
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "sysc/kernel/sc_process.h"
 #include "sysc/kernel/sc_simcontext_int.h"
@@ -64,8 +64,9 @@ static inline char * empty_dup(const char * p)
     if ( p && *p )
     {
         char* result;
-        result = (char*)malloc(strlen(p)+1);
-        strcpy(result, p);
+        std::size_t size = strlen(p)+1;
+        result = new char[size];
+        std::copy(p, p + size, result);
         return result;
     }
     else
@@ -74,14 +75,14 @@ static inline char * empty_dup(const char * p)
     }
 }
 
-sc_report::sc_report() 
+sc_report::sc_report()
 : severity(SC_INFO),
   md(0),
   msg(empty_dup(0)),
   file(empty_dup(0)),
   line(0),
   timestamp(new sc_time(sc_time_stamp())),
-  process(0),
+  process_name(empty_dup(0)),
   m_verbosity_level(SC_MEDIUM),
   m_what(empty_dup(0))
 {
@@ -99,7 +100,7 @@ sc_report::sc_report(sc_severity severity_,
   file(empty_dup(file_)),
   line(line_),
   timestamp(new sc_time(sc_time_stamp())),
-  process(sc_get_current_process_b()),
+  process_name(empty_dup(sc_get_current_process_name())),
   m_verbosity_level(verbosity_level),
   m_what( empty_dup( sc_report_compose_message(*this).c_str() ) )
 {
@@ -113,7 +114,7 @@ sc_report::sc_report(const sc_report& other)
   file(empty_dup(other.file)),
   line(other.line),
   timestamp(new sc_time(*other.timestamp)),
-  process(other.process),
+  process_name(empty_dup(other.process_name)),
   m_verbosity_level(other.m_verbosity_level),
   m_what(empty_dup(other.m_what))
 {
@@ -136,7 +137,7 @@ sc_report::swap( sc_report & that )
     swap( file,              that.file );
     swap( line,              that.line );
     swap( timestamp,         that.timestamp );
-    swap( process,           that.process );
+    swap( process_name,      that.process_name );
     swap( m_verbosity_level, that.m_verbosity_level );
     swap( m_what,            that.m_what );
 } 
@@ -144,17 +145,29 @@ sc_report::swap( sc_report & that )
 sc_report::~sc_report() throw()
 {
     if ( file != empty_str )
-	free(file);
+	delete[] file;
     if ( msg != empty_str )
-	free(msg);
+	delete[] msg;
     delete timestamp;
+    if ( process_name != empty_str )
+        delete[] process_name;
     if ( m_what != empty_str )
-    free(m_what);
+	delete[] m_what;
 }
 
 const char * sc_report::get_msg_type() const
 {
     return md->msg_type;
+}
+
+bool sc_report::valid() const
+{
+    return process_name != empty_str;
+}
+
+const char* sc_report::get_process_name() const
+{
+    return process_name != empty_str ? process_name : 0;
 }
 
 //
@@ -201,10 +214,12 @@ void sc_report::register_id( int id, const char* msg )
     if( id < 0 ) {
 	SC_REPORT_ERROR( SC_ID_REGISTER_ID_FAILED_,
 			 "invalid report id" );
+        return;
     }
     if( msg == 0 ) {
 	SC_REPORT_ERROR( SC_ID_REGISTER_ID_FAILED_,
 			 "invalid report message" );
+        return;
     }
     sc_msg_def * md = sc_report_handler::mdlookup(id);
 
@@ -214,6 +229,7 @@ void sc_report::register_id( int id, const char* msg )
     if ( !md ) {
 	SC_REPORT_ERROR( SC_ID_REGISTER_ID_FAILED_,
 			 "report_map insertion error" );
+        return;
     }
 
     if( md->id != -1 ) {

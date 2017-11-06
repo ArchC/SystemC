@@ -36,12 +36,20 @@
 // Added $Log command so that CVS comments are reproduced in the source.
 //
 
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+// disable warning about explicit instantiation of sc_signal
+// without implementation in this translation unit (-> sc_signal.cpp)
+#pragma warning(disable:4661)
+#endif
+
 #include "sysc/communication/sc_clock.h"
 #include "sysc/communication/sc_communication_ids.h"
 #include "sysc/kernel/sc_simcontext.h"
 #include "sysc/kernel/sc_process.h"
 #include "sysc/kernel/sc_spawn.h"
 #include "sysc/utils/sc_utils_ids.h"
+
+#include <sstream>
 
 namespace sc_core {
 
@@ -57,11 +65,8 @@ sc_clock::sc_clock() :
     base_type( sc_gen_unique_name( "clock" ) ),
     m_period(), m_duty_cycle(), m_start_time(), m_posedge_first(),
     m_posedge_time(), m_negedge_time(),
-    m_next_posedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
-                          "_next_posedge_event").c_str()),
-    m_next_negedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
-                          "_next_negedge_event").c_str())
-
+    m_next_posedge_event( sc_event::kernel_event, "next_posedge_event" ),
+    m_next_negedge_event( sc_event::kernel_event, "next_negedge_event" )
 {
     init( sc_time::from_value(simcontext()->m_time_params->default_time_unit),
 	  0.5,
@@ -75,10 +80,8 @@ sc_clock::sc_clock( const char* name_ ) :
     base_type( name_ ),
     m_period(), m_duty_cycle(), m_start_time(), m_posedge_first(),
     m_posedge_time(), m_negedge_time(),
-    m_next_posedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
-			   std::string(name_) + "_next_posedge_event").c_str()),
-    m_next_negedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
-			   std::string(name_) + "_next_negedge_event").c_str())
+    m_next_posedge_event( sc_event::kernel_event, "next_posedge_event" ),
+    m_next_negedge_event( sc_event::kernel_event, "next_negedge_event" )
 {
     init( sc_time::from_value(simcontext()->m_time_params->default_time_unit),
 	  0.5,
@@ -96,10 +99,8 @@ sc_clock::sc_clock( const char* name_,
     base_type( name_ ),
     m_period(), m_duty_cycle(), m_start_time(), m_posedge_first(),
     m_posedge_time(), m_negedge_time(),
-    m_next_posedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
-			   std::string(name_) + "_next_posedge_event").c_str()),
-    m_next_negedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
-			   std::string(name_) + "_next_negedge_event").c_str())
+    m_next_posedge_event( sc_event::kernel_event, "next_posedge_event" ),
+    m_next_negedge_event( sc_event::kernel_event, "next_negedge_event" )
 {
     init( period_,
 	  duty_cycle_,
@@ -122,10 +123,8 @@ sc_clock::sc_clock( const char* name_,
     base_type( name_ ),
     m_period(), m_duty_cycle(), m_start_time(), m_posedge_first(),
     m_posedge_time(), m_negedge_time(),
-    m_next_posedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
-			   std::string(name_) + "_next_posedge_event").c_str()),
-    m_next_negedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
-			   std::string(name_) + "_next_negedge_event").c_str())
+    m_next_posedge_event( sc_event::kernel_event, "next_posedge_event" ),
+    m_next_negedge_event( sc_event::kernel_event, "next_negedge_event" )
 {
     init( sc_time( period_v_, period_tu_, simcontext() ),
 	  duty_cycle_,
@@ -146,10 +145,8 @@ sc_clock::sc_clock( const char* name_,
     base_type( name_ ),
     m_period(), m_duty_cycle(), m_start_time(), m_posedge_first(),
     m_posedge_time(), m_negedge_time(),
-    m_next_posedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
-			   std::string(name_) + "_next_posedge_event").c_str()),
-    m_next_negedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
-			   std::string(name_) + "_next_negedge_event").c_str())
+    m_next_posedge_event( sc_event::kernel_event, "next_posedge_event" ),
+    m_next_negedge_event( sc_event::kernel_event, "next_negedge_event" )
 {
     init( sc_time( period_v_, period_tu_, simcontext() ),
 	  duty_cycle_,
@@ -174,10 +171,8 @@ sc_clock::sc_clock( const char* name_,
     base_type( name_ ),
     m_period(), m_duty_cycle(), m_start_time(), m_posedge_first(),
     m_posedge_time(), m_negedge_time(),
-    m_next_posedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
-			   std::string(name_) + "_next_posedge_event").c_str()),
-    m_next_negedge_event( (std::string(SC_KERNEL_EVENT_PREFIX) + 
-			   std::string(name_) + "_next_negedge_event").c_str())
+    m_next_posedge_event( sc_event::kernel_event, "next_posedge_event" ),
+    m_next_negedge_event( sc_event::kernel_event, "next_negedge_event" )
 {
     static bool warn_sc_clock=true;
     if ( warn_sc_clock )
@@ -262,14 +257,16 @@ void sc_clock::register_port( sc_port_base& /*port*/, const char* if_typename_ )
 {
     std::string nm( if_typename_ );
     if( nm == typeid( sc_signal_inout_if<bool> ).name() ) {
-	    SC_REPORT_ERROR(SC_ID_ATTEMPT_TO_BIND_CLOCK_TO_OUTPUT_, "");
+        report_error(SC_ID_ATTEMPT_TO_BIND_CLOCK_TO_OUTPUT_);
+        // may continue, if suppressed
     }
 }
 
 void
 sc_clock::write( const bool& /* value */ )
 {
-    SC_REPORT_ERROR(SC_ID_ATTEMPT_TO_WRITE_TO_CLOCK_, "");
+    report_error(SC_ID_ATTEMPT_TO_WRITE_TO_CLOCK_);
+    // may continue, if suppressed
 }
 
 // interface methods
@@ -288,13 +285,11 @@ sc_clock::time_stamp()
 void
 sc_clock::report_error( const char* id, const char* add_msg ) const
 {
-    char msg[BUFSIZ];
-    if( add_msg != 0 ) {
-	std::sprintf( msg, "%s: clock '%s'", add_msg, name() );
-    } else {
-	std::sprintf( msg, "clock '%s'", name() );
-    }
-    SC_REPORT_ERROR( id, msg );
+    std::stringstream msg;
+    if( add_msg != 0 )
+      msg << add_msg << ": ";
+    msg << "clock '" << name() << "'";
+    SC_REPORT_ERROR( id, msg.str().c_str() );
 }
 
 
@@ -305,8 +300,8 @@ sc_clock::init( const sc_time& period_,
 		bool           posedge_first_ )
 {
     if( period_ == SC_ZERO_TIME ) {
-	report_error( SC_ID_CLOCK_PERIOD_ZERO_,
-		      "increase the period" );
+        report_error( SC_ID_CLOCK_PERIOD_ZERO_, "increase the period" );
+        // may continue, if suppressed
     }
     m_period = period_;
     m_posedge_first = posedge_first_;
@@ -321,12 +316,14 @@ sc_clock::init( const sc_time& period_,
     m_posedge_time = m_period - m_negedge_time;
 
     if( m_negedge_time == SC_ZERO_TIME ) {
-	report_error( SC_ID_CLOCK_HIGH_TIME_ZERO_,
-		      "increase the period or increase the duty cycle" );
+        report_error( SC_ID_CLOCK_HIGH_TIME_ZERO_,
+                      "increase the period or increase the duty cycle" );
+        // may continue, if suppressed
     }
     if( m_posedge_time == SC_ZERO_TIME ) {
-	report_error( SC_ID_CLOCK_LOW_TIME_ZERO_,
-		      "increase the period or decrease the duty cycle" );
+        report_error( SC_ID_CLOCK_LOW_TIME_ZERO_,
+                      "increase the period or decrease the duty cycle" );
+        // may continue, if suppressed
     }
 
     if( posedge_first_ ) {

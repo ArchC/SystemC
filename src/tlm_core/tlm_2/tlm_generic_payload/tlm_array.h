@@ -17,12 +17,15 @@
 
  *****************************************************************************/
 
-#ifndef __TLM_ARRAY_H__
-#define __TLM_ARRAY_H__
+#ifndef TLM_CORE_TLM2_TLM_ARRAY_H_INCLUDED_
+#define TLM_CORE_TLM2_TLM_ARRAY_H_INCLUDED_
 
-#include <systemc>
-#include <exception>
-// unused for the time being: #include <cassert>
+#include <vector>
+
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+#pragma warning(push)
+#pragma warning(disable: 4251) // DLL import for std::string,vector
+#endif
 
 namespace tlm {
 
@@ -55,10 +58,9 @@ class tlm_array
 public:
 
     // constructor:
-    tlm_array(size_type size = 0, T const & default_value = T() )
-        : base_type(size,default_value)
+    tlm_array(size_type size = 0)
+        : base_type(size)
         , m_entries()
-        , m_default(default_value)
     {
         //m_entries.reserve(size); // optional
     }
@@ -92,7 +94,7 @@ public:
     // it stores this slot in a cache of active slots
     void insert_in_cache(T* p)
     {
-        //assert( (p-&(*this)[0]) < size() );
+        //sc_assert( (p-&(*this)[0]) < size() );
         m_entries.push_back( p-&(*this)[0] );
     }
 
@@ -110,16 +112,15 @@ public:
 
 protected:
     std::vector<size_type> m_entries;
-    T m_default;
-
-    // disabled:
-    tlm_array& operator=(const tlm_array<T>&);
 };
-
 
 template <typename T>
 const char* const tlm_array<T>::kind_string = "tlm_array";
 
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+#pragma warning(pop)
+#endif
+
 } // namespace tlm
 
-#endif /* __TLM_ARRAY_H__ */
+#endif /* TLM_CORE_TLM2_TLM_ARRAY_H_INCLUDED_ */

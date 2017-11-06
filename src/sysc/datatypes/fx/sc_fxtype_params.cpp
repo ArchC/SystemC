@@ -47,9 +47,17 @@
 
 #include "sysc/datatypes/fx/sc_fxtype_params.h"
 
+#include <sstream>
 
-namespace sc_dt
-{
+// explicit template instantiations
+namespace sc_core {
+template class SC_API sc_phash<void*, const sc_dt::sc_fxtype_params*>;
+} // namespace sc_core
+
+namespace sc_dt {
+
+template class SC_API sc_global<sc_fxtype_params>;
+template class SC_API sc_context<sc_fxtype_params>;
 
 // ----------------------------------------------------------------------------
 //  CLASS : sc_fxtype_params
@@ -60,33 +68,22 @@ namespace sc_dt
 const std::string
 sc_fxtype_params::to_string() const
 {
-    std::string s;
-
-    char buf[BUFSIZ];
-
-    s += "(";
-    std::sprintf( buf, "%d", m_wl );
-    s += buf;
-    s += ",";
-    std::sprintf( buf, "%d", m_iwl );
-    s += buf;
-    s += ",";
-    s += sc_dt::to_string( m_q_mode );
-    s += ",";
-    s += sc_dt::to_string( m_o_mode );
-    s += ",";
-    std::sprintf( buf, "%d", m_n_bits );
-    s += buf;
-    s += ")";
-
-    return s;
+    std::stringstream ss;
+    print(ss);
+    return ss.str();
 }
 
 
 void
 sc_fxtype_params::print( ::std::ostream& os ) const
 {
-    os << to_string();
+    os << "("
+       << m_wl << ","
+       << m_iwl << ","
+       << m_q_mode << ","
+       << m_o_mode << ","
+       << m_n_bits
+       << ")";
 }
 
 void

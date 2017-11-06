@@ -31,6 +31,11 @@
 
 #include "sysc/communication/sc_writer_policy.h"
 
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+#pragma warning(push)
+#pragma warning(disable: 4251) // DLL import for std::vector
+#endif
+
 namespace sc_core {
 
 // FORWARD CLASS REFERENCES:
@@ -50,7 +55,7 @@ class sc_process_b;
 // This class describes a reset condition associated with an sc_process_b
 // instance. 
 //==============================================================================
-class sc_reset_target {
+class SC_API sc_reset_target {
   public:
     bool          m_async;     // true asynchronous reset, false synchronous.
     bool          m_level;     // level for reset.
@@ -67,13 +72,45 @@ inline std::ostream& operator << ( std::ostream& os,
     return os;
 }
 
+
+//==============================================================================
+// sc_reset_finder - place holder class for a port reset signal until it is
+//                   bound and an interface class is available. When the port
+//                   has been bound the information in this class will be used
+//                   to initialize its sc_reset object instance.
+//==============================================================================
+class SC_API sc_reset_finder {
+    friend class sc_reset;
+    friend class sc_simcontext;
+public:
+    sc_reset_finder( bool async, const sc_in<bool>* port_p, bool level,
+                     sc_process_b* target_p);
+    sc_reset_finder( bool async, const sc_inout<bool>* port_p, bool level,
+                     sc_process_b* target_p);
+    sc_reset_finder( bool async, const sc_out<bool>* port_p, bool level,
+                     sc_process_b* target_p);
+
+protected:
+    bool                   m_async;     // True if asynchronous reset.
+    bool                   m_level;     // Level for reset.
+    sc_reset_finder*       m_next_p;    // Next reset finder in list.
+    const sc_in<bool>*     m_in_p;      // Port for which reset is needed.
+    const sc_inout<bool>*  m_inout_p;   // Port for which reset is needed.
+    const sc_out<bool>*    m_out_p;     // Port for which reset is needed.
+    sc_process_b*          m_target_p;  // Process to reset.
+
+private: // disabled
+    sc_reset_finder( const sc_reset_finder& );
+    const sc_reset_finder& operator = ( const sc_reset_finder& );
+};
+
 //==============================================================================
 // CLASS sc_reset - RESET INFORMATION FOR A RESET SIGNAL
 //
 // See the top of sc_reset.cpp for an explaination of how the reset mechanism
 // is implemented.
 //==============================================================================
-class sc_reset {
+class SC_API sc_reset {
     friend class sc_cthread_process;
     friend class sc_method_process; 
     friend class sc_module; 
@@ -83,10 +120,10 @@ class sc_reset {
     friend class sc_signal<bool, SC_UNCHECKED_WRITERS>;
     friend class sc_simcontext;
     template<typename SOURCE> friend class sc_spawn_reset;
-    friend class sc_thread_process; 
+    friend class sc_thread_process;
 
   protected:
-    static void reconcile_resets();
+    static void reconcile_resets(sc_reset_finder* reset_finder_q);
     static void 
 	reset_signal_is(bool async, const sc_signal_in_if<bool>& iface, 
 	                bool level);
@@ -160,5 +197,9 @@ class sc_reset {
 // Added $Log to record CVS changes into the source.
 
 } // namespace sc_core
+
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+#pragma warning(pop)
+#endif
 
 #endif // !defined(sc_reset_h_INCLUDED)

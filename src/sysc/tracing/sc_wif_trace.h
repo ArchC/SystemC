@@ -50,8 +50,8 @@
 
    Instead of creating the binary WIF format, we create the ASCII
    WIF format which can be converted to the binary format using
-   a2wif (utility that comes with VSS from Synopsys). This way, 
-   a user who does not have Synopsys VSS can still create WIF 
+   a2wif (utility that comes with VSS from Synopsys). This way,
+   a user who does not have Synopsys VSS can still create WIF
    files, but the files can only be viewed by users who have VSS.
 
  *****************************************************************************/
@@ -84,6 +84,10 @@ protected:
     // These are all virtual functions in sc_trace_file and
     // they need to be defined here.
 
+    // Trace sc_time, sc_event
+    virtual void trace(const sc_time& object, const std::string& name);
+    virtual void trace(const sc_event& object, const std::string& name);
+
     // Trace a boolean object (single bit)
      void trace(const bool& object, const std::string& name);
 
@@ -92,21 +96,21 @@ protected:
 
     // Trace a sc_logic object (single bit)
      void trace(const sc_dt::sc_logic& object, const std::string& name);
-    
+
     // Trace an unsigned char with the given width
-     void trace(const unsigned char& object, const std::string& name, 
+     void trace(const unsigned char& object, const std::string& name,
 	int width);
 
     // Trace an unsigned short with the given width
-     void trace(const unsigned short& object, const std::string& name, 
+     void trace(const unsigned short& object, const std::string& name,
          int width);
 
     // Trace an unsigned int with the given width
-     void trace(const unsigned int& object, const std::string& name, 
+     void trace(const unsigned int& object, const std::string& name,
          int width);
 
     // Trace an unsigned long with the given width
-     void trace(const unsigned long& object, const std::string& name, 
+     void trace(const unsigned long& object, const std::string& name,
          int width);
 
     // Trace a signed char with the given width
@@ -120,15 +124,15 @@ protected:
 
     // Trace a signed long with the given width
      void trace(const long& object, const std::string& name, int width);
-    
+
     // Trace a signed long long with the given width
-     void trace(const sc_dt::int64& object, const std::string& name, 
+     void trace(const sc_dt::int64& object, const std::string& name,
          int width);
-    
+
     // Trace an usigned long long with the given width
-     void trace(const sc_dt::uint64& object, const std::string& name, 
+     void trace(const sc_dt::uint64& object, const std::string& name,
          int width);
-    
+
     // Trace a float
      void trace(const float& object, const std::string& name);
 
@@ -136,15 +140,15 @@ protected:
      void trace(const double& object, const std::string& name);
 
     // Trace sc_unsigned
-     void trace (const sc_dt::sc_unsigned& object, 
+     void trace (const sc_dt::sc_unsigned& object,
 	 const std::string& name);
 
     // Trace sc_signed
-     void trace (const sc_dt::sc_signed& object, 
+     void trace (const sc_dt::sc_signed& object,
 	 const std::string& name);
 
     // Trace sc_uint_base
-     void trace (const sc_dt::sc_uint_base& object, 
+     void trace (const sc_dt::sc_uint_base& object,
          const std::string& name);
 
     // Trace sc_int_base
@@ -154,14 +158,14 @@ protected:
     void trace( const sc_dt::sc_fxval& object, const std::string& name );
 
     // Trace sc_fxval_fast
-    void trace( const sc_dt::sc_fxval_fast& object, 
+    void trace( const sc_dt::sc_fxval_fast& object,
     	const std::string& name );
 
     // Trace sc_fxnum
     void trace( const sc_dt::sc_fxnum& object, const std::string& name );
 
     // Trace sc_fxnum_fast
-    void trace( const sc_dt::sc_fxnum_fast& object, 
+    void trace( const sc_dt::sc_fxnum_fast& object,
     	const std::string& name );
 
     template<class T>
@@ -173,17 +177,17 @@ protected:
     }
 
     // Trace sc_bv_base (sc_bv)
-    virtual void trace( const sc_dt::sc_bv_base& object, 
+    virtual void trace( const sc_dt::sc_bv_base& object,
     	const std::string& name );
 
     // Trace sc_lv_base (sc_lv)
-    virtual void trace( const sc_dt::sc_lv_base& object, 
+    virtual void trace( const sc_dt::sc_lv_base& object,
     	const std::string& name );
 
     // Trace an enumerated object - where possible output the enumeration literals
     // in the trace file. Enum literals is a null terminated array of null
     // terminated char* literal strings.
-     void trace(const unsigned& object, const std::string& name, 
+     void trace(const unsigned& object, const std::string& name,
          const char** enum_literals);
 
     // Output a comment to the trace file
@@ -196,7 +200,7 @@ private:
 
 #if SC_TRACING_PHASE_CALLBACKS_
     // avoid hidden overload warnings
-    virtual void trace( sc_trace_file* ) const { sc_assert(false); }
+    virtual void trace( sc_trace_file* ) const;
 #endif // SC_TRACING_PHASE_CALLBACKS_
 
     // Initialize the tracing mechanism
@@ -204,9 +208,8 @@ private:
 
     unsigned wif_name_index;           // Number of variables traced
 
-    unsigned previous_time_units_low;  // Previous time as 64 bit integer
-    unsigned previous_time_units_high;
-    double   previous_time;            // Previous time as a double
+    unit_type previous_units_low;
+    unit_type previous_units_high;
 
 public:
     // Create wif names for each variable

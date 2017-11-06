@@ -51,6 +51,7 @@ lt_initiator::lt_initiator                        // constructor
 )
 : sc_module           (name)                      // initialize module name
 , initiator_socket    ("initiator_socket")        // initiator socket
+, initiator_socket_opt("initiator_socket_opt")    // optional initiator socket
 , m_ID                (ID)                        // initialize initiator ID
 
 {                
@@ -70,7 +71,6 @@ lt_initiator::lt_initiator                        // constructor
 void lt_initiator::initiator_thread(void)   ///< initiator thread
 {  
   tlm::tlm_generic_payload *transaction_ptr;    ///< transaction pointer
-  std::ostringstream       msg;                 ///< log message
 
   while (true) 
   {

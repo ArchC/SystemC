@@ -17,14 +17,13 @@
 
  *****************************************************************************/
 
-#ifndef __MULTI_SOCKET_BASES_H__
-#define __MULTI_SOCKET_BASES_H__
+#ifndef TLM_UTILS_MULTI_SOCKET_BASES_H_INCLUDED_
+#define TLM_UTILS_MULTI_SOCKET_BASES_H_INCLUDED_
 
-#include <systemc>
 #include <tlm>
+#include "tlm_utils/convenience_socket_bases.h"
 
 #include <map>
-#include <sstream>
 
 namespace tlm_utils {
 
@@ -81,7 +80,7 @@ public: \
     return m_fn(m_mod,m_mem_fn, index, TLM_ARG_LIST_WITHOUT_TYPES); \
   } \
 \
-  bool empty(){return (m_mod==0 || m_mem_fn==0 || m_fn==0);}\
+  bool is_valid(){return (m_mod!=0 && m_mem_fn!=0 && m_fn!=0);}\
 \
 protected: \
   call_fn m_fn;\
@@ -142,7 +141,10 @@ The callbacks simply forward the fw interface call, but add the id (an int)
 of the callback binder to the signature of the call.
 */
 template <typename TYPES>
-class callback_binder_fw: public tlm::tlm_fw_transport_if<TYPES>{
+class callback_binder_fw
+  : public tlm::tlm_fw_transport_if<TYPES>
+  , protected convenience_socket_cb_holder
+{
   public:
     //typedefs according to the used TYPES class
     typedef typename TYPES::tlm_payload_type              transaction_type;
@@ -156,60 +158,63 @@ class callback_binder_fw: public tlm::tlm_fw_transport_if<TYPES>{
     typedef get_dmi_ptr_functor<TYPES>     dmi_func_type;
 
     //ctor: an ID is needed to create a callback binder
-    callback_binder_fw(int id): m_id(id), m_nb_f(0), m_b_f(0), m_dbg_f(0), m_dmi_f(0), m_caller_port(0) {
-    }
+    callback_binder_fw(multi_socket_base* owner, int id)
+      : convenience_socket_cb_holder(owner), m_id(id)
+      , m_nb_f(0), m_b_f(0), m_dbg_f(0), m_dmi_f(0)
+      , m_caller_port(0)
+    {}
 
     //the nb_transport method of the fw interface
     sync_enum_type nb_transport_fw(transaction_type& txn,
                                 phase_type& p,
                                 sc_core::sc_time& t){
       //check if a callback is registered
-      if ((m_nb_f == 0) || (m_nb_f && m_nb_f->empty())) {
-        //std::cerr<<"No function registered"<<std::endl;
-        SC_REPORT_ERROR("/OSCI_TLM-2/multi_socket","Call to nb_transport_fw without a registered callback for nb_transport_fw.");
-      }
-      else
+      if (m_nb_f && m_nb_f->is_valid()) {
         return (*m_nb_f)(m_id, txn, p, t); //do the callback
-      return tlm::TLM_ACCEPTED; //unreachable
+      }
+
+      display_error("Call to nb_transport_fw without a registered callback for nb_transport_fw.");
+      return tlm::TLM_COMPLETED;
     }
-    
+
     //the b_transport method of the fw interface
     void b_transport(transaction_type& trans,sc_core::sc_time& t){
       //check if a callback is registered
-      if ((m_b_f == 0) || (m_b_f && m_b_f->empty())) {
-        SC_REPORT_ERROR("/OSCI_TLM-2/multi_socket","Call to b_transport without a registered callback for b_transport.");
-      }
-      else
+      if (m_b_f && m_b_f->is_valid()) {
         (*m_b_f)(m_id, trans,t); //do the callback
+        return;
+      }
+
+      display_error("Call to b_transport without a registered callback for b_transport.");
     }
     
     //the DMI method of the fw interface
     bool get_direct_mem_ptr(transaction_type& trans, tlm::tlm_dmi&  dmi_data){
       //check if a callback is registered
-      if ((m_dmi_f == 0) && (m_dmi_f && m_dmi_f->empty())) {
-        dmi_data.allow_none();
-        dmi_data.set_start_address(0x0);
-        dmi_data.set_end_address((sc_dt::uint64)-1);
-        return false;
-      }
-      else
+      if (m_dmi_f && m_dmi_f->is_valid()) {
         return (*m_dmi_f)(m_id, trans,dmi_data); //do the callback
+      }
+
+      dmi_data.allow_none();
+      dmi_data.set_start_address(0x0);
+      dmi_data.set_end_address((sc_dt::uint64)-1);
+      return false;
     }
     
     //the debug method of the fw interface
     unsigned int transport_dbg(transaction_type& trans){
       //check if a callback is registered
-      if ((m_dbg_f == 0) || (m_dbg_f && m_dbg_f->empty())) {
-        return 0;
-      }
-      else
+      if (m_dbg_f && m_dbg_f->is_valid()) {
         return (*m_dbg_f)(m_id, trans); //do the callback
+      }
+
+      return 0;
     }
     
     //the SystemC standard callback register_port:
     // - called when a port if bound to the interface
     // - allowd to find out who is bound to that callback binder
-    void register_port(sc_core::sc_port_base& b, const char* name){
+    void register_port(sc_core::sc_port_base& b, const char* /*name*/){
       m_caller_port=&b;
     }
     
@@ -247,7 +252,10 @@ The callbacks simply forward the bw interface call, but add the id (an int)
 of the callback binder to the signature of the call.
 */
 template <typename TYPES>
-class callback_binder_bw: public tlm::tlm_bw_transport_if<TYPES>{
+class callback_binder_bw
+  : public tlm::tlm_bw_transport_if<TYPES>
+  , protected convenience_socket_cb_holder
+{
   public:
     //typedefs according to the used TYPES class
     typedef typename TYPES::tlm_payload_type              transaction_type;
@@ -259,30 +267,29 @@ class callback_binder_bw: public tlm::tlm_bw_transport_if<TYPES>{
     typedef invalidate_dmi_functor<TYPES> dmi_func_type;
 
     //ctor: an ID is needed to create a callback binder
-    callback_binder_bw(int id): m_id(id), m_nb_f(0), m_dmi_f(0) {
-    }
+    callback_binder_bw(multi_socket_base* owner, int id)
+      : convenience_socket_cb_holder(owner), m_id(id)
+      , m_nb_f(0), m_dmi_f(0) {}
 
     //the nb_transport method of the bw interface
     sync_enum_type nb_transport_bw(transaction_type& txn,
                                 phase_type& p,
                                 sc_core::sc_time& t){
       //check if a callback is registered
-      if ((m_nb_f == 0) || (m_nb_f && m_nb_f->empty())) {
-        SC_REPORT_ERROR("/OSCI_TLM-2/multi_socket","Call to nb_transport_bw without a registered callback for nb_transport_bw");
-      }
-      else
+      if (m_nb_f && m_nb_f->is_valid()) {
         return (*m_nb_f)(m_id, txn, p, t); //do the callback
-      return tlm::TLM_ACCEPTED; //unreachable
+      }
+
+      display_error("Call to nb_transport_bw without a registered callback for nb_transport_bw");
+      return tlm::TLM_COMPLETED;
     }
     
     //the DMI method of the bw interface
     void invalidate_direct_mem_ptr(sc_dt::uint64 l, sc_dt::uint64 u){
       //check if a callback is registered
-      if ((m_dmi_f == 0) || (m_dmi_f && m_dmi_f->empty())) {
-        return;
-      }
-      else
+      if (m_dmi_f && m_dmi_f->is_valid()) {
         (*m_dmi_f)(m_id,l,u); //do the callback
+      }
     }
 
     //register callbacks for all bw interface methods at once
@@ -299,6 +306,21 @@ class callback_binder_bw: public tlm::tlm_bw_transport_if<TYPES>{
     dmi_func_type* m_dmi_f;
 };
 
+/*
+This class forms the base for multi initiator sockets,
+with fewer template parameters than the multi_init_base.
+This class is implementation-defined.
+*/
+template <typename TYPES = tlm::tlm_base_protocol_types>
+class multi_init_base_if {
+public:
+  //this method shall return a vector of the callback binders of multi initiator socket
+  virtual std::vector<callback_binder_bw<TYPES>* >& get_binders()=0;
+  //this method shall return a vector of all target interfaces bound to this multi init socket
+  virtual std::vector<tlm::tlm_fw_transport_if<TYPES>*>& get_sockets()=0;
+protected:
+  virtual ~multi_init_base_if() {}
+};
 
 /*
 This class forms the base for multi initiator sockets.
@@ -307,27 +329,16 @@ needed to do hierarchical bindings.
 */
 template <unsigned int BUSWIDTH = 32,
           typename TYPES = tlm::tlm_base_protocol_types,
-          unsigned int N=0
-#if !(defined SYSTEMC_VERSION & SYSTEMC_VERSION <= 20050714)
-          ,sc_core::sc_port_policy POL = sc_core::SC_ONE_OR_MORE_BOUND
-#endif
-          >
-class multi_init_base: public tlm::tlm_initiator_socket<BUSWIDTH,
-                                                  TYPES,
-                                                  N
-#if !(defined SYSTEMC_VERSION & SYSTEMC_VERSION <= 20050714)
-                                                  ,POL
-#endif
-                                                  >{
+          unsigned int N=0,
+          sc_core::sc_port_policy POL = sc_core::SC_ONE_OR_MORE_BOUND>
+class multi_init_base
+  : public tlm::tlm_initiator_socket<BUSWIDTH, TYPES, N, POL>
+  , public multi_init_base_if<TYPES>
+  , protected multi_socket_base
+{
 public:
   //typedef for the base type: the standard tlm initiator socket
-  typedef tlm::tlm_initiator_socket<BUSWIDTH,
-                              TYPES,
-                              N
-#if !(defined SYSTEMC_VERSION & SYSTEMC_VERSION <= 20050714)
-                              ,POL
-#endif
-                              > base_type;
+  typedef tlm::tlm_initiator_socket<BUSWIDTH, TYPES, N, POL> base_type;
   
   //this method shall disable the code that does the callback binding
   // that registers callbacks to binders
@@ -338,16 +349,38 @@ public:
   //  If the base is not bound hierarchically it shall return a pointer to itself
   virtual multi_init_base* get_hierarch_bind()=0;
   
-  //this method shall return a vector of the callback binders of multi initiator socket
-  virtual std::vector<callback_binder_bw<TYPES>* >& get_binders()=0;
-  
-  //this method shall return a vector of all target interfaces bound to this multi init socket
-  virtual std::vector<tlm::tlm_fw_transport_if<TYPES>*>&  get_sockets()=0;
-  
+  virtual tlm::tlm_socket_category get_socket_category() const
+  {
+    return tlm::TLM_MULTI_INITIATOR_SOCKET;
+  }
+
   //ctor and dtor
   virtual ~multi_init_base(){}
   multi_init_base():base_type(sc_core::sc_gen_unique_name("multi_init_base")){}
   multi_init_base(const char* name):base_type(name){}
+
+private:
+  const sc_core::sc_object* get_socket() const { return this; }
+};
+
+/*
+This class forms the base for multi target sockets,
+with fewer template parameters than the multi_target_base.
+This class is implementation-defined.
+*/
+template <typename TYPES = tlm::tlm_base_protocol_types>
+class multi_target_base_if {
+public:
+  //this method shall return a vector of the callback binders of multi initiator socket
+  virtual std::vector<callback_binder_fw<TYPES>* >& get_binders()=0;
+  
+  //this method shall return a map of all multi initiator sockets that are
+  // bound to this multi target the key of the map is the index at which the
+  // multi initiator i bound, while the value is the interface of the multi
+  // initiator socket that is bound at that index
+  virtual std::map<unsigned int, tlm::tlm_bw_transport_if<TYPES>*>& get_multi_binds()=0;
+protected:
+  virtual ~multi_target_base_if() {}
 };
 
 /*
@@ -357,27 +390,16 @@ needed to do hierarchical bindings.
 */
 template <unsigned int BUSWIDTH = 32,
           typename TYPES = tlm::tlm_base_protocol_types,
-          unsigned int N=0
-#if !(defined SYSTEMC_VERSION & SYSTEMC_VERSION <= 20050714)
-          ,sc_core::sc_port_policy POL = sc_core::SC_ONE_OR_MORE_BOUND
-#endif
-          >
-class multi_target_base: public tlm::tlm_target_socket<BUSWIDTH, 
-                                                TYPES,
-                                                N
-#if !(defined SYSTEMC_VERSION & SYSTEMC_VERSION <= 20050714)                                                
-                                                ,POL
-#endif
-                                                >{
+          unsigned int N=0,
+          sc_core::sc_port_policy POL = sc_core::SC_ONE_OR_MORE_BOUND>
+class multi_target_base
+  : public tlm::tlm_target_socket<BUSWIDTH, TYPES, N, POL>
+  , public multi_target_base_if<TYPES>
+  , protected multi_socket_base
+{
 public:
   //typedef for the base type: the standard tlm target socket
-  typedef tlm::tlm_target_socket<BUSWIDTH, 
-                              TYPES,
-                              N
-#if !(defined SYSTEMC_VERSION & SYSTEMC_VERSION <= 20050714)
-                              ,POL
-#endif
-                              > base_type;
+  typedef tlm::tlm_target_socket<BUSWIDTH, TYPES, N, POL > base_type;
   
   //this method shall return the multi_init_base to which the
   // multi_init_base is bound hierarchically
@@ -387,19 +409,19 @@ public:
   //this method shall inform the multi target socket that it is bound
   // hierarchically and to which other multi target socket it is bound hierarchically
   virtual void set_hierarch_bind(multi_target_base*)=0;
-  
-  //this method shall return a vector of the callback binders of multi initiator socket
-  virtual std::vector<callback_binder_fw<TYPES>* >& get_binders()=0;
-  
-  //this method shall return a map of all multi initiator sockets that are bound to this multi target
-  // the key of the map is the index at which the multi initiator i bound, while the value
-  //  is the interface of the multi initiator socket that is bound at that index
-  virtual std::map<unsigned int, tlm::tlm_bw_transport_if<TYPES>*>&  get_multi_binds()=0;
-  
+
+  virtual tlm::tlm_socket_category get_socket_category() const
+  {
+    return tlm::TLM_MULTI_TARGET_SOCKET;
+  }
+
   //ctor and dtor
   virtual ~multi_target_base(){}
   multi_target_base():base_type(sc_core::sc_gen_unique_name("multi_target_base")){}
   multi_target_base(const char* name):base_type(name){}
+
+private:
+  const sc_core::sc_object* get_socket() const { return this; }
 };
 
 /*
@@ -414,5 +436,5 @@ public:
   virtual tlm::tlm_fw_transport_if<TYPES>* get_last_binder(tlm::tlm_bw_transport_if<TYPES>*)=0;
 };
 
-}
-#endif
+} // namespace tlm_utils
+#endif // TLM_UTILS_MULTI_SOCKET_BASES_H_INCLUDED_

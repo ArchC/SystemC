@@ -35,17 +35,39 @@
 #include <algorithm> // std::swap
 
 #include "sysc/kernel/sc_object.h"
-#include "sysc/packages/boost/config.hpp"
-#include "sysc/packages/boost/utility/enable_if.hpp"
 
-//#define SC_VECTOR_HEADER_ONLY_
+#if SC_CPLUSPLUS >= 201103L // use C++11 for type traits
+# include <type_traits>
+#else // use Boost for type traits
+# include "sysc/packages/boost/config.hpp"
+# include "sysc/packages/boost/utility/enable_if.hpp"
+#endif // type traits
+
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+#pragma warning(push)
+#pragma warning(disable: 4251) // DLL import for std::vector
+#endif
 
 namespace sc_core {
 namespace sc_meta {
 
-  using ::sc_boost::enable_if;
+#if SC_CPLUSPLUS >= 201103L // use C++11 for type traits
+  using std::enable_if;
+  using std::remove_const;
+  using std::is_same;
+  using std::is_const;
 
-  // simplistic version to avoid Boost et.al.
+# define SC_STATIC_CONSTANT_(Type,Value) \
+    static const Type Value
+
+#else // use Boost/local implementation for type traits
+  template<bool Cond, typename T = void>
+  struct enable_if : sc_boost::enable_if_c<Cond, T> {};
+
+# define SC_STATIC_CONSTANT_(Type,Value) \
+    SC_BOOST_STATIC_CONSTANT(Type,Value)
+
+  // simplistic version to reduce Boost usage
   template< typename T > struct remove_const          { typedef T type; };
   template< typename T > struct remove_const<const T> { typedef T type; };
 
@@ -59,9 +81,11 @@ namespace sc_meta {
   template< typename T >
   struct is_const< const T> { SC_BOOST_STATIC_CONSTANT( bool, value = true );  };
 
+#endif // type traits
+
   template< typename CT, typename T >
   struct is_more_const {
-    SC_BOOST_STATIC_CONSTANT( bool, value
+    SC_STATIC_CONSTANT_( bool, value
        = ( is_same< typename remove_const<CT>::type
                  , typename remove_const<T>::type
                  >::value
@@ -75,8 +99,8 @@ namespace sc_meta {
     { typedef T type; };
 
 #define SC_RPTYPE_(Type)                                   \
-  typename ::sc_core::sc_meta::remove_special_fptr         \
-    < ::sc_core::sc_meta::special_result& (*) Type >::type
+  ::sc_core::sc_meta::remove_special_fptr         \
+    < ::sc_core::sc_meta::special_result& (*) Type >::type::value
 
 #define SC_ENABLE_IF_( Cond )                              \
   typename ::sc_core::sc_meta::enable_if                   \
@@ -105,7 +129,9 @@ sc_vector_do_operator_paren( Container & cont
                            , ArgumentIterator  last
                            , typename Container::iterator from );
 
-class sc_vector_base
+class sc_vector_element;  // opaque pointer
+
+class SC_API sc_vector_base
   : public sc_object
 {
 
@@ -114,7 +140,8 @@ class sc_vector_base
 
 public:
 
-  typedef std::vector< void* >          storage_type;
+  typedef sc_vector_element*            handle_type;
+  typedef std::vector< handle_type >    storage_type;
   typedef storage_type::size_type       size_type;
   typedef storage_type::difference_type difference_type;
 
@@ -143,7 +170,7 @@ protected:
   ~sc_vector_base()
     { delete objs_vec_; }
 
-  void * & at( size_type i )
+  void * at( size_type i )
     { return vec_[i]; }
 
   void const * at( size_type i ) const
@@ -156,7 +183,7 @@ protected:
     { vec_.clear(); }
 
   void push_back( void* item )
-    { vec_.push_back(item); }
+    { vec_.push_back( static_cast<handle_type>(item) ); }
 
   void check_index( size_type i ) const;
   bool check_init( size_type n )  const;
@@ -174,8 +201,15 @@ protected:
   sc_object* implicit_cast( sc_object* p ) const { return p; }
   sc_object* implicit_cast( ... /* incompatible */ )  const;
 
-public: 
+  class SC_API context_scope
+  {
+    sc_vector_base* owner_;
+  public:
+    explicit context_scope(sc_vector_base* owner);
+    ~context_scope();
+  };
 
+public: 
   void report_empty_bind( const char* kind_, bool dst_range_ ) const;
 
 private:
@@ -265,6 +299,8 @@ class sc_vector_iter
 
   typedef typename sc_meta::remove_const<ElementType>::type plain_type;
   typedef const plain_type                                  const_plain_type;
+  typedef typename sc_direct_access<plain_type>::const_policy
+    const_direct_policy;
 
   friend class sc_vector< plain_type >;
   template< typename, typename > friend class sc_vector_assembly;
@@ -283,6 +319,8 @@ class sc_vector_iter
 
   typedef typename select_iter<ElementType>::type          raw_iterator;
   typedef sc_vector_iter< const_plain_type, const_policy > const_iterator;
+  typedef sc_vector_iter< const_plain_type, const_direct_policy >
+    const_direct_iterator;
 
   // underlying vector iterator
 
@@ -304,13 +342,20 @@ public:
   sc_vector_iter() : access_policy(), it_() {}
 
   // iterator conversions to more const, and/or direct iterators
-  template< typename OtherElement, typename OtherPolicy >
-  sc_vector_iter( const sc_vector_iter<OtherElement, OtherPolicy>& it
-      , SC_ENABLE_IF_((
-          sc_meta::is_more_const< element_type
-                                , typename OtherPolicy::element_type >
-        ))
-      )
+  //
+  // Note: There is a minor risk to match unrelated classes (i.e. not sc_vector_iter<T,POL>),
+  //       but MSVC 2005 does not correctly consider a restricted conversion constructor
+  //       sc_vector_iter( const sc_vector_iter<OtherType,OtherPolicy>, SC_ENABLE_IF_ ...).
+  //       To reduce this risk, the types used in the enable-if condition could be further
+  //       tailored towards sc_vector(_iter), should the need arise.
+  //
+  // See also: sc_direct_access conversion constructor
+  template< typename It >
+  sc_vector_iter( const It& it
+    , SC_ENABLE_IF_((
+        sc_meta::is_more_const< element_type
+                              , typename It::policy::element_type >
+      )) )
     : access_policy( it.get_policy() ), it_( it.it_ )
   {}
 
@@ -330,23 +375,29 @@ public:
   this_type& operator-=( difference_type n ) { it_-=n; return *this; }
 
   // relations
-  bool operator== ( const this_type& that ) const { return it_ == that.it_; }
-  bool operator!= ( const this_type& that ) const { return it_ != that.it_; }
-  bool operator<= ( const this_type& that ) const { return it_ <= that.it_; }
-  bool operator>= ( const this_type& that ) const { return it_ >= that.it_; }
-  bool operator<  ( const this_type& that ) const { return it_ < that.it_; }
-  bool operator>  ( const this_type& that ) const { return it_ > that.it_; }
+  bool operator==( const const_direct_iterator& that ) const
+    { return it_ == that.it_; }
+  bool operator!=( const const_direct_iterator& that ) const
+    { return it_ != that.it_; }
+  bool operator<=( const const_direct_iterator& that ) const
+    { return it_ <= that.it_; }
+  bool operator>=( const const_direct_iterator& that ) const
+    { return it_ >= that.it_; }
+  bool operator< ( const const_direct_iterator& that ) const
+    { return it_ < that.it_; }
+  bool operator> ( const const_direct_iterator& that ) const
+    { return it_ > that.it_; }
 
   // dereference
   reference operator*() const
-    { return *access_policy::get( static_cast<element_type*>(*it_) ); }
+    { return *access_policy::get( static_cast<element_type*>((void*)*it_) ); }
   pointer   operator->() const
-    { return access_policy::get( static_cast<element_type*>(*it_) ); }
+    { return access_policy::get( static_cast<element_type*>((void*)*it_) ); }
   reference operator[]( difference_type n ) const
-    { return *access_policy::get( static_cast<element_type*>(it_[n]) ); }
+    { return *access_policy::get( static_cast<element_type*>((void*)it_[n]) ); }
 
   // distance
-  difference_type operator-( this_type const& that ) const
+  difference_type operator-( const_direct_iterator const& that ) const
     { return it_-that.it_; }
 
 }; // sc_vector_iter
@@ -624,6 +675,9 @@ sc_vector<T>::init( size_type n, Creator c )
 {
   if ( base_type::check_init(n) )
   {
+    // restore SystemC hierarchy context, if needed
+    sc_vector_base::context_scope scope( this );
+
     base_type::reserve( n );
     try
     {
@@ -633,7 +687,7 @@ sc_vector<T>::init( size_type n, Creator c )
         std::string  name  = make_name( basename(), i );
         const char*  cname = name.c_str();
 
-        void* p = c( cname, i ) ; // call Creator
+        element_type* p = c( cname, i ) ; // call Creator
         base_type::push_back(p);
       }
     }
@@ -653,7 +707,6 @@ sc_vector<T>::clear()
   while ( i --> 0 )
   {
     delete &( (*this)[i] );
-    base_type::at(i) = 0;
   }
   base_type::clear();
 }
@@ -717,8 +770,14 @@ sc_vector_assembly<T,MT>::get_elements() const
 }
 
 } // namespace sc_core
+
+#undef SC_STATIC_CONSTANT_
 #undef SC_RPTYPE_
 #undef SC_ENABLE_IF_
+
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+#pragma warning(pop)
+#endif
 
 // $Log: sc_vector.h,v $
 // Revision 1.17  2011/08/26 20:46:20  acg

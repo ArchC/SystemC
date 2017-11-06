@@ -73,7 +73,7 @@ class sc_bv_base;
 //  Arbitrary size bit vector base class.
 // ----------------------------------------------------------------------------
 
-class sc_bv_base
+class SC_API sc_bv_base
     : public sc_proxy<sc_bv_base>
 {
     friend class sc_lv_base;
@@ -87,7 +87,8 @@ public:
 
     // typedefs
 
-    typedef sc_proxy<sc_bv_base> base_type;
+    typedef sc_proxy<sc_bv_base>  base_type;
+    typedef base_type::value_type value_type;
 
 
     // constructors
@@ -187,44 +188,6 @@ public:
 	{ base_type::assign_( a ); return *this; }
 
 
-#if 0
-
-    // bitwise complement
-
-    sc_bv_base& b_not();
-
-    const sc_bv_base operator ~ () const
-	{ sc_bv_base a( *this ); return a.b_not(); }
-
-
-    // bitwise left shift
-
-    sc_bv_base& operator <<= ( int n );
-
-    const sc_bv_base operator << ( int n ) const
-	{ sc_bv_base a( *this ); return ( a <<= n ); }
-
-
-    // bitwise right shift
-
-    sc_bv_base& operator >>= ( int n );
-
-    const sc_bv_base operator >> ( int n ) const
-	{ sc_bv_base a( *this ); return ( a >>= n ); }
-
-
-    // bitwise left rotate
-
-    sc_bv_base& lrotate( int n );
-
-
-    // bitwise right rotate
-
-    sc_bv_base& rrotate( int n );
-
-#endif
-
-
     // common methods
 
     int length() const
@@ -233,8 +196,8 @@ public:
     int size() const
 	{ return m_size; }
 
-    sc_logic_value_t get_bit( int i ) const;
-    void set_bit( int i, sc_logic_value_t value );
+    value_type get_bit( int i ) const;
+    void set_bit( int i, value_type value );
 
     sc_digit get_word( int i ) const
 	{ return m_data[i]; }
@@ -294,17 +257,17 @@ rrotate( const sc_bv_base& x, int n )
 // common methods
 
 inline
-sc_logic_value_t
+sc_bv_base::value_type
 sc_bv_base::get_bit( int i ) const
 {
     int wi = i / SC_DIGIT_SIZE;
     int bi = i % SC_DIGIT_SIZE;
-    return sc_logic_value_t( (m_data[wi] >> bi) & SC_DIGIT_ONE );
+    return value_type( (m_data[wi] >> bi) & SC_DIGIT_ONE );
 }
 
 inline
 void
-sc_bv_base::set_bit( int i, sc_logic_value_t value )
+sc_bv_base::set_bit( int i, value_type value )
 {
     int wi = i / SC_DIGIT_SIZE;
     int bi = i % SC_DIGIT_SIZE;

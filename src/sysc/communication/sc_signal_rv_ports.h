@@ -141,10 +141,8 @@ sc_in_rv<W>::end_of_elaboration()
 {
     base_type::end_of_elaboration();
     // check if bound channel is a resolved signal
-    if( DCAST<sc_signal_rv<W>*>( this->get_interface() ) == 0 ) {
-	char msg[BUFSIZ];
-	std::sprintf( msg, "%s (%s)", this->name(), kind() );
-	SC_REPORT_ERROR( SC_ID_RESOLVED_PORT_NOT_BOUND_, msg );
+    if( dynamic_cast<sc_signal_rv<W>*>( this->get_interface() ) == 0 ) {
+        this->report_error( SC_ID_RESOLVED_PORT_NOT_BOUND_, 0 );
     }
 }
 
@@ -261,10 +259,8 @@ sc_inout_rv<W>::end_of_elaboration()
 {
     base_type::end_of_elaboration();
     // check if bound channel is a resolved signal
-    if( DCAST<sc_signal_rv<W>*>( this->get_interface() ) == 0 ) {
-	char msg[BUFSIZ];
-	std::sprintf( msg, "%s (%s)", this->name(), kind() );
-	SC_REPORT_ERROR( SC_ID_RESOLVED_PORT_NOT_BOUND_, msg );
+    if( dynamic_cast<sc_signal_rv<W>*>( this->get_interface() ) == 0 ) {
+        this->report_error( SC_ID_RESOLVED_PORT_NOT_BOUND_, 0 );
     }
 }
 

@@ -56,19 +56,6 @@ check_PROGRAMS = $(examples_TESTS)
 tlmexamplesdir = $(examplesdir)/tlm
 
 examples_FILES = \
-	build-msvc/Makefile \
-	build-msvc/Makefile.config \
-	build-msvc/Makefile.rules \
-	build-msvc/openhere.bat \
-	build-msvc/READMEcommandlinemsvc.txt \
-	build-msvc/systemc.vsprops \
-	build-msvc/tlm.sln \
-	build-msvc/vsvars.bat \
-	\
-	build-unix/Makefile \
-	build-unix/Makefile.config \
-	build-unix/Makefile.rules \
-	\
 	README.txt
 
 ## ************************************************************************
@@ -110,7 +97,19 @@ nobase_tlmexamples_DATA = \
 endif
 
 EXTRA_DIST += \
-	$(examples_FILES)
+	$(examples_FILES) \
+	CMakeLists.txt \
+	at_1_phase/CMakeLists.txt \
+	at_2_phase/CMakeLists.txt \
+	at_4_phase/CMakeLists.txt \
+	at_extension_optional/CMakeLists.txt \
+	at_mixed_targets/CMakeLists.txt \
+	at_ooo/CMakeLists.txt \
+	lt/CMakeLists.txt \
+	lt_dmi/CMakeLists.txt \
+	lt_extension_mandatory/CMakeLists.txt \
+	lt_mixed_endian/CMakeLists.txt \
+	lt_temporal_decouple/CMakeLists.txt
 
 CLEANFILES += \
 	$(examples_CLEAN) \

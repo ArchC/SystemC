@@ -41,7 +41,7 @@ namespace sc_core {
 //  Event finder base class.
 // ----------------------------------------------------------------------------
 
-class sc_event_finder
+class SC_API sc_event_finder
 {
   friend class sc_simcontext;
 
@@ -56,7 +56,7 @@ public:
     virtual const sc_event& find_event( sc_interface* if_p = 0 ) const = 0;
 
 protected:
-    
+
     // constructor
     sc_event_finder( const sc_port_base& );
 
@@ -122,12 +122,13 @@ inline
 const sc_event&
 sc_event_finder_t<IF>::find_event( sc_interface* if_p ) const
 {
-    const IF* iface = ( if_p ) ? DCAST<const IF*>( if_p ) :
-		                 DCAST<const IF*>( port().get_interface() );
+    const IF* iface = ( if_p ) ? dynamic_cast<const IF*>( if_p ) :
+                                 dynamic_cast<const IF*>( port().get_interface() );
     if( iface == 0 ) {
-		report_error( SC_ID_FIND_EVENT_, "port is not bound" );
+        report_error( SC_ID_FIND_EVENT_, "port is not bound" );
+        return sc_event::none;
     }
-    return (CCAST<IF*>( iface )->*m_event_method) ();
+    return (const_cast<IF*>( iface )->*m_event_method) ();
 }
 
 } // namespace sc_core

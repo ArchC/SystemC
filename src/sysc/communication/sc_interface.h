@@ -29,10 +29,12 @@
 #ifndef SC_INTERFACE_H
 #define SC_INTERFACE_H
 
+#include "sysc/kernel/sc_cmnhdr.h"
+
 namespace sc_core {
 
-class sc_event;
-class sc_port_base;
+class SC_API sc_event;
+class SC_API sc_port_base;
 
 
 // ----------------------------------------------------------------------------
@@ -42,7 +44,7 @@ class sc_port_base;
 //  BEWARE: Direct inheritance from this class must be done virtual.
 // ----------------------------------------------------------------------------
 
-class sc_interface
+class SC_API sc_interface
 {
 public:
 
@@ -66,17 +68,6 @@ private:
     // disabled
     sc_interface( const sc_interface& );
     sc_interface& operator = ( const sc_interface& );
-
-private:
-
-    static sc_event m_never_notified;
-
-#if defined(__SUNPRO_CC) && (__SUNPRO_CC == 0x520)
-    // Workaround for a bug in the Sun WorkShop 6 update 2 compiler.
-    // An empty virtual base class can cause the optimizer to
-    // generate wrong code.
-    char dummy;
-#endif
 };
 
 } // namespace sc_core

@@ -64,7 +64,7 @@
 
 
 #include "sysc/datatypes/int/sc_nbdefs.h"
-#include "sysc/utils/sc_iostream.h"
+#include <iostream>
 
 
 namespace sc_dt
@@ -85,7 +85,7 @@ extern void sc_deprecated_sc_bit();
 //  Note: VSIA compatibility indicated.
 // ----------------------------------------------------------------------------
 
-class sc_bit
+class SC_API sc_bit
 {
     // support methods
 

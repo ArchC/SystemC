@@ -31,9 +31,6 @@
 #ifndef SC_CMNHDR_H
 #define SC_CMNHDR_H
 
-// include useful platform information from Boost
-#include "sysc/packages/boost/config.hpp"
-
 #if defined(_WIN32) || defined(_MSC_VER) || defined(__BORLANDC__) || \
 	defined(__MINGW32__)
 
@@ -58,6 +55,9 @@
 
 // Disable VC++ warnings that are harmless
 
+// extern template instantiations
+#pragma warning(disable: 4231)
+
 // this : used in base member initializer list
 #pragma warning(disable: 4355)
 
@@ -77,7 +77,7 @@
 // identifier was truncated to '255' characters in the browser information
 #pragma warning(disable: 4786)
 
-#endif 
+#endif
 
 // ----------------------------------------------------------------------------
 // helper macros to aid branch prediction on GCC (compatible) compilers
@@ -91,10 +91,93 @@
 #endif
 
 // ----------------------------------------------------------------------------
+// C++ standard
+//
+// Selected C++ standard baseline, supported values are
+//   199711L (C++03, ISO/IEC 14882:1998, 14882:2003)
+//   201103L (C++11, ISO/IEC 14882:2011)
+//   201402L (C++14, ISO/IEC 14882:2014)
+//   201703L (C++17, N4659: Working Draft, Standard for Programming Language C++)
+//
+// This macro can be used inside the library sources to make certain assumptions
+// on the available features in the underlying C++ implementation.
+//
+#ifndef SC_CPLUSPLUS
+# ifdef _MSC_VER // don't rely on __cplusplus for MSVC
+// Instead, we select the C++ standard with reasonable support.
+// If some features still need to be excluded on specific MSVC
+// versions, we'll do so at the point of definition.
+
+#   if defined(_MSVC_LANG) // MSVC'2015 Update 3 or later, use compiler setting
+#     define SC_CPLUSPLUS _MSVC_LANG
+#   elif _MSC_VER < 1800   // MSVC'2010 and earlier, assume C++03
+#     define SC_CPLUSPLUS 199711L
+#   elif _MSC_VER < 1900   // MSVC'2013, assume C++11
+#     define SC_CPLUSPLUS 201103L
+#   else                   // MSVC'2015 before Update 3, assume C++14
+#     define SC_CPLUSPLUS 201402L
+#   endif
+
+# else // not _MSC_VER
+// use compiler setting
+#   define SC_CPLUSPLUS __cplusplus
+
+# endif // not _MSC_VER
+#endif // SC_CPLUSPLUS
+
+// SystemC adds some features under C++11 already (see RELEASENOTES)
+#define SC_CPLUSPLUS_BASE_ 201103L
+
+// The IEEE_1666_CPLUSPLUS macro is meant to be queried in the models,
+// checking for availability of SystemC features relying on specific
+// C++ standard versions.
+//
+// IEEE_1666_CPLUSPLUS = min(SC_CPLUSPLUS, SC_CPLUSPLUS_BASE_)
+#if SC_CPLUSPLUS >= SC_CPLUSPLUS_BASE_
+# define IEEE_1666_CPLUSPLUS SC_CPLUSPLUS_BASE_
+#else
+# define IEEE_1666_CPLUSPLUS SC_CPLUSPLUS
+#endif // IEEE_1666_CPLUSPLUS
+
+// ----------------------------------------------------------------------------
 
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
+#include <vector>
+
+// ----------------------------------------------------------------------------
+
+// declare certain template instantiations as "extern" during library build
+// and adding an explicit instantiation into the (shared) SystemC library
+
+#if defined(__GNUC__) && SC_CPLUSPLUS < 201103L
+# define SC_TPLEXTERN_ __extension__ extern
+#else
+# define SC_TPLEXTERN_ extern
+#endif
+
+// build SystemC DLL on Windows
+#if defined(SC_WIN_DLL) && (defined(_WIN32) || defined(_WIN64))
+
+# if defined(SC_BUILD) // building SystemC library
+#   define SC_API  __declspec(dllexport)
+# else                 // building SystemC application
+#   define SC_API  __declspec(dllimport)
+# endif // SC_BUILD
+
+#else // !SC_WIN_DLL
+# define SC_API /* nothing */
+
+#endif // SC_WIN_DLL
+
+#if defined(SC_BUILD) && defined(_MSC_VER)
+// always instantiate during Windows library build
+# define SC_API_TEMPLATE_DECL_ template class SC_API
+#else
+// keep extern when building an application (or on non-Windows)
+# define SC_API_TEMPLATE_DECL_ SC_TPLEXTERN_ template class SC_API
+#endif
 
 #endif // SC_CMNHDR_H
 

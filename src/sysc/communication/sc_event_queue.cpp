@@ -31,6 +31,9 @@
 
 namespace sc_core {
 
+template class SC_API sc_ppq<sc_time*>;
+template class SC_API sc_port<sc_event_queue_if,1,SC_ONE_OR_MORE_BOUND>;
+
 static int 
 sc_time_compare( const void* p1, const void* p2 )
 {
@@ -49,7 +52,7 @@ sc_time_compare( const void* p1, const void* p2 )
 sc_event_queue::sc_event_queue( sc_module_name name_ )
     : sc_module( name_ ),
       m_ppq( 128, sc_time_compare ),
-      m_e( (std::string(SC_KERNEL_EVENT_PREFIX)+"_event").c_str() ),
+      m_e( sc_event::kernel_event ),
       m_change_stamp(0),
       m_pending_delta(0)
 {
@@ -89,7 +92,7 @@ void sc_event_queue::fire_event()
         return;
     }
     sc_time* t = m_ppq.extract_top();
-    assert( *t==sc_time_stamp() );
+    sc_assert( *t==sc_time_stamp() );
     delete t;
 
     if ( m_ppq.size() > 0 ) {

@@ -58,7 +58,7 @@ examples_BUILD += \
 
 examples_CLEAN += \
 	at_mixed_targets/run.log \
-	at_mixed_targets/expexted_trimmed.log \
+	at_mixed_targets/expected_trimmed.log \
 	at_mixed_targets/run_trimmed.log \
 	at_mixed_targets/diff.log
 
@@ -85,13 +85,12 @@ at_mixed_targets_BUILD = \
 at_mixed_targets_EXTRA = \
 	at_mixed_targets/build-msvc/Makefile \
 	at_mixed_targets/build-msvc/at_mixed_targets.sln \
-	at_mixed_targets/build-msvc/at_mixed_targets.vcproj \
+	at_mixed_targets/build-msvc/at_mixed_targets.vcxproj \
 	at_mixed_targets/build-unix/Makefile \
 	at_mixed_targets/docs/at_mixed_targets_example.pdf \
 	at_mixed_targets/docs/at_mixed_targets_example.ppt
 
 #at_mixed_targets_FILTER = 
-#export at_mixed_targets_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

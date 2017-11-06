@@ -27,11 +27,9 @@
  *****************************************************************************/
 
 
-#include <assert.h>
 #include <cstddef>
 
 #include "sysc/kernel/sc_cmnhdr.h"
-#include "sysc/utils/sc_iostream.h"
 #include "sysc/utils/sc_list.h"
 #include "sysc/utils/sc_mempool.h"
 #include "sysc/utils/sc_report.h"
@@ -39,7 +37,7 @@
 
 namespace sc_core {
 
-class sc_plist_elem {
+class SC_API sc_plist_elem {
     friend class sc_plist_base_iter;
     friend class sc_plist_base;
 

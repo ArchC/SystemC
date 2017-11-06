@@ -58,7 +58,7 @@ examples_BUILD += \
 
 examples_CLEAN += \
 	lt_dmi/run.log \
-	lt_dmi/expexted_trimmed.log \
+	lt_dmi/expected_trimmed.log \
 	lt_dmi/run_trimmed.log \
 	lt_dmi/diff.log
 
@@ -86,13 +86,12 @@ lt_dmi_EXTRA = \
 	lt_dmi/README \
 	lt_dmi/build-msvc/Makefile \
 	lt_dmi/build-msvc/lt_dmi.sln \
-	lt_dmi/build-msvc/lt_dmi.vcproj \
+	lt_dmi/build-msvc/lt_dmi.vcxproj \
 	lt_dmi/build-unix/Makefile \
 	lt_dmi/docs/lt_dmi_example.pdf \
 	lt_dmi/docs/lt_dmi_example.ppt
 
 #lt_dmi_FILTER = 
-#export lt_dmi_FILTER
 
 ## Taf!
 ## :vim: ft=automake:

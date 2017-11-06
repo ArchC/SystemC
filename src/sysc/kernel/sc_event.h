@@ -35,6 +35,11 @@
 #include "sysc/kernel/sc_simcontext.h"
 #include "sysc/communication/sc_writer_policy.h"
 
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+#pragma warning(push)
+#pragma warning(disable: 4251) // DLL import for std::string
+#endif
+
 namespace sc_core {
 
 // forward declarations
@@ -44,9 +49,10 @@ class sc_event_list;
 class sc_event_or_list;
 class sc_event_and_list;
 class sc_object;
+class sc_signal_channel;
 
 // friend function declarations
-    int sc_notify_time_compare( const void*, const void* );
+SC_API int sc_notify_time_compare( const void*, const void* );
 
 // ----------------------------------------------------------------------------
 //  CLASS : sc_event_expr
@@ -117,7 +123,7 @@ private:
 //  Base class for lists of events.
 // ----------------------------------------------------------------------------
 
-class sc_event_list
+class SC_API sc_event_list
 {
     friend class sc_process_b;
     friend class sc_method_process;
@@ -176,7 +182,7 @@ private:
 //  AND list of events.
 // ----------------------------------------------------------------------------
 
-class sc_event_and_list
+class SC_API sc_event_and_list
 : public sc_event_list
 {
     friend class sc_event;
@@ -211,7 +217,7 @@ typedef sc_event_expr<sc_event_and_list> sc_event_and_expr;
 //  OR list of events.
 // ----------------------------------------------------------------------------
 
-class sc_event_or_list
+class SC_API sc_event_or_list
 : public sc_event_list
 {
     friend class sc_event;
@@ -243,23 +249,30 @@ typedef sc_event_expr<sc_event_or_list> sc_event_or_expr;
 //  The event class.
 // ----------------------------------------------------------------------------
 
-class sc_event
+class SC_API sc_event
 {
-    friend class sc_clock;
     friend class sc_event_list;
     friend class sc_event_timed;
     friend class sc_simcontext;
     friend class sc_object;
     friend class sc_process_b;
+    friend class sc_process_handle;
     friend class sc_method_process;
     friend class sc_thread_process;
-    template<typename IF, sc_writer_policy POL> friend class sc_signal;
     friend void sc_thread_cor_fn( void* arg );
+    friend class sc_clock;
+    friend class sc_event_queue;
+    friend class sc_signal_channel;
+    template<typename IF> friend class sc_fifo;
+    friend class sc_semaphore;
+    friend class sc_mutex;
+    friend class sc_join;
+    friend class sc_trace_file;
 
 public:
 
     sc_event();
-    sc_event( const char* name );
+    explicit sc_event( const char* name );
     ~sc_event();
 
     void cancel();
@@ -282,6 +295,11 @@ public:
     sc_event_and_expr operator & ( const sc_event& ) const;
     sc_event_and_expr operator & ( const sc_event_and_list& ) const;
 
+    // has this event been triggered in the current delta cycle?
+    bool triggered() const;
+
+    // never notified event
+    static const sc_event none;
 
 private:
 
@@ -298,7 +316,7 @@ private:
     bool remove_dynamic( sc_method_handle ) const;
     bool remove_dynamic( sc_thread_handle ) const;
 
-    void register_event( const char* name );
+    void register_event( const char* name, bool is_kernel_event = false );
     void reset();
 
     void trigger();
@@ -310,6 +328,7 @@ private:
     std::string     m_name;     // name of object.
     sc_object*      m_parent_p; // parent sc_object for this event.
     sc_simcontext*  m_simc;
+    sc_dt::uint64   m_trigger_stamp; // delta of last trigger
     notify_t        m_notify_type;
     int             m_delta_event_index;
     sc_event_timed* m_timed;
@@ -320,15 +339,13 @@ private:
     mutable std::vector<sc_thread_handle> m_threads_dynamic;
 
 private:
+    static struct kernel_tag {} kernel_event;
+    explicit sc_event( kernel_tag, const char* name = NULL );
 
     // disabled
     sc_event( const sc_event& );
     sc_event& operator = ( const sc_event& );
 };
-
-#define SC_KERNEL_EVENT_PREFIX "$$$$kernel_event$$$$_"
-
-extern sc_event sc_non_event; // Event that never happens.
 
 // ----------------------------------------------------------------------------
 //  CLASS : sc_event_timed
@@ -336,12 +353,12 @@ extern sc_event sc_non_event; // Event that never happens.
 //  Class for storing the time to notify a timed event.
 // ----------------------------------------------------------------------------
 
-class sc_event_timed
+class SC_API sc_event_timed
 {
     friend class sc_event;
     friend class sc_simcontext;
 
-    friend int sc_notify_time_compare( const void*, const void* );
+    friend SC_API int sc_notify_time_compare( const void*, const void* );
 
 private:
 
@@ -510,8 +527,10 @@ sc_event_list::operator=( sc_event_list const & that )
     if( m_busy )
         report_invalid_modification();
 
-    move_from( that );
-    that.auto_delete(); // free automatic lists
+    if( SC_LIKELY_(this != &that) ) {
+        move_from( that );
+        that.auto_delete(); // free automatic lists
+    }
 
     return *this;
 }
@@ -547,7 +566,7 @@ inline
 int
 sc_event_list::size() const
 {
-    return m_events.size();
+    return static_cast<int>(m_events.size());
 }
 
 inline
@@ -808,6 +827,10 @@ operator & ( sc_event_and_expr expr, sc_event_and_list const & el )
 }
 
 } // namespace sc_core
+
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+#pragma warning(pop)
+#endif
 
 // $Log: sc_event.h,v $
 // Revision 1.14  2011/08/29 18:04:32  acg

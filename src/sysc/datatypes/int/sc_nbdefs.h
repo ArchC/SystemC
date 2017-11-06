@@ -23,7 +23,7 @@
                  arithmetic. This file defines all the constants needed.
 
   Original Author: Ali Dasdan, Synopsys, Inc.
-  
+
  *****************************************************************************/
 
 /*****************************************************************************
@@ -31,8 +31,9 @@
   MODIFICATION LOG - modifiers, enter your name, affiliation, date and
   changes you are making here.
 
-      Name, Affiliation, Date:
-  Description of Modification:
+      Name, Affiliation, Date: Torsten Maehne, Berner Fachhochschule, 2016-09-24
+  Description of Modification: Move constant definitions to the header so that
+                               that their value is known at compile time.
 
  *****************************************************************************/
 
@@ -74,7 +75,6 @@
 #  include <stdint.h>
 #endif
 
-#include "sysc/utils/sc_iostream.h"
 #include "sysc/kernel/sc_constants.h"   // For SC_MAX_NBITS
 
 // Activate support mixed operands for concatenation via the comma operator
@@ -156,7 +156,7 @@ typedef int small_type;
 #define DIV_CEIL(x) DIV_CEIL2(x, BITS_PER_DIGIT)
 
 #ifdef SC_MAX_NBITS
-extern const int MAX_NDIGITS;
+static const int MAX_NDIGITS = DIV_CEIL(SC_MAX_NBITS) + 2;
 // Consider a number with x bits another with y bits. The maximum
 // number of bits happens when we multiply them. The result will have
 // (x + y) bits. Assume that x + y <= SC_MAX_NBITS. Then, DIV_CEIL(x) +
@@ -166,10 +166,10 @@ extern const int MAX_NDIGITS;
 #endif
 
 // Support for "digit" vectors used to hold the values of sc_signed,
-// sc_unsigned, sc_bv_base,  and sc_lv_base data types. This type is also used 
-// in the concatenation support. An sc_digit is currently an unsigned 32-bit 
+// sc_unsigned, sc_bv_base,  and sc_lv_base data types. This type is also used
+// in the concatenation support. An sc_digit is currently an unsigned 32-bit
 // quantity. The typedef used is an unsigned int, rather than an unsigned long,
-// since the unsigned long data type varies in size between 32-bit and 64-bit 
+// since the unsigned long data type varies in size between 32-bit and 64-bit
 // machines.
 
 typedef unsigned int sc_digit;	// 32-bit unsigned integer
@@ -177,22 +177,26 @@ typedef unsigned int sc_digit;	// 32-bit unsigned integer
 // Support for the long long type. This type is not in the standard
 // but is usually supported by compilers.
 #ifndef _WIN32
-#   if defined(__x86_64__)
+#   if defined(__x86_64__) || defined(__aarch64__)
         typedef long long          int64;
         typedef unsigned long long uint64;
 #   else
         typedef int64_t            int64;
         typedef uint64_t           uint64;
 #   endif
-    extern const uint64        UINT64_ZERO;
-    extern const uint64        UINT64_ONE;
-    extern const uint64        UINT64_32ONES;
 #else
     typedef __int64            int64;
     typedef unsigned __int64   uint64;
-    extern const uint64        UINT64_ZERO;
-    extern const uint64        UINT64_ONE;
-    extern const uint64        UINT64_32ONES;
+#endif
+
+#if !defined(_WIN32) || defined(__MINGW32__)
+    static const uint64 UINT64_ZERO   = 0ULL;
+    static const uint64 UINT64_ONE    = 1ULL;
+    static const uint64 UINT64_32ONES = 0x00000000ffffffffULL;
+#else
+    static const uint64 UINT64_ZERO   = 0i64;
+    static const uint64 UINT64_ONE    = 1i64;
+    static const uint64 UINT64_32ONES = 0x00000000ffffffffi64;
 #endif
 
 
@@ -218,65 +222,16 @@ typedef unsigned int sc_digit;	// 32-bit unsigned integer
 // Above, BITS_PER_X is mainly used for sc_signed, and BITS_PER_UX is
 // mainly used for sc_unsigned.
 
-#if defined( _WIN32 ) || defined( __HP_aCC )
-typedef unsigned long fmtflags;
-#else
-typedef ::std::ios::fmtflags fmtflags;
-#endif
-
-extern const small_type NB_DEFAULT_BASE ;
+static const small_type NB_DEFAULT_BASE = SC_DEC;
 
 // For sc_int code:
-#define LLWIDTH  BITS_PER_INT64
-#define INTWIDTH BITS_PER_INT
 
-#ifndef _32BIT_
-
-typedef int64 int_type;
-typedef uint64 uint_type;
-#define SC_INTWIDTH 64
-extern const uint64 UINT_ZERO;
-extern const uint64 UINT_ONE;
-
-#else
-
-typedef int int_type;
-typedef unsigned int uint_type;
-#define SC_INTWIDTH 32
-extern const unsigned int UINT_ZERO;
-extern const unsigned int UINT_ONE;
-
-#endif
-
-
-#if defined(_MSC_VER) && ( _MSC_VER < 1300 )
-    // VC++6 bug
-    ::std::ostream& operator << ( ::std::ostream&, int64 );
-    ::std::ostream& operator << ( ::std::ostream&, uint64 );
-#endif
+    typedef int64 int_type;
+    typedef uint64 uint_type;
+#   define SC_INTWIDTH 64
+    static const uint64 UINT_ZERO = UINT64_ZERO;
+    static const uint64 UINT_ONE = UINT64_ONE;
 
 } // namespace sc_dt
-
-
-#if defined(_MSC_VER) && ( _MSC_VER < 1300 )
-
-    inline
-    ::std::ostream&
-    operator << ( ::std::ostream& os, sc_dt::int64 a )
-    {
-	sc_dt::operator << ( os, a );
-	return os;
-    }
-
-    inline
-    ::std::ostream&
-    operator << ( ::std::ostream& os, sc_dt::uint64 a )
-    {
-	sc_dt::operator << ( os, a );
-	return os;
-    }
-
-#endif
-
 
 #endif

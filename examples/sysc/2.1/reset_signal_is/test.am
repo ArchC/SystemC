@@ -58,7 +58,7 @@ examples_BUILD += \
 
 examples_CLEAN += \
 	2.1/reset_signal_is/run.log \
-	2.1/reset_signal_is/expexted_trimmed.log \
+	2.1/reset_signal_is/expected_trimmed.log \
 	2.1/reset_signal_is/run_trimmed.log \
 	2.1/reset_signal_is/diff.log
 
@@ -75,14 +75,15 @@ examples_FILES += \
 2_1_reset_signal_is_CXX_FILES = \
 	2.1/reset_signal_is/reset_signal_is.cpp
 
-2_1_reset_signal_is_BUILD =
+2_1_reset_signal_is_BUILD = \
+	2.1/reset_signal_is/golden.log
 
 2_1_reset_signal_is_EXTRA = \
-	2.1/reset_signal_is/reset_signal_is.vcproj \
+	2.1/reset_signal_is/reset_signal_is.sln \
+	2.1/reset_signal_is/reset_signal_is.vcxproj \
 	2.1/reset_signal_is/Makefile
 
 #2_1_reset_signal_is_FILTER = 
-#export 2_1_reset_signal_is_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

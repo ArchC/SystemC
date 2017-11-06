@@ -35,7 +35,7 @@
 
  *****************************************************************************/
 
-/* 
+/*
 $Log: scx_signal_uint.cpp,v $
 Revision 1.3  2011/08/26 22:28:29  acg
  Torsten Maehne: eliminate unused argument warnings.
@@ -131,7 +131,7 @@ sc_dt::uint64 sc_uint_part_if::read_part( int /*left*/, int /*right*/ ) const
 sc_uint_sigref& sc_uint_part_if::select_part( int /*left*/, int /*right*/ )
 {
     SC_REPORT_ERROR( SC_ID_OPERATION_ON_NON_SPECIALIZED_SIGNAL_, "int" );
-    return *(sc_uint_sigref*)0;
+    sc_core::sc_abort(); // can't recover from here
 }
 void sc_uint_part_if::write_part( sc_dt::uint64 /*v*/, int /*left*/, int /*right*/ )
 {
@@ -155,7 +155,7 @@ void sc_uint_sigref::concat_set(sc_dt::int64 src, int low_i)
 
 void sc_uint_sigref::concat_set(const sc_dt::sc_signed& src, int low_i)
 {
-    if ( low_i < src.length() )  
+    if ( low_i < src.length() )
         *this = src >> low_i;
     else
         *this = (src < 0) ? (sc_dt::uint64)-1 : 0;

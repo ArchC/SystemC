@@ -33,6 +33,13 @@
 #include <string>
 #include <vector>
 
+#include "sysc/kernel/sc_cmnhdr.h"
+
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+#pragma warning(push)
+#pragma warning(disable: 4251) // DLL import for std::string,vector
+#endif
+
 namespace sc_core {
 
 // ----------------------------------------------------------------------------
@@ -41,7 +48,7 @@ namespace sc_core {
 //  Attribute base class.
 // ----------------------------------------------------------------------------
 
-class sc_attr_base
+class SC_API sc_attr_base
 {
 public:
 
@@ -74,7 +81,7 @@ private:
 //  Note: iterate over the collection by using iterators.
 // ----------------------------------------------------------------------------
 
-class sc_attr_cltn
+class SC_API sc_attr_cltn
 {
 public:
 
@@ -109,7 +116,7 @@ public:
 
     // get the size of the collection
     int size() const
-        { return m_cltn.size(); }
+        { return static_cast<int>(m_cltn.size()); }
 
     // get the begin iterator
     iterator begin()
@@ -179,6 +186,10 @@ private:
 };
 
 } // namespace sc_core
+
+#if defined(_MSC_VER) && !defined(SC_WIN_DLL_WARN)
+#pragma warning(pop)
+#endif
 
 // $Log: sc_attribute.h,v $
 // Revision 1.6  2011/08/26 20:46:08  acg

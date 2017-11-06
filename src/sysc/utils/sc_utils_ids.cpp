@@ -34,7 +34,7 @@
 
 
 namespace sc_core {
-#define SC_DEFINE_MESSAGE(id,unused,text) extern const char id[] = text;
+#define SC_DEFINE_MESSAGE(id,unused,text) extern SC_API const char id[] = text;
 #include "sysc/utils/sc_utils_ids.h"
 #include "sysc/kernel/sc_kernel_ids.h"
 #include "sysc/communication/sc_communication_ids.h"
@@ -76,9 +76,14 @@ static sc_report_handler::msg_def_items items = {
     texts, sizeof(texts)/sizeof(*texts), false, 0
 };
 
+static int initialize();
+static int forty_two = initialize();
+
 static
 int initialize()
 {
+    (void)forty_two; /* avoid unused variable warning */
+
     sc_report_handler::add_static_msg_types(&items);
 
     // PROCESS ANY ENVIRONMENTAL OVERRIDES:
@@ -91,8 +96,6 @@ int initialize()
     }
     return 42;
 }
-
-static int forty_two = initialize();
 
 } // namespace sc_core
 

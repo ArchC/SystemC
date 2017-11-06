@@ -57,7 +57,7 @@ examples_BUILD += \
 
 examples_CLEAN += \
 	rsa/run.log \
-	rsa/expexted_trimmed.log \
+	rsa/expected_trimmed.log \
 	rsa/run_trimmed.log \
 	rsa/diff.log
 
@@ -74,15 +74,17 @@ rsa_H_FILES =
 rsa_CXX_FILES = \
 	rsa/rsa.cpp
 
-rsa_BUILD =
+# output is randomized across runs
+#rsa_BUILD = \
+#	rsa/golden.log
 
 rsa_EXTRA = \
-	rsa/rsa.vcproj \
+	rsa/rsa.sln \
+	rsa/rsa.vcxproj \
 	rsa/Makefile \
 	rsa/README
 
 #rsa_FILTER = 
-#export rsa_FILTER
 
 ## Taf!
 ## :vim:ft=automake:

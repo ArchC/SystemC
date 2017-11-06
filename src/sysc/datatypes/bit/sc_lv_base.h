@@ -84,7 +84,7 @@ class sc_lv_base;
 //  Arbitrary size logic vector base class.
 // ----------------------------------------------------------------------------
 
-class sc_lv_base
+class SC_API sc_lv_base
     : public sc_proxy<sc_lv_base>
 {
     friend class sc_bv_base;
@@ -98,7 +98,8 @@ public:
 
     // typedefs
 
-    typedef sc_proxy<sc_lv_base> base_type;
+    typedef sc_proxy<sc_lv_base>  base_type;
+    typedef base_type::value_type value_type;
 
 
     // constructors
@@ -197,50 +198,6 @@ public:
     sc_lv_base& operator = ( int64 a )
 	{ base_type::assign_( a ); return *this; }
 
-
-#if 0
-
-    // bitwise complement
-
-    sc_lv_base& b_not()
-	{ return sc_proxy<sc_lv_base>::b_not(); }
-
-    const sc_lv_base operator ~ () const
-	{ sc_lv_base a( *this ); return a.b_not(); }
-
-
-    // bitwise left shift
-
-    sc_lv_base& operator <<= ( int n )
-	{ return sc_proxy<sc_lv_base>::operator <<= ( n ); }
-
-    const sc_lv_base operator << ( int n ) const
-	{ sc_lv_base a( *this ); return ( a <<= n ); }
-
-
-    // bitwise right shift
-
-    sc_lv_base& operator >>= ( int n )
-	{ return sc_proxy<sc_lv_base>::operator >>= ( n ); }
-
-    const sc_lv_base operator >> ( int n ) const
-	{ sc_lv_base a( *this ); return ( a >>= n ); }
-
-
-    // bitwise left rotate
-
-    sc_lv_base& lrotate( int n )
-	{ return sc_proxy<sc_lv_base>::lrotate( n ); }
-
-
-    // bitwise right rotate
-
-    sc_lv_base& rrotate( int n )
-	{ return sc_proxy<sc_lv_base>::rrotate( n ); }
-
-#endif
-
-
     // common methods
 
     int length() const
@@ -249,8 +206,8 @@ public:
     int size() const
 	{ return m_size; }
 
-    sc_logic_value_t get_bit( int i ) const;
-    void set_bit( int i, sc_logic_value_t value );
+    value_type get_bit( int i ) const;
+    void set_bit( int i, value_type value );
 
     sc_digit get_word( int wi ) const
 	{ return m_data[wi]; }
@@ -260,14 +217,14 @@ public:
 	// an extend_sign on a concatenation uses the whole length of 
 	// the concatenation to determine how many words to set.
     void set_word( int wi, sc_digit w )
-	{ assert ( wi < m_size ); m_data[wi] = w; }
+	{ sc_assert ( wi < m_size ); m_data[wi] = w; }
 	 
 
     sc_digit get_cword( int wi ) const
 	{ return m_ctrl[wi]; }
 
     void set_cword( int wi, sc_digit w )
-	{ assert ( wi < m_size ); m_ctrl[wi] = w; }
+	{ sc_assert ( wi < m_size ); m_ctrl[wi] = w; }
 
     void clean_tail();
 
@@ -314,18 +271,18 @@ rrotate( const sc_lv_base& x, int n )
 
 
 inline
-sc_logic_value_t
+sc_lv_base::value_type
 sc_lv_base::get_bit( int i ) const
 {
     int wi = i / SC_DIGIT_SIZE;
     int bi = i % SC_DIGIT_SIZE;
-    return sc_logic_value_t( ((m_data[wi] >> bi) & SC_DIGIT_ONE) |
+    return value_type( ((m_data[wi] >> bi) & SC_DIGIT_ONE) |
 			     (((m_ctrl[wi] >> bi) << 1) & SC_DIGIT_TWO) );
 }
 
 inline
 void
-sc_lv_base::set_bit( int i, sc_logic_value_t value )
+sc_lv_base::set_bit( int i, value_type value )
 {
     int wi = i / SC_DIGIT_SIZE; // word index
     int bi = i % SC_DIGIT_SIZE; // bit index
@@ -713,11 +670,9 @@ sc_proxy<X>::lrotate( int n )
 {
     X& x = back_cast();
     if( n < 0 ) {
-	char msg[BUFSIZ];
-	std::sprintf( msg,
-		 "left rotate operation is only allowed with positive "
-		 "rotate values, rotate value = %d", n );
-	SC_REPORT_ERROR( sc_core::SC_ID_OUT_OF_BOUNDS_, msg );
+        sc_proxy_out_of_bounds( "left rotate operation is only allowed with "
+                                "positive rotate values, rotate value = ", n );
+        return x;
     }
     int len = x.length();
     n %= len;
@@ -752,11 +707,9 @@ sc_proxy<X>::rrotate( int n )
 {
     X& x = back_cast();
     if( n < 0 ) {
-	char msg[BUFSIZ];
-	std::sprintf( msg,
-		 "right rotate operation is only allowed with positive "
-		 "rotate values, rotate value = %d", n );
-	SC_REPORT_ERROR( sc_core::SC_ID_OUT_OF_BOUNDS_, msg );
+        sc_proxy_out_of_bounds( "right rotate operation is only allowed with "
+                                "positive rotate values, rotate value = ", n );
+        return x;
     }
     int len = x.length();
     n %= len;
@@ -1820,6 +1773,10 @@ concat( bool a, sc_proxy<T>& b )
 }
 
 #endif
+
+// extern template instantiations
+SC_API_TEMPLATE_DECL_ sc_proxy<sc_lv_base>;
+SC_API_TEMPLATE_DECL_ sc_proxy<sc_bv_base>;
 
 } // namespace sc_dt
 

@@ -41,9 +41,9 @@
 
 #ifndef SC_DEFINE_MESSAGE
 #define SC_DEFINE_MESSAGE(id,unused1,unused2) \
-    namespace sc_core { extern const char id[]; }
+    namespace sc_core { extern SC_API const char id[]; }
 namespace sc_core {
-    extern const char SC_ID_REGISTER_ID_FAILED_[]; // in sc_report_handler.cpp
+    extern SC_API const char SC_ID_REGISTER_ID_FAILED_[]; // in sc_report_handler.cpp
 } // namespace sc_core
 #endif
 
@@ -91,6 +91,8 @@ SC_DEFINE_MESSAGE( SC_ID_SC_EXPORT_HAS_NO_INTERFACE_,  120,
 			"sc_export instance has no interface" )
 SC_DEFINE_MESSAGE( SC_ID_INSERT_EXPORT_,  121,
     "insert sc_export failed" )
+SC_DEFINE_MESSAGE( SC_ID_EXPORT_OUTSIDE_MODULE_, 122,
+    "sc_export specified outside of module" )
 SC_DEFINE_MESSAGE( SC_ID_SC_EXPORT_NOT_REGISTERED_,  123,
     "remove sc_export failed, sc_export not registered" )
 SC_DEFINE_MESSAGE( SC_ID_SC_EXPORT_NOT_BOUND_AFTER_CONSTRUCTION_,  124,

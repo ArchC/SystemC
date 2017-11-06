@@ -50,9 +50,17 @@
 
 #include "sysc/datatypes/int/sc_length_param.h"
 
+#include <sstream>
 
-namespace sc_dt
-{
+// explicit template instantiations
+namespace sc_core {
+template class SC_API sc_phash<void*, const sc_dt::sc_length_param*>;
+} // namespace sc_core
+
+namespace sc_dt {
+
+template class SC_API sc_global<sc_length_param>;
+template class SC_API sc_context<sc_length_param>;
 
 // ----------------------------------------------------------------------------
 //  CLASS : sc_length_param
@@ -63,23 +71,16 @@ namespace sc_dt
 const std::string
 sc_length_param::to_string() const
 {
-    std::string s;
-
-    char buf[BUFSIZ];
-
-    s += "(";
-    std::sprintf( buf, "%d", m_len );
-    s += buf;
-    s += ")";
-
-    return s;
+    std::stringstream ss;
+    print(ss);
+    return ss.str();
 }
 
 
 void
 sc_length_param::print( ::std::ostream& os ) const
 {
-    os << to_string();
+    os << "(" << m_len << ")";
 }
 
 void
